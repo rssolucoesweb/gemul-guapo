@@ -1,0 +1,665 @@
+﻿<!--#include file="config.asp"-->
+<body>
+    <!--#include file="topo.asp"-->
+    <!--#include file="../includes/inc_cnn.asp"-->
+    <!--#include file="../includes/inc_formatadata.asp"-->
+    <!--#include file="../includes/inc_verificaSession.asp"-->
+    <!--#include file="../includes/inc_EnviarEmail.asp"-->
+    <%
+	
+	strSubmitSubstituicao	= "S"
+	intCodGrupo 			= request.Form("cmdGrupo")
+	intCodEmpresaUsuario 	= request.Form("cmdEmpresaUsuario")
+	
+	if cInt(Session("QtdeUsuarioEmpresaAcessa")) < 2 then
+		intCodEmpresaUsuario = Session("CodEmpresaTemp")
+		Session("CodEmpresaTemp") = ""
+	end if
+	
+    if trim(Session("Aluno")) <> "S" then
+		if trim(intCodEmpresaUsuario) = "" then intCodEmpresaUsuario = "0"
+		if trim(intCodEmpresaUsuario) = "0" and trim(Session("CodEmpresa"))<>"" then intCodEmpresaUsuario = Session("CodEmpresa")
+		if trim(intCodGrupo) = "0" and trim(Session("CodGrupo"))<>"" then intCodGrupo = Session("CodGrupo")
+    else
+		if trim(intCodEmpresaUsuario) = "" then intCodEmpresaUsuario = "0"
+		if trim(intCodEmpresaUsuario) = "0" and trim(Session("CodEmpresaAluno"))<>"" then intCodEmpresaUsuario = Session("CodEmpresaAluno")
+		if trim(intCodGrupo) = "0" and trim(Session("CodGrupo"))<>"" then intCodGrupo = Session("CodGrupo")
+    end if
+	
+	' Dados Combo Substituicao
+	intCodSubstituicao = request.Form("cmbSubstituicao")
+	if intCodSubstituicao = "" then intCodSubstituicao = "0"
+	
+	'limpa sessions
+	Session("caminhoLogomarcaEmpresa")  = ""
+	session("EmpresaWeb")				= ""
+	session("MantenedoraWeb")			= ""
+	session("EmpresaWebCNPJ")			= ""
+	session("EnderecoEmpresaWeb")		= ""
+	session("CidadeEmpresaWeb")			= ""
+	session("BairroEmpresaWeb")			= ""
+	session("UFEmpresaWeb")				= ""
+	session("CepEmpresaWeb")			= ""
+	session("TelefoneEmpresaWeb")		= ""
+	session("NomeDiretorEmpresaWeb")	= ""
+	session("NomeSecretariaEmpresaWeb")	= ""
+	Session("UsuarioSenha")				= ""
+	Session("CodDeptoUsuario")			= ""
+	Session("DescDeptoUsuario")			= ""
+	Session("strAnoLetivo")				= ""
+	Session("strSemestre")				= ""
+	Session("strTodosSemestre") 		= ""
+	Session("strDescSemestre") 			= ""
+	Session("strMesEncerramentoPrimeiroSemestre")	= ""
+	Session("strMesEncerramentoSegundoSemestre")	= ""
+	Session("strChecarFinanceiro")					= ""
+	Session("strNomeGrupo") = ""
+	Session("CodTodasEmpresaGrupo") = ""
+	strnotificacao                  	= ""
+	strBloqueio                         = ""
+    strExecutarSubmitGrupo				= "S"
+	Session("CFP") = ""
+	Session("cpfColaborador") = ""	
+	Session("CodColaborador") = ""
+	Session("Substituicao") = "N"
+
+	
+	' Pegao o Codigo do Coloborador Ativo
+	sql = " Select Codigo, codFuncional"
+	sql = sql & " from SRH_COLABORADOR "
+	sql = sql & " where codigo_SEG_USUARIOS_SISTEMA = '" & Session("UsuarioWeb")  & "'"
+	sql = sql & " and CodCategoria = 1 "'professor
+	sql = sql & " and Situacao = 'A'" 'Ativo
+	rs1.open sql, cnn
+	
+	if rs1.eof = false then
+		Session("CodColaborador")			= rs1("codigo")
+		Session("codFuncional")				= rs1("codFuncional")
+	end if
+	rs1.close
+	
+	' Consulta o CPF do Colaborador
+	sql = " select codigo, CPF"
+	sql = sql & " From SRH_COLABORADOR "
+	sql = sql & " where SRH_COLABORADOR.codigo_SEG_USUARIOS_SISTEMA = '" & Session("UsuarioWeb")  & "'"
+	rs1.open sql, cnn
+	
+	if rs1.eof = false then
+		Session("CFP") = rs1("CPF") 
+		Session("cpfColaborador") = rs1("CPF") 
+	end if
+	rs1.close
+
+	' Consulta para ver se exite professor substituto no usuario Logado
+	sql = " select CS.CodColaboradorSubstituido"
+	sql = sql & " from SRH_COLABORADOR_SUBSTITUTO CS "
+	sql = sql & " inner join SRH_COLABORADOR C on C.codigo = CS.CodColaboradorSubstituto"
+	sql = sql & " where C.codigo_SEG_USUARIOS_SISTEMA = '" & Session("UsuarioWeb")  & "'"
+	sql = sql & " AND CS.Situacao = 'A'"
+	rs1.open sql, cnn
+	
+	if rs1.eof = false then
+		
+		while not rs1.eof
+			
+			IF trim(Session("CodColaborador")) = "" then
+				Session("CodColaboradorSubstituicao") = rs1("CodColaboradorSubstituido") 
+			else
+				Session("CodColaboradorSubstituicao") = Session("CodColaborador") & "," & rs1("CodColaboradorSubstituido") 
+			end if
+			rs1.movenext
+			
+		wend
+		
+	  	Session("Substituicao") = "S"
+	
+	end if
+	rs1.close	
+	
+	if Session("Substituicao") = "S" then
+	
+		if trim(intCodSubstituicao) <> "0" then
+	
+			' Pega o Professor selecionado para fazer a substituicao
+			sql = " Select C.codigo, C.cod_empresa, C.nome, C.codigo_SEG_USUARIOS_SISTEMA, C.codLotacao, A.ACES_PERF_CODG, C.CodCategoria, C.codFuncional, FC.Desc_Funcao AS Funcao, C.CodTurno, TU.Desc_Turno  "
+			sql = sql & " From SRH_COLABORADOR_SUBSTITUTO CS"
+			sql = sql & " inner join SRH_COLABORADOR C on C.codigo = CS.CodColaboradorSubstituido"
+			sql = sql & " inner join SEG_ACESSOS_USUARIO A on A.ACES_USUA_CODG = c.codigo_SEG_USUARIOS_SISTEMA "
+			sql = sql & " INNER JOIN SRH_FUNCAOCOLABORADOR FC ON FC.Cod_Funcao = C.codFuncao "
+			sql = sql & " INNER JOIN SRH_TURNO TU ON TU.COD_TURNO = C.CodTurno "  
+			sql = sql & " where C.codigo = " & intCodSubstituicao
+			rs1.open sql, cnn
+			
+			if rs1.eof = false then
+				Session("UsuarioWeb")				= rs1("codigo_SEG_USUARIOS_SISTEMA")		
+				Session("CodEmpresa")				= rs1("codLotacao")
+				Session("CodColaborador")			= rs1("codigo")
+				Session("codLotacao")				= rs1("codLotacao")
+				Session("PerfilUsuario")			= rs1("ACES_PERF_CODG")
+				intCodEmpresaUsuario				= rs1("codLotacao")
+				
+				'Limpa a session para que o coloborador log novamente
+				Session("Substituicao") 			= "N"
+
+				' Variaveis de sessao usado no gerenciar perfil... 
+				Session("Seg_CodColaborador")  	= rs1("codigo")
+				Session("Seg_CodFuncional")	 	= rs1("codFuncional")
+				Session("Seg_CodCategoria")		= rs1("CodCategoria") 
+				Session("Seg_Funcao")			= rs1("Funcao")	 
+				Session("Seg_CodLotacao")	 	= rs1("codLotacao")	
+				Session("Seg_Turno")		 	= rs1("Desc_Turno")
+				Session("Seg_Perfil")			= rs1("ACES_PERF_CODG")
+				
+			end if
+			rs1.close
+
+		end if
+		
+	end if
+	
+	sql = "SELECT  * "
+	sql = sql & " FROM SCC_ParametroSistema "
+	RsAux.open sql, cnn
+	
+	if RsAux.eof = false then
+
+		strCnpj 						= RsAux("cnpj")
+		strInscricaoEstadual 			= RsAux("InscricaoEstadual")
+		strRazaoSocial 					= RsAux("razaoSocial")
+		session("strRazaoSocial") 		= RsAux("razaoSocial")
+		strEndereco 					= RsAux("EnderecoEmpresa")
+		session("strEndereco") 			= RsAux("razaoSocial")
+		strBairro 						= RsAux("BairroEmpresa")
+		strCidade 						= RsAux("CidadeEmpresa")
+		strUF 							= RsAux("UFEmpresa")
+		strCep 							= RsAux("CepEmpresa")
+		strImagemRecibo 				= RsAux("ImagemRecibo")
+		session("strImagemRecibo") 		= RsAux("razaoSocial")
+		strImagemRelatorio 				= RsAux("ImagemRelatorio")
+		session("strImagemRelatorio") 	= RsAux("razaoSocial")
+		strFone						 	= RsAux("FoneEmpresa")
+		strFax 							= RsAux("FaxEmpresa")
+		strEmail 						= RsAux("EmailEmpresa")
+		strWebsite 						= RsAux("WebsiteEmpresa")
+		strAssinatura 					= RsAux("Assinatura")
+		strCPF 							= RsAux("CPF")
+		intMulta 						= RsAux("Multa")
+		intMora 						= RsAux("Mora")
+		
+		session("strCnpjParamento") = RsAux("cnpj")
+		session("strRazaoSocialParamento") = RsAux("razaoSocial")
+		session("strEnderecoParamento") = RsAux("enderecoEmpresa")
+		session("strCEPEmpresaParamento") = RsAux("CepEmpresa")
+		session("strBairroParamento") = RsAux("BairroEmpresa")
+		session("strCidadeParamento") = RsAux("CidadeEmpresa")
+		session("strUFParamento") = RsAux("UFEmpresa")
+		session("strImagemReciboParamento") = RsAux("ImagemRecibo")
+		session("strImagemRelatorioParamento") = RsAux("ImagemRelatorio")
+		session("strFoneParamento") = RsAux("FoneEmpresa")
+		session("strAssinaturaParamento") = RsAux("Assinatura")
+		session("strCPFAssinaturaParamento") = RsAux("CPF")
+		session("strTxMultaParamento") = RsAux("Multa")
+		session("strTxMoraParamento") = RsAux("Mora")
+		session("strMultaParamento") = "Após o vencimento multa de " & RsAux("Multa") & "%"
+		session("strMoraParamento")  = "Após o vencimento mora dia " & RsAux("Mora") & "%"
+		session("strEmailEmpresaParamento")  = RsAux("EmailEmpresa")
+		session("strWebsiteEmpresaParamento") = RsAux("WebsiteEmpresa")
+		
+	end if 
+	RsAux.close
+
+	'---------------------------------
+	'acesso EXCLUSIVO para o SECRETARIO
+	'---------------------------------
+	if Session("UsuarioWeb") = "RODRIGO.CALDAS" then
+		Session("CodEmpresa") 				= 108
+		Session("CodGrupo")                 = 7
+		Session("strFone")                  = "(62) 3545-5949"
+		session("EmpresaWeb")				= "SECRETARIA MUN. DA EDUC. DE APARECIDA DE GOIANIA"
+		session("MantenedoraWeb")			= "SECRETARIA MUN. DA EDUC. DE APARECIDA DE GOIANIA"
+		session("EmpresaWebCNPJ")			= "06.086.543/0001-50"
+		session("EnderecoEmpresaWeb")		= "RUA 04 COM RUA 05 Q.JA ÁREA PÚBLICA S/N"
+		session("CidadeEmpresaWeb")			= "SENADOR CANEDO"
+		session("BairroEmpresaWeb")			= "SETOR ARAGUAIA"
+		session("UFEmpresaWeb")				= "GO"
+		session("CepEmpresaWeb")			= "74.981-040"
+		session("TelefoneEmpresaWeb")		= "(62) 3545-5949"
+		session("NomeDiretorEmpresaWeb")	= "NOME DO DIRETOR"
+		session("NomeSecretariaEmpresaWeb")	= "NOME DA SECRETARIA"
+		Session("caminhoLogomarcaEmpresa")  = "http://" & Request.ServerVariables("SERVER_NAME") & "/logomarcas/" &Session("CodEmpresa") & "/logoAparecidadeGoiania.jpg"
+		Session("strAnoLetivo")			= year(date)
+		Session("strSemestre")			= 3
+		
+		%>
+		<script>
+           window.location = "SEC/DEFAULT.ASP";
+        </script>
+        <%
+        response.end()
+	end if
+
+
+	
+	if intCodEmpresaUsuario <> "0" then
+
+	    if Session("Aluno") <> "S" then 
+		
+			sql = " SELECT  SEG_EMPRESA.DIRETOR,SEG_EMPRESA.SECRETARIA, SEG_EMPRESA.UF, SEG_EMPRESA.ENDERECO, SEG_EMPRESA.MUNICIPIO, SEG_EMPRESA.BAIRRO, SEG_EMPRESA.CEP, SEG_EMPRESA.NOTIFICACAO, SEG_EMPRESA.BLOQUEIO, SEG_EMPRESA.COD_GRUPO, SEG_USUARIOS_SISTEMA.GESTOR_FINANCEIRO, "
+			sql = sql & " SEG_EMPRESA.TELEFONE, SEG_EMPRESA.logomarca, SEG_EMPRESA.RAZAOSOCIAL AS EMPRESA, SEG_EMPRESA.MANTENEDORA, SEG_USUARIOS_SISTEMA.Usua_data_alteracao_senha, SEG_USUARIOS_SISTEMA.Usua_data_hora_ult_logon_web, SEG_USUARIOS_SISTEMA.USUA_CODG,"
+			sql = sql & " SEG_USUARIOS_SISTEMA.USUA_NOME_COMPLETO, SEG_USUARIOS_EMPRESA.COD_EMPRESA,"
+			sql = sql & " SEG_DEPARTAMENTO.DESCRICAO AS descDepto, SEG_USUARIOS_SISTEMA.CODIGO_DEPARTAMENTO, SEG_USUARIOS_EMPRESA.NIVEL_PERMISSAO, SEG_USUARIOS_SISTEMA.USUARIO_MASTER, SEG_EMPRESA.CNPJ "
+			sql = sql & " FROM SEG_EMPRESA"
+			sql = sql & " INNER JOIN SEG_USUARIOS_EMPRESA ON SEG_EMPRESA.CODIGO = SEG_USUARIOS_EMPRESA.COD_EMPRESA "
+			sql = sql & " INNER JOIN SEG_USUARIOS_SISTEMA ON SEG_USUARIOS_SISTEMA.USUA_CODG = SEG_USUARIOS_EMPRESA.CODIGO_SEG_USUARIOS_SISTEMA "
+			sql = sql & " LEFT JOIN SEG_DEPARTAMENTO		ON SEG_USUARIOS_EMPRESA.COD_EMPRESA = SEG_DEPARTAMENTO.COD_EMPRESA AND SEG_USUARIOS_SISTEMA.CODIGO_DEPARTAMENTO = SEG_DEPARTAMENTO.CODIGO"
+			sql = sql & " WHERE SEG_USUARIOS_SISTEMA.USUA_CODG = '" & Session("UsuarioWeb") & "'"
+			sql = sql & " AND SEG_USUARIOS_EMPRESA.COD_EMPRESA = " & intCodEmpresaUsuario
+			
+		else
+		
+			sql = " SELECT "
+			sql = sql & " SEG_EMPRESA.DIRETOR, "
+			sql = sql & " SEG_EMPRESA.SECRETARIA, "
+			sql = sql & " SEG_EMPRESA.UF, " 
+			sql = sql & " SEG_EMPRESA.ENDERECO, " 
+			sql = sql & " SEG_EMPRESA.MUNICIPIO, " 
+			sql = sql & " SEG_EMPRESA.BAIRRO, " 
+			sql = sql & " SEG_EMPRESA.CEP, " 
+			sql = sql & " SEG_EMPRESA.NOTIFICACAO, " 
+			sql = sql & " SEG_EMPRESA.BLOQUEIO, " 
+			sql = sql & " SEG_EMPRESA.COD_GRUPO, " 
+			sql = sql & " '' AS GESTOR_FINANCEIRO, " 
+			sql = sql & " SEG_EMPRESA.TELEFONE, " 
+			sql = sql & " SEG_EMPRESA.logomarca, " 
+			sql = sql & " SEG_EMPRESA.RAZAOSOCIAL AS EMPRESA, " 
+			sql = sql & " SEG_EMPRESA.MANTENEDORA, " 
+			sql = sql & " NULL AS Usua_data_alteracao_senha, " 
+			sql = sql & " NULL AS Usua_data_hora_ult_logon_web, " 
+			sql = sql & " SCA_ALUNO.MATRICULA AS USUA_CODG, "
+			sql = sql & " SCA_ALUNO.NOMEALUNO AS USUA_NOME_COMPLETO, " 
+			sql = sql & " SCA_ALUNO.COD_EMPRESA, "
+			sql = sql & " 'Consulta Acadêmica' AS descDepto, " 
+			sql = sql & " 0 AS CODIGO_DEPARTAMENTO, " 
+			sql = sql & " NULL AS NIVEL_PERMISSAO, " 
+			sql = sql & " NULL AS USUARIO_MASTER, " 
+			sql = sql & " SEG_EMPRESA.CNPJ " 
+			sql = sql & " FROM SCA_ALUNO " 
+			sql = sql & " INNER JOIN SEG_EMPRESA ON SEG_EMPRESA.CODIGO=SCA_ALUNO.COD_EMPRESA "
+			sql = sql & " WHERE SCA_ALUNO.MATRICULA = '" & Session("LoginAluno") & "'"
+			sql = sql & " AND SCA_ALUNO.COD_EMPRESA = " & Session("CodEmpresaAluno")
+	
+		end if
+		
+		RsAux.Open SQL, cnn
+		
+		if RsAux.EOF = false then
+	
+			'dados da empresa
+			Session("CodEmpresa") 				= RsAux("COD_EMPRESA")
+			Session("CodGrupo")                 = RsAux("COD_GRUPO")
+			Session("strFone")                  = RsAux("TELEFONE")
+			
+			if trim(intCodGrupo) = "0" or trim(intCodGrupo) = ""  then intCodGrupo = RsAux("COD_GRUPO")
+			
+			if isnull(RsAux("logomarca")) or RsAux("logomarca") = "" then
+				'local
+				Session("caminhoLogomarcaEmpresa")  = "http://" & Request.ServerVariables("SERVER_NAME") & "/SISGE/logomarcas/LogoEmpresa.gif"
+				'web
+				Session("caminhoLogomarcaEmpresa")  = "http://" & Request.ServerVariables("SERVER_NAME") & "/logomarcas/LogoEmpresa.gif"
+			else
+				'local
+				Session("caminhoLogomarcaEmpresa")  = "http://" & Request.ServerVariables("SERVER_NAME") & "/SISGE/logomarcas/" & RsAux("COD_EMPRESA") & "/" & RsAux("logomarca")
+				'web
+				Session("caminhoLogomarcaEmpresa")  = "http://" & Request.ServerVariables("SERVER_NAME") & "/logomarcas/" & RsAux("COD_EMPRESA") & "/" & RsAux("logomarca")
+			end if
+
+			session("EmpresaWeb")				= RsAux("EMPRESA")
+			session("MantenedoraWeb")			= RsAux("MANTENEDORA")
+			session("EmpresaWebCNPJ")			= RsAux("CNPJ")
+			session("EnderecoEmpresaWeb")		= RsAux("ENDERECO")
+			session("CidadeEmpresaWeb")			= RsAux("MUNICIPIO")
+			session("BairroEmpresaWeb")			= RsAux("BAIRRO")
+			session("UFEmpresaWeb")				= RsAux("UF")
+			session("CepEmpresaWeb")			= RsAux("CEP")
+			session("TelefoneEmpresaWeb")		= RsAux("TELEFONE")
+			session("NomeDiretorEmpresaWeb")	= RsAux("DIRETOR")
+			session("NomeSecretariaEmpresaWeb")	= RsAux("SECRETARIA")
+			
+			'dados do usuario
+			Session("UsuarioWeb") 				= RsAux("Usua_Codg")	
+			Session("NomeUsuarioWeb")			= RsAux("USUA_NOME_COMPLETO")
+			Session("NivelPermissao")			= RsAux("NIVEL_PERMISSAO")
+			Session("UsuarioMaster")			= RsAux("USUARIO_MASTER")
+			Session("GestorFinanceiro")			= RsAux("GESTOR_FINANCEIRO")
+			
+			Session("UsuarioSenha")				= RsAux("Usua_Codg")
+			Session("CodDeptoUsuario")			= RsAux("CODIGO_DEPARTAMENTO")
+			Session("DescDeptoUsuario")			= RsAux("descDepto")
+			
+			'USADO SOMENTE PARA DEMONSTRAÇÃO
+			if Session("UsuarioWeb") = "USUARIO.TESTE" then
+				session("EmpresaWeb")				= "ESCOLA MUNICIPAL WALTER F. DE CARVALHO"
+				session("MantenedoraWeb")			= "ESCOLA MUNICIPAL WALTER F. DE CARVALHO"
+				session("EmpresaWebCNPJ")			= "00.000.000/0000-00"
+				session("EnderecoEmpresaWeb")		= "RUA JB-11 APM-4 "
+				session("CidadeEmpresaWeb")			= "SENADOR CANEDO"
+				session("BairroEmpresaWeb")			= "JARDIM BOUGANVILLE"
+				session("UFEmpresaWeb")				= "GO"
+				session("CepEmpresaWeb")			= "00.000-000"
+				session("TelefoneEmpresaWeb")		= "(62)-32753084"
+				session("NomeDiretorEmpresaWeb")	= "NOME DO DIRETOR"
+				session("NomeSecretariaEmpresaWeb")	= "NOME DA SECRETARIA"
+				Session("caminhoLogomarcaEmpresa")  = "http://" & Request.ServerVariables("SERVER_NAME") & "/logomarcas/" & "999" & "/" & "logoDemo.jpg"
+			end if
+			     
+			 'Notificação do Sistema
+			strnotificacao                  	= RsAux("NOTIFICACAO")
+			strBloqueio                         = RsAux("BLOQUEIO")
+			
+			'busca informações ano e semestre letivo
+			sql = " SELECT top 1 ano_letivo, semestre, notificacao1, notificacao2 "
+			sql = sql & " FROM SEG_ENCERRAMENTOATIVIDADES "
+			sql = sql & " Where cod_empresa = " & Session("CodEmpresa") 
+			sql = sql & " order by ano_letivo desc"
+			
+			RS1.Open SQL, cnn
+			if RS1.EOF = false then								
+				Session("strAnoLetivo")			= RS1("ano_letivo")
+				Session("strSemestre")			= RS1("semestre")
+				strSemestre 					= Session("strSemestre")
+				strNotificacao1                 =  RS1("notificacao1")
+				strNotificacao2                 =  RS1("notificacao2")
+			else
+				'insere registro
+				if month(date) < 7 then 
+					strSemestre = 1
+				else
+					strSemestre = 2
+				end if
+				sql = "Insert Into SEG_ENCERRAMENTOATIVIDADES(COD_EMPRESA, Ano_letivo, Semestre, data_encerramento, Bloqueia_NotasDocente, Bloqueia_NotasSecretaria)"
+				sql = sql & " Values ("
+				sql = sql & "" & Session("CodEmpresa") & ","
+				sql = sql & "" & year(date) & ","
+				sql = sql & "" & strSemestre & ","									
+				sql = sql & "'" & formataDataBD(date) & " " & time & "',"	
+				sql = sql & "'N',"
+				sql = sql & "'N')"	
+				cnn.execute sql
+			end if
+			RS1.close
+			Session("strSemestre") = strSemestre
+			Session("strTodosSemestre") = strSemestre
+			Session("strDescSemestre") = "Não Informado"
+			
+			'busca regime da escola
+			sql = " SELECT tipo_seriacao "
+			sql = sql & " FROM sca_regime "
+			sql = sql & " Where cod_empresa = " & Session("CodEmpresa") 
+			sql = sql & " order by Cod_Regime desc"
+			RS1.Open SQL, cnn
+			if RS1.EOF = false then		
+				strTipoSeriacao	= trim(rs1("tipo_seriacao"))
+				if strTipoSeriacao	= "A" then 
+					Session("strSemestre") = "3"
+					Session("strDescSemestre") = "Anual"
+					Session("strTodosSemestre") = "3"
+				elseif strTipoSeriacao	= "S" then 
+					if strSemestre = 1 then Session("strSemestre") = "1"
+					if strSemestre = 2 then Session("strSemestre") = "2"
+					Session("strTodosSemestre") = "1,2"
+					Session("strDescSemestre") = strSemestre & "º Semestre"
+				elseif strTipoSeriacao	= "AS" then 
+					if strSemestre = 1 then Session("strSemestre") = "1,3"
+					if strSemestre = 2 then Session("strSemestre") = "2,3"
+					Session("strTodosSemestre") = "1,2,3"
+					Session("strDescSemestre") = "Anual/" & strSemestre & "º Semestre"
+				end if
+			end if
+			RS1.close
+
+			'configurações gerais do sistema
+			Session("strChecarFinanceiro") = "N"
+			sql = " SELECT * "
+			sql = sql & " FROM SEG_CONFIGURACOESGERAIS "
+			sql = sql & " Where cod_empresa = " & Session("CodEmpresa") 
+			RS1.Open SQL, cnn
+			if RS1.EOF = false then								
+				Session("strMesEncerramentoPrimeiroSemestre")	= RS1("Mes_Encerra_Primeiro_Semestre")
+				Session("strMesEncerramentoSegundoSemestre")	= RS1("Mes_Encerra_Segundo_Semestre")
+				Session("strChecarFinanceiro")					= RS1("checar_financeiro")
+				RS1.close			
+			else
+				RS1.close			
+				sql = "Insert Into SEG_CONFIGURACOESGERAIS(COD_EMPRESA, Mes_Encerra_Primeiro_Semestre, Mes_Encerra_Segundo_Semestre, checar_financeiro, perc_multa, perc_mora, Cod_TipoparcelaMensalidade)"
+				sql = sql & " Values ("
+				sql = sql & "" & Session("CodEmpresa") & ","
+				sql = sql & "6,"
+				sql = sql & "8,'N',2,NULL,NULL)"									
+				cnn.execute sql
+			end if	
+		end if	
+		rsAux.close
+
+
+
+		'--------------------------------------------------------------------------
+		'------INICIO - BLOQUEIO SOMENTE PARA A EPOCA DA MATRÍCULA
+		'--------------------------------------------------------------------------
+		if trim(Session("NivelPermissao")) = "A" or Session("UsuarioMaster") = "S" then                   
+			'liberado do bloqueio temporário
+		else
+			%>
+			<!--script>
+				//alert("Sistema em manutenção!");
+				//window.location='../login.asp';
+			</script -->
+			<%
+			'response.end
+		end if	
+		
+		'--------------------------------------------------------------------------
+		'------FIM - BLOQUEIO SOMENTE PARA A EPOCA DA MATRÍCULA
+		'--------------------------------------------------------------------------
+
+
+		
+	    ' INICIO - Dados Para Envio de E-mail
+		strEmail = ""	
+		strEmailOrigem = ""	
+		sql=" SELECT EMAIL_LOGINS, RAZAOSOCIAL, EMAIL_DOMINIO FROM SEG_EMPRESA "
+		sql=sql & " WHERE CODIGO = " & Session("CodEmpresa")  
+		rs1.open sql, cnn
+		if not rs1.eof then
+		   strEmail				= rs1("EMAIL_LOGINS")
+		   unidadeEscolar       = rs1("RAZAOSOCIAL")
+		   strEmailOrigem		= rs1("EMAIL_DOMINIO")	
+		   if isnull(strEmail) then strEmail = "" 
+		   if isnull(strEmailOrigem) then strEmailOrigem = ""
+		end if
+		rs1.close	
+
+		nomeresponsavel = ""	
+		sql=" SELECT NOME, EMAIL, FONERESIDENCIAL, FONECOMERCIAL, FONECELULAR FROM SRH_COLABORADOR "
+		sql=sql & " WHERE CODIGO_SEG_USUARIOS_SISTEMA =  '" & Session("UsuarioWeb") & "'"
+		rs1.open sql, cnn
+		if not rs1.eof then
+		   nomeresponsavel		= rs1("nome")	
+		   email				= rs1("email")	
+		   FoneResidencial   	= rs1("FoneResidencial")	
+		   FoneComercial		= rs1("FoneComercial")	
+		   FoneCelular			= rs1("FoneCelular")	
+		end if
+		rs1.close	
+		
+		strAssuntoEmail	 = "Acompanhamento de Login - Sistema"  
+		strMensagemEmail = "<br> Acesso realizado por: " & nomeresponsavel & "<br>"
+		strMensagemEmail = strMensagemEmail & "Email: " & email & "<br>"
+		strMensagemEmail = strMensagemEmail & "Unidade Escolar: " & unidadeEscolar & "<br>"
+		strMensagemEmail = strMensagemEmail & "Telefone Residencial: " & FoneResidencial & "<br>"
+		strMensagemEmail = strMensagemEmail & "Telefone Celular: " & FoneCelular & "<br>"
+		strMensagemEmail = strMensagemEmail & "Telefone Comercial: " & FoneComercial & "<br>"
+
+		if strEmail <> "" and strEmailOrigem <> "" then 
+		   EnviarEmail strEmailOrigem, strEmail, strAssuntoEmail, strMensagemEmail
+		end if
+		
+		' checar acesso especial
+		sql = "select C.codigo, C.cod_empresa, C.nome, C.codigo_SEG_USUARIOS_SISTEMA, C.codLotacao, e.ACES_PERF_CODG, C.CodCategoria, C.codFuncional, FC.Desc_Funcao AS Funcao, C.CodTurno, TU.Desc_Turno "
+		sql = sql & " from Seg_Acessos_Usuario_Excessoes e"
+		sql = sql & " inner join SRH_COLABORADOR c on c.codigo_seg_usuarios_sistema = e.ACES_USUA_CODG"
+		sql = sql & " INNER JOIN SRH_FUNCAOCOLABORADOR FC ON FC.Cod_Funcao = C.codFuncao "
+		sql = sql & " INNER JOIN SRH_TURNO TU ON TU.COD_TURNO = C.CodTurno "
+		sql = sql & " where ACES_USUA_CODG='" & Session("UsuarioWeb") & "'"
+		sql = sql & " and e.COD_EMPRESA = " & intCodEmpresaUsuario
+		rs1.open sql, cnn
+		
+		if rs1.eof = false then
+			Session("UsuarioWeb")				= rs1("codigo_SEG_USUARIOS_SISTEMA")		
+			Session("CodEmpresa")				= intCodEmpresaUsuario
+			Session("CodColaborador")			= rs1("codigo")
+			Session("codLotacao")				= intCodEmpresaUsuario
+			Session("PerfilUsuario")			= rs1("ACES_PERF_CODG")
+			
+			' Variaveis de sessao usado no gerenciar perfil... 
+			Session("Seg_CodColaborador")  	= rs1("codigo")
+			Session("Seg_CodFuncional")	 	= rs1("codFuncional")
+			Session("Seg_CodCategoria")		= rs1("CodCategoria") 
+			Session("Seg_Funcao")			= rs1("Funcao")	 
+			Session("Seg_CodLotacao")	 	= intCodEmpresaUsuario	
+			Session("Seg_Turno")		 	= rs1("Desc_Turno")
+			Session("Seg_Perfil")			= rs1("ACES_PERF_CODG")
+			
+		end if
+		rs1.close
+	
+
+		' FIM - Dados Para Envio de E-mail		
+	end if
+	
+	if trim(strnotificacao) <> "" then
+		%>
+		<script>
+			alert("<%=trim(strnotificacao)%>");
+		</script>
+		<%
+    end if		
+		
+	if strBloqueio = "S" then                     
+		%>
+		<script>
+			alert("Sistema Bloqueado, procure o Administrador");
+			window.close();
+		</script>
+		<%
+		response.end
+    end if	
+	
+	if trim(intCodGrupo) <> ""  then
+	
+		' Consulta o acesso ao portal do Aluno	
+		sql = "SELECT Max(Qtde) as Qtde" 
+		sql = sql & " FROM SCA_ContadorVisita"
+		sql = sql & " Where Cod_Grupo = " & intCodGrupo
+		rs1.open sql, cnn
+		if not rs1.EOF then
+			strNumPortalAluno = trim(rs1("Qtde"))
+		end if
+		rs1.close
+		
+	end if
+	%>
+    <%if Session("mobile")<>"S" then%>
+    <!--=== Barra Titulo ===-->
+    <div class="breadcrumbs">
+        <div class="container">
+            <h1 class="pull-left">Bem Vindo ao Sistema!</h1>
+            <ul class="pull-right breadcrumb">
+                <li class="active">Home</li>
+                <li class="active">Acesse ao Modulos</li>
+            </ul>
+        </div><!--/container-->
+    </div><!--/breadcrumbs-->
+    <%end if%>
+    
+    <form name="frm" method="post" id="frm" action="default.asp">	
+    <%if Session("mobile")<>"S" then%>
+     <div class="container content">
+    
+        <div class="panel panel-grey">
+        <div class="panel-heading">
+            <h3 class="panel-title"><i class="fa fa-tasks"></i> Acesso as Unidades/Escola</h3>
+        </div>
+        <div class="panel-body">                                                      
+           		
+		<%if cInt(Session("QtdeUsuarioEmpresaAcessa")) > 1 then%>
+        
+			<% if Session("UsuarioMaster") = "S" then %>
+            
+                <div class="form-group">
+                <label for="exampleInputEmail1">Grupo</label>
+                    <!--#include file="includes/inc_cmdGrupo.asp"-->
+                </div>
+            
+            <%end if%>
+            
+            <div class="form-group">
+            <label for="exampleInputPassword1">Unidades Escolares</label>
+            <!--#include file="includes/inc_cmdEmpresaUsuario.asp"-->
+            </div>
+        <%end if%>
+        
+        <%	if TRIM(Session("Substituicao")) = "S" then %>
+        
+            <div class="form-group">
+            <label for="exampleInputPassword1"> Substitui&ccedil;&atilde;o</label>
+            	<!--#include file="includes/inc_cmdSubstituicao.asp"-->
+            </div>
+        
+        <% end if %>
+        
+         <!-- Gerencia Perfil -->
+        <div class="form-group">
+	       	<!--#include file="GerenciaPerfil.asp" -->
+        </div>
+            
+        </div>
+     </div>
+    <%end if%>
+    <!-- Painel Modulos -->
+    <% 
+	if intCodEmpresaUsuario <> "0" and cInt(Session("QtdeUsuarioEmpresaAcessa")) >= 1 then%>
+        <div class="panel panel-grey">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-tasks"></i> Acesso </h3>
+            </div>
+            <div class="panel-body"><!--#include file="modulos.asp"--></div>
+        </div>
+    <% end if%>
+    
+    <!-- Painel Notificação 1 -->
+    <% if trim(strnotificacao1)<> "" then %>
+    	<!--include file="Notificacao1.asp"-->
+    <% end if %>
+    
+     <!-- Painel Notificação 2 --> 
+    <% if trim(strnotificacao2)<> "" then %>
+    	<!--include file="Notificacao2.asp"-->
+    <% end if %>
+    
+      <!-- Total de Acesso ao Portal do Aluno --> 
+    <% 
+	if trim(strNumPortalAluno)<> "" then %>
+    	<!--include file="TotalAcessoPortalAlunos.asp"-->
+    <% end if %>
+    
+    <!-- Painel Modulos -->
+    <!-- Chamados -->
+    <!--#include file="Chamados.asp"-->
+    </div>
+    </form>
+    <!--/container-->
+    <!--=== End Content Part ===-->
+    <!--#include file="rodape.asp"-->
+    <!--#include file="js.asp"-->
+</body>
+</html>

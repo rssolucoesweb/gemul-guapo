@@ -1,0 +1,193 @@
+<%
+response.Expires=0
+'Não armazena a página em buffer antes de mostra-la na tela'
+response.Buffer = false
+%>
+<!--
+	::	DESENVOLVIDO POR "RS SOLUÇÕES WEB - www.rssolucoesweb.com.br"
+	::	Data de Criação...: 13/02/2008
+	::	Desenvolvedores...: Sergio Borges - sergiob76@hotmail.com
+-->
+<html>
+<head>
+<title><%=session("Titulo")%> - Candidatos </title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link type="text/css" rel="stylesheet" href="../../Estilo/Estilo_Impressao.css">
+<script src="../../js/js_funcoes_gerais.js"></script>
+<script src="../../js/js_barra_movel.js"></script></head>
+<body>
+<!--#include file="../../includes/inc_verificaSession.asp"-->
+<!--#include file="../../includes/inc_cnn.asp"-->
+<!--#include file="../../includes/inc_formatadata.asp"-->
+<!--#include file="../../includes/inc_Botoes_relatorio.asp"-->
+<!--#include file="../../includes/inc_aguarde.asp"-->
+<br>
+<%
+	dim intPagina
+	
+	intCodVestibular        	= Trim(Request.Form("cmbVestibular"))
+	intTipoProcesso				= Trim(Request("cmbTipoProcesso"))
+	strAnoLetivo 			    = Trim(Request.Form("txtAnoLetivo"))
+	intSemestre 			    = Trim(Request.Form("cmbSemestre"))
+	intCodCursoPrimeiraOpcao	= Trim(Request("cmbCursoPrimeiraOpcao"))
+	intCodTurnoPrimeiraOpcao	= Trim(Request("cmbTurnoPrimeiraOpcao"))
+	strOrdem        	        = Trim(Request.Form("cmbOrdem"))
+	strSituacaoFinanceira       = Trim(Request.Form("cmbSituacaoFinanceira"))
+	strLetraInicial         	= Trim(Request.Form("txtLetraInicial"))
+	strLetraFinal           	= Trim(Request.Form("txtLetraFinal"))
+	strDescricao                = " "
+	strsigla                    = " " 
+	strsigla1                   = " " 
+	
+	strTurnoDescricao          	= Trim(Request.Form("txtTurnoDescricao"))
+	strCursoDescricao          	= Trim(Request.Form("txtCursoDescricao"))
+
+	sql = "SELECT Descricao"
+	sql = sql & " FROM SCA_VESTIBULAR"
+    sql = sql & " where cod_empresa = " & Session("CodEmpresa")			
+	sql = sql & " and Codigo = " & intCodVestibular 
+	rs.open sql, cnn
+	if rs.eof = false then
+	   while not rs.eof
+	     strDescricao = trim(rs("Descricao"))
+	     rs.movenext
+       wend
+	end if
+	rs.close
+	strTituloRelatorio  	= strDescricao & "<BR>( Candidatos em 2ºOpção ) <BR>" & strCursoDescricao & " " & strTurnoDescricao
+
+	sub mostraCabecalho()
+%>
+   <!--#include file="../../includes/inc_cabecalhoRelatorio.asp"-->
+	<br>
+	<table width="100%" border="0" cellspacing="0" cellpadding="0" class="tabela">
+	  <tr bgcolor="#CCCCCC">
+		<td width="8%" class="celula"><div align="center"><strong>Inscri&ccedil;&atilde;o</strong></div></td>
+		<td width="9%" class="celula"><div align="center"><strong>Identidade</strong></div></td>
+		<td width="11%" class="celula"><div align="center"><strong>Org&atilde;o Expedidor </strong></div></td>
+		<td width="4%" class="celula"><div align="center"><strong>UF</strong></div></td>
+		<td width="41%" class="celula"><div align="center"><strong>Nome do Candidato </strong></div></td>
+		<td width="14%" class="celula"><div align="center"><strong>2&ordm; Op&ccedil;&atilde;o </strong></div></td>
+	  </tr>
+	<%
+	end Sub
+	
+	sub fimTabela()
+		response.Write("</table>")
+	end Sub
+%>
+<%
+	intPagina = 1
+	intQtdeRegistroPorPagina = 1
+	mostraCabecalho
+	cont = 0
+	contparcial=0
+
+	sql = "SELECT SCA_VESTIBULAR_DADOS.Codigo, SCA_VESTIBULAR_DADOS.NomeAluno, SCA_VESTIBULAR_DADOS.Identidade, SCA_VESTIBULAR_DADOS.OrgaoExpedidor, SCA_VESTIBULAR_DADOS.UFExpedidor, SCA_VESTIBULAR_DADOS.DataNascimento, SCA_VESTIBULAR_DADOS.DataInscricao, SCA_VESTIBULAR_DADOS.Cod_Vestibular, sca_curso.sigla "
+	sql = sql & " FROM SCA_VESTIBULAR_DADOS "
+	sql = sql & " INNER JOIN SCA_CURSO ON SCA_VESTIBULAR_DADOS.Cod_CursoSegundaOpcao = SCA_CURSO.Cod_curso "
+	sql = sql & " INNER JOIN SCA_VESTIBULAR ON SCA_VESTIBULAR.Codigo = SCA_VESTIBULAR_DADOS.Cod_Vestibular "
+	sql = sql & " where SCA_VESTIBULAR_DADOS.cod_empresa = " & Session("CodEmpresa")		
+	sql = sql & " and  SCA_VESTIBULAR.Ano_letivo = " & strAnoLetivo
+	sql = sql & " and  SCA_VESTIBULAR.Semestre = " & intSemestre
+	if intCodVestibular	<> "0" then
+		sql = sql & " and SCA_VESTIBULAR_DADOS.Cod_Vestibular = " & intCodVestibular
+	end if	
+	if strSituacaoFinanceira = "PG" then
+		sql = sql & " and cod_situacao_pagamento <> 1 "
+	elseif strSituacaoFinanceira = "DV"	then
+		sql = sql & " and cod_situacao_pagamento = 1 "
+	end if	
+	if intCodTurnoPrimeiraOpcao <> "0" then
+		sql = sql & " and cod_turnosegundaopcao = " & intCodTurnoPrimeiraOpcao
+	end if	
+	if intCodCursoPrimeiraOpcao <> "0" then
+		sql = sql & " and Cod_CursoSegundaOpcao = " & intCodCursoPrimeiraOpcao
+	end if	
+	if strLetraInicial <> "" and strLetraFinal <> "" then
+	   sql = sql & " and SUBSTRING(NomeAluno,1,1) >= '" & strLetraInicial & "'"
+	   sql = sql & " and SUBSTRING(NomeAluno,1,1) <= '" & strLetraFinal & "'"
+	end If 
+	if intTipoProcesso <> "0" then
+		sql = sql & " and SCA_VESTIBULAR.TipoProcesso = " & intTipoProcesso
+	end if	
+	'ordem de classificação do relatorio
+	if strOrdem = "alfabetica" then
+	   sql = sql & " order by sigla, NomeAluno"
+	elseif strOrdem = "inscricao" then
+	   sql = sql & " order by sigla, codigo"
+	elseif strOrdem = "datainscricao" then
+	   sql = sql & " order by sigla, DataInscricao"
+	elseif strOrdem = "tanascimento" then
+	   sql = sql & " order by sigla, DataNascimento"
+	end if
+	rs.open sql, cnn
+	if not rs.eof then 
+		While not rs.eof
+		    strsigla = rs("sigla")
+			%>
+			  <tr>
+				<td class="celula" align="left"><%=rs("Codigo")%>&nbsp;</td>
+				<td align="left" class="celula"><%=rs("Identidade")%>&nbsp;</td>
+				<td align="left" class="celula"><%=rs("OrgaoExpedidor")%>&nbsp;</td>
+				<td align="center" class="celula"><%=rs("UFExpedidor")%>&nbsp;</td>
+				<td align="left" class="celula"><%=rs("NomeAluno")%>&nbsp;</td>
+				<td align="center" class="celula"><%=rs("sigla")%>&nbsp;</td>
+			  </tr>
+			<%
+			'quantidade de registros da página
+			if intQtdeRegistroPorPagina = 50 then
+				 intPagina = intPagina + 1
+				 intQtdeRegistroPorPagina = 1
+				 fimTabela
+				%>
+				<pre> </pre>				
+				<%			
+				mostraCabecalho
+			end if
+			cont = cont + 1
+			contparcial=contparcial + 1
+			intQtdeRegistroPorPagina = intQtdeRegistroPorPagina + 1
+			rs.movenext
+			if not rs.eof then
+	           strsigla1 = rs("sigla")   
+			   if strsigla <> strsigla1 then 
+    			   %>
+	     	       <tr>
+		    	   <td colspan="6" class="celula">Total do Curso: <%=contparcial%></td>
+		           </tr>
+		           <%
+			       contparcial=0
+		       end if	
+			end if   
+		wend
+		%>
+		  <tr>
+		   <td colspan="6" class="celula">Total do Curso: <%=contparcial%></td>
+		  </tr>
+		  <tr>
+		   <td colspan="6" class="celula">Quantidade de Candidatos: <%=cont%></td>
+		  </tr>
+		 <%
+	else
+		%>
+		  
+		  <tr>
+			<td colspan="6" class="celula" align="center"><p>&nbsp;</p>
+			  <p>&nbsp;</p>
+			  <p><br>
+	            <br>
+		        <br>
+		        <br>
+		        <font color="#993300"><%=session("strMensagemRelatorioNaoEncontrado")%></font></p></td>
+		  </tr>
+		<%
+	end if
+	rs.close
+%>
+</table>
+<script>
+	aguarde.style.display="none";
+</script>
+</body>
+</html>

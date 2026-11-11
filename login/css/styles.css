@@ -1,0 +1,206 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+body {
+    background: #fff;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* LADO ESQUERDO -------------------------------------------------------------- */
+
+.left {
+    width: 45%;
+    background: #165fa2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.left-content h2 {
+    font-size: 28px;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+.logo img {
+    margin-top: 30px;
+    width: 320px;
+}
+
+
+/* LADO DIREITO --------------------------------------------------------------- */
+
+.right {
+    width: 55%;
+    background: #F9F9F9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box {
+    width: 75%;
+    max-width: 420px;
+}
+
+h1 {
+    color: #0C5DA9;
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 35px;
+}
+
+/* PASSOS (1 – 2) ------------------------------------------------------------- */
+
+.step {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 14px;
+    color: #555;
+}
+
+.step span {
+    background: #ccc;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+    font-size: 12px;
+    color: white;
+}
+
+.step .active {
+    background: #0C5DA9;
+}
+
+
+/* CAMPOS --------------------------------------------------------------------- */
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 18px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    outline: none;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.eye {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+.forgot {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #0C5DA9;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+/* BOTÃO ---------------------------------------------------------------------- */
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    background: #1D6FB8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #14548c;
+}
+
+/* ICONES RODAPE --------------------------------------------------------------------- */
+
+.login-rodape {
+    display: flex;
+    justify-content: space-between; /* empurra um para cada lado */
+    align-items: center;            /* alinha verticalmente */
+	margin-top: 75px; /* 👉 Aumente aqui o espaço */
+    width: 100%;
+    padding: 10px 20px;
+}
+.whatsapp-float {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    color: #25D366;
+}
+
+
+.logo-rodape {
+    width: 100px;
+}
+
+.prod {
+    color: #C91818;
+    font-weight: bold;
+}
+
+/* ESQUECI A SENHA ------------------------------------------------------------- */
+
+.back-login {
+    display: inline-block;
+    margin-top: 15px;
+    text-decoration: none;
+    color: #0C5DA9;
+    font-weight: bold;
+}
+
+
+/* RESPONSIVIDADE ------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+    .left {
+        display: none;
+    }
+    .right {
+        width: 100%;
+    }
+    .login-box {
+        width: 90%;
+    }
+}
+

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=10, IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link href="../css/bootstrap.css" rel="stylesheet" />
+    <link href="../css/bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="../css/geral.css" rel="stylesheet" />
+    <link href="../css/form-controle.css" rel="stylesheet" />
+	<link href="../css/infantil.css" rel="stylesheet" />
+    <title>Matrícula 2026 - Guapó</title>
+</head>
+    
+<body>
+	<form id="frm" name="frm" method="post">
+
+    <!--input type="hidden" id="descricao_curso" nome="descricao_curso" value="EDUCACAO_INFANTIL" /-->
+    <input type="hidden" id="descricao_curso" nome="descricao_curso" value="ENSINO_FUNDAMENTAL" />
+    <input type="hidden" id="txtHiddenIdade" value="" />
+	<input type="hidden" id="txtMensagemValidaIdade" value="" />
+    <input type="hidden" id="txtMensagemValidaIdadeParaMatricula" value="" />
+    <input type="hidden" id="txtMensagemJaExiste" value="" />
+	<div class="container-fluid topo">
+        <div class="row">
+            <div class="col-md-6 imgTopo">
+                <img id="logoAparecida" src="../img/logomarca-topo-guapo.png" alt="Guapó" vspace="15" />
+            </div>
+            <div class="col-md-6 imgTopo">
+                <img id="logoGemul" src="../img/logomarca-topo-gemul.png" alt="Gemul - Gestor de Municípios" vspace="15" />
+            </div>
+        </div>
+    </div>
+
+    
+        <div class="container">
+           <div class="row">
+                <div class="col-lg-10">
+                    <a href="../Index.html" class="active">&laquo;&nbsp;Escolher outro Curso</a>
+                </div>
+                <div class="col-lg-2 col-md-2 obrigatorio">
+                    * campo obrigatório
+                </div>
+            </div>
+        </div>
+
+    <div class="container">
+         <div class="box-categorias">
+            <!-- Data de nascimento, Telefone contato, Celular pai, Celular mãe, Celular responsável -->
+            <div class="row">
+                <div class="row marginb5px">
+                    <div class="passo-titulo"> 
+                    <!-- trocar quando por outro curso
+                        <h2>&nbsp;&nbsp;<strong><font color="#990000">EDUCAÇÃO INFANTIL </font></strong></h2>
+                        <h4>&nbsp;&nbsp;<font color="#990000">CMEIS - Agrupamentos de I a V</font></h4>-->
+                    <!-- 
+                    <!-- trocar quando por outro curso-->
+                        <h2>&nbsp;&nbsp;<strong><font color="#1953cd">ENSINO FUNDAMENTAL</font></strong></h2>
+                        <h4>&nbsp;&nbsp;<font color="#1953cd">1º ao 9º ano</font></h4>
+                    </div>
+                </div>    
+            </div>
+        </div>
+        <div class="box-categorias dados-pessoais">
+            <!-- Aluno -->
+            <div class="row">
+                <div class="row marginb10px">
+                    <div class="passo-titulo"> <h3> DADOS PESSOAIS DO ALUNO </h3></div>
+                </div>
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <label for="Aluno"><span class="obrigatorio">*</span>Nome do aluno</label>
+                        <input id="Aluno" type="text" name="Aluno" class="form-control" aria-describedby="helpAluno" maxlength="100" />
+                        <span data-campo="Aluno" class="help-block"></span>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="CPF"><span class="obrigatorio">*</span>CPF do aluno</label>
+                        <input id="CPFAluno" type="text" name="CPFAluno" class="form-control" onBlur="validaCPF(this)" aria-describedby="helpAluno" maxlength="14" />
+                        <span data-campo="CPFAluno" class="help-block"></span>
+                    </div>
+                </div>
+                
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="DataNascimento"><span class="obrigatorio">*</span>Data de nascimento</label>
+                        <input id="DataNascimento" type="text" name="DataNascimento" class="form-control DataNascimento" />
+                        <span id="helpDataNascimento" data-campo="DataNascimento" class="help-block"></span>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="form-group" id="linha_idade" style="display:block">
+                        <label for="Idade">Idade</label>
+                        <input id="txtMostraIdadeAluno" type="text" name="txtMostraIdadeAluno" class="form-control" disabled readonly />
+
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <div class="form-group">
+                        <label for="sexo"><span class="obrigatorio">*</span>Sexo</label>
+                        <select class="form-control" id="sexo" name="sexo">
+                            <option value="0">Selecione</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Feminino</option>
+                        </select>
+                        <span id="helpSexo" data-campo="sexo" class="help-block"></span>
+                    </div>
+                    </div>
+                </div>
+            </div>
+			<div class="row" id="msn_mostra_regra_especial">
+				<!--div class="col-md-12">
+					<div class="form-group">
+						<label><span class="obrigatorio"><strong>Atenção: O aluno(a) deverá comprovar 2(dois) ano na educação infantil!</strong></span></label>
+					</div>
+				</div-->					
+			</div>
+            <!-- Mãe -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="Mae"><span class="obrigatorio">*</span>Nome da mãe</label>
+                        <input id="Mae" type="text" name="Mae" class="form-control" maxlength="100" />
+                        <span data-campo="Mae" class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Aluno com defici&ecirc;ncia -->
+            <div class="row">
+                <div class="col-md-7">
+                    <div class="form-group">
+                        <label for="Mae"><span class="obrigatorio">*</span>Aluno com defici&ecirc;ncia, transtorno global do desenvolvimento ou altas habilidades / superdota&ccedil;&atilde;o?</label>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <input name="rdbDeficiencia" id="rdbDeficienciaSim" type="radio" value="S" onClick="verificaOpcaoDeficiencia();"> Sim&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input name="rdbDeficiencia" id="rdbDeficienciaNao" type="radio" value="N" checked onClick="verificaOpcaoDeficiencia();"> Não
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="box-categorias" id="listaDeficiencias">
+            <div class="row">
+                <div class="row marginb10px">
+                    <div class="passo-titulo"> <h3> NECESSIDADE ESPECIAIS </h3></div>
+                </div>
+                <span><font color="#000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Deficiência</b></font></span><br>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="2" onClick="verificaOpcaoDeficiencia(this);"> Baixa Visão<br>
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="1" onClick="verificaOpcaoDeficiencia(this);"> Cegueira<br>
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="15" onClick="verificaOpcaoDeficiencia(this);"> Deficiência Auditiva<br>
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="14" onClick="verificaOpcaoDeficiencia(this);"> Deficiência Física<br>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="5" onClick="verificaOpcaoDeficiencia(this);"> Deficiência Intelectual<br>
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="18" onClick="verificaOpcaoDeficiencia(this);"> Visão Monocular<br>
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="3" onClick="verificaOpcaoDeficiencia(this);"> Surdez<br>
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="4" onClick="verificaOpcaoDeficiencia(this);"> Surdocegueira<br>
+                    </div>
+                </div>
+                
+           </div>
+           <div class="row">
+                <br><span><font color="#000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Transtorno do Espectro Autista</b></font></span>  <br>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="11" onClick="verificaOpcaoDeficiencia(this);"> Transtorno do Espectro Autista (TEA)<br>
+                    </div>
+                </div>
+           </div>
+           <div class="row">
+                <br><span><font color="#000000">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Altas Habilidades ou Superdotação</b></font></span>  <br>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <input class="form-check-input" name="chkDeficiencia" type="checkbox" value="8" onClick="verificaOpcaoDeficiencia(this);"> Altas habilidades ou superdotação<br>
+                    </div>
+                </div>
+            </div>
+		</div>
+
+        <div class="box-categorias">
+            <!-- Data de nascimento, Telefone contato, Celular pai, Celular mãe, Celular responsável -->
+            <div class="row">
+                <div class="row marginb10px">
+                    <div class="passo-titulo"> <h3> DADOS DE CONTATO </h3></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="TelefoneContato"><span class="obrigatorio">*</span>Telefone de contato</label>
+                        <input id="TelefoneContato" type="text" name="TelefoneContato" class="form-control" />
+                        <span data-campo="TelefoneContato" class="help-block"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="FoneResponsavel">Celular do responsável</label>
+                        <input id="FoneResponsavel" type="text" name="FoneResponsavel" class="form-control" />
+                        <span data-campo="FoneResponsavel" class="help-block"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="FoneMae">Celular da mãe</label>
+                        <input id="FoneMae" type="text" name="FoneMae" class="form-control"  />
+                        <span data-campo="FoneMae" class="help-block"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="FonePai">Celular do pai</label>
+                        <input id="FonePai" type="text" name="FonePai" class="form-control" />
+                        <span data-campo="FonePai" class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- E-mail do aluno -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="Email">E-mail</label>
+                        <input type="email" name="Email" class="form-control" id="Email"  maxlength="100"/>
+                        <span data-campo="Email" class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="box-categorias">
+            <div class="row">
+                <div class="row marginb10px">
+                    <div class="passo-titulo"> <h3> DADOS DE ENDEREÇO </h3></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="CEP"><span class="obrigatorio">*</span>CEP</label>
+                        <input id="CEP" type="text" name="CEP" class="form-control" />
+                        <span data-campo="CEP" class="help-block"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-9">
+                    <div class="form-group">
+                        <label for="Endereco">Endereço</label>
+                        <input id="Endereco" type="text" name="Endereco" class="form-control"  maxlength="100" />
+                        <span data-campo="Endereco" class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Numero">Número</label>
+                        <input type="text" name="Numero" class="form-control" id="Numero" />
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label for="Complemento">Complemento</label>
+                        <input type="text" name="Complemento" class="form-control" id="Complemento"  maxlength="100"/>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="Bairro">Bairro</label>
+                        <input id="Bairro" type="text" name="Bairro" class="form-control"  maxlength="100" />
+                        <span data-campo="Bairro" class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">                
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="UF">UF</label>
+                        <input id="UF" type="text" name="UF" class="form-control" maxlength="2"  disabled />
+                        <span data-campo="UF" class="help-block"></span>
+                    </div>
+                </div>
+
+
+                <div class="col-md-9">
+                    <div class="form-group">
+                        <label for="Municipio">Município</label>
+                        <input id="Municipio" type="text" name="Municipio" class="form-control" maxlength="100"   disabled/>
+                        <span data-campo="Municipio" class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box-categorias" id="linha_programa_social">
+            <div class="row">
+                <div class="row marginb10px">
+                    <div class="passo-titulo"> <h3> PROGRAMAS SOCIAIS </h3> </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group opcoes">
+                        <label for="BolsaFamilia"><span class="obrigatorio">*</span>Possui cartão do Programa Bolsa Família?</label>
+                        <select class="form-control" id="bolsa_familia" name="bolsa_familia">
+                           <option value="0">Selecione</option>
+                           <option value="N">Não</option>
+                           <option value="S">Sim</option>
+                        </select>
+                        <span id="helpBolsaFamilia" data-campo="bolsa_familia" class="help-block"></span>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="form-group opcoes">
+                        <label for="NumeroBolsaFamilia"></span>Número do Cartão do Bolsa Família (informar apenas os n&uacute;meros)</label>
+                    <input type="text" name="numero_bolsa_familia" class="form-control" id="numero_bolsa_familia" />
+                        <span id="helpNumeroBolsaFamilia" data-campo="numero_bolsa_familia" class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<div class="box-categorias">
+            <div class="row">
+                <div class="row marginb10px">
+                    <div class="passo-titulo"> <h3> DADOS ESCOLARES PARA 2026 </h3> </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group opcoes">
+                        <label for="Serie"><span class="obrigatorio">*</span>Série</label>
+                        <select class="form-control" id="codigo_serie" name="codigo_serie">
+                            <option value="0">Selecione</option>
+                        </select>
+                        <span id="helpSerie" data-campo="codigo_serie" class="help-block"></span>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="form-group opcoes">
+                        <label for="Turno"><span class="obrigatorio">*</span>Turno</label>
+                        <select class="form-control" id="codigo_turno" name="codigo_turno">
+                            <option value="0">Selecione</option>
+                        </select>
+                        <span id="helpTurno" data-campo="codigo_turno" class="help-block"></span>
+                    </div>
+                </div>
+			</div>
+            <div class="row">             
+                <div class="col-md-12">
+                    <div class="form-group opcoes">
+                        <label for="Escola"><span class="obrigatorio">*</span>Escola Disponível</label>
+                        <select class="form-control" id="codigo_escola" name="codigo_escola">
+                        <option value="0">Selecione</option>
+                        </select>
+                        <span id="helpEscola" data-campo="codigo_escola" class="help-block"></span>
+						<div  style="display: none" class="alert alert-success aviso" role="alert" id="alerta_cadastro_reserva"  style="display:none">
+                            <div>Caso não encontre a escola desejada, você poderá optar em fazer um cadastro de reserva. Deseja fazer?
+                                <select class="form-control" style="width:200px" id="cadastro_reserva" name="cadastro_reserva">
+                                    <option value="0">Não</option>
+                                    <option value="S">Sim</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row btn-ajuste marginb20px">
+            <input type="button" name="btnSalvar" id="btnSalvar" value="Salvar Inscrição de Matrícula" style="width:380px" class="btn btn-large btn-success" />
+        </div>
+    </div>
+
+	</form>
+    <script src="js/jquery-2.1.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.mask.min.js"></script>
+    <script src="js/inscricao.js?1=1"></script>
+    <script src="js/jquery.blockUI.js"></script>
+    <script src="js/bootbox.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            inscricao.inicialize();
+        });
+    </script>
+
+</body>
+</html>

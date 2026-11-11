@@ -1,0 +1,115 @@
+@charset "utf-8";
+/* CSS Document */
+
+.menu {
+/*background:url(../imagens/fundo_menu.gif);*/
+/*padding-right: 7px;*/
+	width: 100%;
+	text-align: center;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+}
+
+.menu ul {
+z-index:100;
+margin: 0;
+padding: 0;
+list-style-type: none;
+}
+
+/*Top level list items*/
+.menu ul li{
+position: relative;
+display: inline;
+float: left;
+}
+
+/*Top level menu link items style*/
+.menu ul li a {
+display: block;
+padding: 8px 10px;
+color: #FFFFFF;
+text-decoration: none;
+}
+.menu ul li a:visited {
+color:#FFF;
+}
+* html .menu ul li a{ /*IE6 hack to get sub menu links to behave correctly*/
+display: inline-block;
+}#266BA4
+.menu ul li a.selected{ /*CSS class that's dynamically added to the currently active menu items' LI A element*/
+color: #000;
+}
+
+.menu ul li a:hover{
+background: #1B60A5; /*background of menu items during onmouseover (hover state)*/
+text-decoration: none;
+}
+	
+.menu ul li ul {
+position: absolute;
+left: 5px;
+display: none; /*collapse all sub menus to begin with*/
+visibility: hidden;
+border-left: 1px solid #75B0E2;
+border-right: 1px solid #75B0E2;
+border-top: 1px solid #75B0E2;
+}
+
+/*Sub level menu list items (undo style from Top level List Items)*/
+.menu ul li ul li{
+display: list-item;
+float: none;
+}
+
+/*All subsequent sub menu levels vertical offset after 1st level sub menu */
+.menu ul li ul li ul{
+top: 0;
+}
+
+/* Sub level menu links style */
+.menu ul li ul li a {
+font: 11px Verdana;
+text-align: left;
+width: 150px; /*width of sub menus*/
+background: #5CA2DA;
+padding: 3px;
+border-top-width: 0;
+border-bottom: 1px solid #75B0E2;
+}
+.menu ul li ul li ul li ul {
+border-left: 1px solid #75ab64;
+border-right: 1px solid #75ab64;
+border-top: 1px solid #75ab64;
+}
+.menu ul li ul li ul li ul li a {
+background: #94d181;
+color: #000;
+border-bottom: 1px solid #75ab64;
+}
+.menu ul li ul li ul li ul li a:visited {
+color: #000;
+}
+.menu ul li ul li ul li ul li a:hover {
+color: #75ab64;
+}
+
+.rightarrowclass{
+position: absolute;
+top: 6px;
+right: 5px;
+}
+
+.ddshadow{
+position: absolute;
+left: 0;
+top: 0;
+width: 10px;
+height: 10px;
+}
+
+.toplevelshadow{ /*shadow opacity. Doesn't work in IE*/
+opacity: 0.8;
+}

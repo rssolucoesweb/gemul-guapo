@@ -1,0 +1,329 @@
+	/* RESET BÁSICO */
+	* { margin: 0; padding: 0; box-sizing: border-box}
+
+	* {
+		font-family: "Segoe UI", sans-serif;
+		color: #434a51;
+		box-sizing: border-box;
+	}
+
+
+	body { background-color: #F9F9F9; }
+
+	/* Cores dos ícones por módulo */
+	.icon-academico { color: #3f51b5; }       /* azul escuro */
+	.icon-matricula { color: #28a745; }       /* verde */
+	.icon-transporte { color: #ffc70c; }      /* Amarelo */
+	.icon-almoxarifado { color: #6f42c1; }    /* roxo */
+	.icon-dashboard { color: #17a2b8; }       /* azul claro */
+	.icon-planejamento { color: #fd7e14; }    /* laranja */
+	.icon-censo { color: #0d6efd; }           /* azul padrão */
+	.icon-rh { color: #7db33e; }              /* verde claro */
+	.icon-esporte { color: #ff4500; }         /* laranja forte */
+	.icon-secretario { color: #808080; }      /* cinza */
+	.icon-seguranca { color: #b39e5f; }       /* dourado */
+	.icon-merenda { color: #d97706; } 	  /* laranja/âmbar, lembra comida */
+	.icon-gerencial { color: #8B4513; }       /* marron */
+	.icon-avaliacao { color: #fe0000; }       /* vermelho escuro */
+	.icon-biblioteca { color: #ec5db8; }      /* lilas */
+	.icon-portal { color: #DAA520; }       	  /* amarelo escuro */
+	.icon-os { color: #ADD8E6; }       	 	  /* azul clarinho*/
+	.icon-pesquisa { color: #006400; }        /* verde escuro*/
+	.icon-tutorial { color: #30c419; }
+	.icon-atendimento { color: #e17ef1; }
+	.icon-patrimonio { color: #006dff; }
+
+	.logo-cabecario {
+		width: 110px !important;
+		height: 30px !important;
+	}
+
+	.top-bar {
+		display: flex;
+		justify-content: space-between; /* espaça logos e ações */
+		align-items: center; /* centraliza verticalmente */
+		background-color: #165fa2;
+		color: white;
+		padding: 10px 30px;
+		position: sticky;
+		top: 0;
+		z-index: 100;
+		box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+	}
+
+	/* Logos do lado esquerdo */
+	.top-bar .logos {
+		display: flex;
+		align-items: center;
+	}
+
+	.top-bar .logos img {
+		height: 50px;
+	}
+
+	/* Área de ações do lado direito */
+	.top-bar .actions {
+		display: flex;
+		align-items: center;
+		gap: 15px; /* espaço entre itens */
+	}
+	.topo-suporte {
+		color: #65b37a;
+	}
+
+	/* Logo GEMUL dentro das ações */
+	.top-bar .actions .logo-cabecario {
+		height: 40px;
+	}
+
+	/* Links dentro da ação (Suporte e Sair) */
+	.top-bar .actions a {
+		display: flex;
+		align-items: center;
+		color: white;
+		text-decoration: none;
+		font-weight: bold;
+		padding: 8px 12px;
+		border-radius: 5px;
+		transition: background 0.3s;
+	}
+
+	.top-bar .actions a:hover {
+		background-color: rgba(255,255,255,0.2);
+	}
+
+	/* Ícone do WhatsApp */
+	.top-bar .actions a svg {
+		margin-right: 8px;
+	}
+
+	
+	
+	/* Corpo principal */
+	.main-content {
+		max-width: 1200px;
+		margin: 40px auto;
+		padding: 0 20px;
+	}
+
+	.school-select {
+		margin-bottom: 40px;
+	}
+
+	.school-select label {
+		display: block;
+		margin-bottom: 10px;
+		font-weight: bold;
+		font-size: 18px;
+	}
+
+	.school-select select {
+		width: 100%;
+		padding: 12px 15px;
+		font-size: 16px;
+		border-radius: 8px;
+		border: 1px solid #ccc;
+		outline: none;
+		transition: border 0.3s;
+	}
+
+	.school-select select:focus {
+		border-color: #007bff;
+	}
+
+	.school-datalist {
+            /* Contêiner para o Select2 */
+            margin-bottom: 40px;
+        }
+
+        .school-datalist label {
+            /* Estilo do rótulo */
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        /* 💡 ESTILOS PARA O SELECT2: 
+           O Select2 cria novos elementos. Aplicamos estilos a eles. */
+        .select2-container--default .select2-selection--single {
+            /* Aplica o estilo de borda, padding e tamanho ao campo de busca do Select2 */
+            height: 44px; /* Altura total do campo (12px padding + 1px borda + 16px font = ~44px) */
+            padding: 7px 15px; /* Ajuste o padding para centralizar o texto */
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            /* Efeito de foco (igual ao seu .school-datalist input:focus) */
+            border-color: #007bff;
+        }
+
+	/* Módulos */
+	.modules {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+		gap: 25px;
+	}
+
+	.module-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background-color: white;
+		padding: 25px;
+		border-radius: 12px;
+		text-align: center;
+		cursor: pointer;
+		transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+		box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+	}
+
+	.module-card:hover {
+		transform: translateY(-8px);
+		box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+		background-color: #e6f0ff;
+	}
+
+	.module-card svg {
+		width: 50px;
+		height: 50px;
+		margin-bottom: 12px;
+	}
+
+	.module-card span {
+		font-weight: bold;
+		font-size: 16px;
+		color: #333;
+	}
+
+	/* Cores diferenciadas para cada módulo */
+	.module-academico svg { fill: #FF6B6B; }
+	.module-rh svg { fill: #4ECDC4; }
+	.module-matricula svg { fill: #FFD93D; }
+	.module-transporte svg { fill: #FF6BFF; }
+	.module-almoxarifado svg { fill: #1E90FF; }
+	.module-dashboard svg { fill: #FFA500; }
+	.module-planejamento svg { fill: #32CD32; }
+	.module-esporte svg { fill: #8A2BE2; }
+
+
+	.footer-fixed {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		background: #ffffff;
+		border-top: 1px solid #ddd;
+		padding: 8px 22px;
+
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+
+		font-family: "Segoe UI", sans-serif;
+		font-size: 13px; /* 🔹 fonte menor */
+		color: #495057; /* 🔹 cinza escuro elegante */
+		z-index: 999;
+	}
+
+	/* Lado esquerdo */
+	.footer-left span {
+		font-weight: 600;
+		color: #495057;
+	}
+
+	/* Lado direito */
+	.footer-right ul {
+		list-style: none;
+		display: flex;
+		gap: 18px;
+		margin: 0;
+		padding: 0;
+	}
+
+	.footer-right a {
+		text-decoration: none;
+		color: #495057;
+		font-weight: 600;
+		font-size: 13px; /* mantém igual ao rodapé */
+	}
+
+	.footer-right a:hover {
+		text-decoration: underline;
+	}
+
+	.footer-right i {
+		font-size: 18px;
+		color: #495057;
+}
+
+/* MENU USUARIO -ALTERAR-SERNHA-SAIR*/
+
+.user-menu {
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+	padding: 10px;
+	color: #fff;
+}
+
+.user-menu .user-icon {
+	color: #fff !important;   /* Ícone branco */
+	font-size: 22px;
+	margin-right: 5px;
+}
+
+.user-menu .user-name {
+	color: #fff !important;   /* Texto “Usuário” branco */
+	font-weight: 500;
+}
+
+
+.user-menu .dropdown {
+	display: none;
+	position: absolute;
+	right: 0;
+	background: #ffffff;
+	border-radius: 5px;
+	min-width: 160px;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+	z-index: 1000;
+}
+
+.user-menu .dropdown a {
+	display: block;
+	padding: 10px;
+	color: #333;
+	text-decoration: none;
+}
+
+.user-menu .dropdown a:hover {
+	background: #f2f2f2;
+}
+
+.user-menu:hover .dropdown {
+	display: block;
+}
+
+/* RESPONSIVIDADE ------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+    .logo-cabecario {
+        display: none;
+    }
+	.topo-suporte {
+        display: none;
+    }
+	.rodape-ajuda {
+        display: none;
+    }
+	.user-name {
+        display: none;
+    }
+}
+

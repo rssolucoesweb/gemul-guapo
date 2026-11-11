@@ -1,0 +1,98 @@
+<HTML>
+<HEAD>
+	<TITLE>PatUpload Form</TITLE>
+</HEAD>
+<BODY>
+<B>Output to file system</B>
+<FORM METHOD="post" ENCTYPE="multipart/form-data" ACTION="Upload.asp">
+
+Email (campo: email)
+<INPUT NAME="email" VALUE="eduardo_arantes@bigfoot.com" size="30"><BR>
+<br>
+Arquivo (campo :Arq1): <INPUT TYPE="file" NAME="Arq1"><BR>
+Arquivo (campo :Arq2): <INPUT TYPE="file" NAME="Arq1"><BR>
+<br>
+<INPUT TYPE="submit" NAME="Enter" value="Enviar">
+</FORM>
+<br><br>
+<pre>
+class clsFile
+
+   public Name         'nome do campo no form
+   public Size         'tamanho do arquivo em Bytes
+   public Path         'path em que sera salvo o arquivo
+   public BinaryData   'dados binarios do arquivo
+   public ContentType  'typo do arquivo
+
+
+   'retorna o nome atual do arquivo
+   'propriedade default
+   public default Property Get FileName()
+   end property
+
+   'atribui o nome do arquivo
+   public Property let FileName(val)
+   end property
+
+   'salva o arquivo no caminho especificado
+   ' com o nome FileName_
+   'Se overwrite for false Gera um nome no formato nomearquivo(N).ext
+   '  onde N primeiro numero inteiro disponivel
+
+   public sub SaveFile(caminho, Overwrite)
+   end sub
+end class
+
+'classe das variaveis de form
+class clsForm
+   public Name         'Nome do campo no form
+
+   'propriedade default que retorna o nome do campo
+   public default property GET Value()
+   end property
+
+   'propriedade default que retorna o nome do campo
+   public property Let Value(val)
+   end property
+
+end class
+
+class PatUpload
+
+   'tamanho maximo do Upload
+   public default property get MaxLen()
+   end property
+
+   public property let MaxLen(val)
+   end property
+
+
+   'Atribuicao dos campos
+   public sub SetData(oRequest, Path, SaveAll)
+   end sub
+
+   public Function Form(name)
+   End Function
+
+   #FF8080Function AddFile(sName, sFileName, sBinaryData, sPath, iSize)
+   End Function
+
+   public Property Get FilesCount()
+   End Property
+
+   public Property Get FormsCount()
+   End Property
+
+   public Function File(name)
+   End Function
+
+   public Function FileByIndex(index)
+   End Function
+
+   public Function FormByIndex(index)
+   End Function
+
+End Class
+</pre>
+</BODY>
+</HTML>

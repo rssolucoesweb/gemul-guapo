@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=10, IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link href="css/bootstrap.css" rel="stylesheet" />
+    <link href="css/bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="css/geral.css" rel="stylesheet" />
+    <title>Matrícula 2018 - Aparecida</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-70820196-3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'UA-70820196-3');
+    </script>    
+    <script>
+
+	function acessar(){
+		var frm = document.getElementById("frm");
+		if (frm.txtLogin.value == ""){
+			alert("O usuário deve ser informado");
+			frm.txtLogin.focus();
+			return false;
+		}
+		
+		if (frm.txtSenha.value == ""){
+			alert("A Senha deve ser informada");
+			frm.txtSenha.focus();
+			return false;
+		}
+		
+		frm.action = "validaUsuarioAcesso.asp"
+		frm.submit();
+		
+	}
+</script>
+</head>
+<body>
+
+    <div class="container-fluid topo" style="background-color:#333d47" align="center">
+            <div class="row" >
+	            <div class="col-md-6 imgTopo">
+                    <img id="logoAparecida" src="../img/logomarca-topo-aparecida.png" alt="Aparecida de Goiânia" vspace="15" style="margin:auto" />
+                </div>
+                <div class="col-md-6 imgTopo">
+                    <img id="logoGemul" src="../img/logomarca-topo-gemul.png" alt="Gemul - Gestor de Municípios" vspace="15" style="margin:auto" />
+                </div>
+	        </div>
+    </div>
+    
+<form action="" name="frm" id="frm" method="post">
+    <div class="container box-msg">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-dismissible fade in" role="alert">
+                    <h2 align="center"> 
+                    		<strong><font color="#990000"> Acesso Administrativo </font></strong></h2>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+	            
+            </div>
+            <div class="col-md-1">
+	            Usuário
+            </div>
+            <div class="col-md-4">
+            <input name="txtLogin" class="form-control" type="text" id="txtLogin" size="10">
+            </div>
+            <div class="col-md-3">
+            </div>
+        </div>
+
+ 		<div class="row">
+            <div class="col-md-4">
+	            
+            </div>
+            <div class="col-md-1">
+	            Senha
+            </div>
+            <div class="col-md-4">
+            <input name="txtSenha" class="form-control" type="password" id="txtSenha" size="10"/>
+            </div>
+            <div class="col-md-3">
+            </div>
+            
+        </div>    
+		<br>
+        <div align="center">
+        <input type="button" class="btn btn-lg btn-success" name="btnInscricao" id="btnSalvar" value="    Acessar   "  onClick="return acessar()" />
+        </div>
+
+    </div>
+</form>
+
+    <script src="js/jquery-2.1.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/index.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            index.inicialize();
+        });
+    </script>
+</body>
+</html>

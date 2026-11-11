@@ -22,7 +22,7 @@ response.Buffer = false
 	
     strTituloRelatorio  			= "Relatório Unidades"
 	
-	intCodTipoEmpresa				= Trim(Request.form("cmbTipoEmpresa"))
+	intCodTipoEmpresa				= Trim(Request("cmbTipoEmpresa"))
 	if intCodTipoEmpresa = "" then intCodTipoEmpresa = "0"
 	pagina							= "Rel_Unidades_con.asp"
 

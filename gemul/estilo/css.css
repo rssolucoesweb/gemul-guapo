@@ -1,0 +1,316 @@
+body {
+	margin-left: 0px;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	background-image: url(../images/fundo.jpg);
+	background-attachment:fixed;
+	scrollbar-3d-light-color:#000000;
+	scrollbar-arrow-color:#000000;
+	scrollbar-base-color:#000000;
+	scrollbar-dark-shadow-color:#EEEDE8;
+	scrollbar-face-color:#EEEDE8;
+	scrollbar-highlight-color:#EEEDE8;
+	scrollbar-shadow-color:#EEEDE8;jpg
+	scrollbar-track-color:#000000;
+}
+BODY TD
+{
+    FONT-SIZE: 10pt;
+    COLOR: black;
+    FONT-FAMILY: 'Tahoma'
+}
+
+.ok {
+	font: bold normal 10px Verdana, Arial, Helvetica, sans-serif;
+	color: #FFFFFF;
+	background: #337362;
+	height: 15px;
+	border-style: none;
+	width: 30px;
+}
+.CabecalhoConsulta
+{
+	background-color: #E5E5E5;
+	font-weight: bold;
+}
+.TituloFormulario
+{
+	background: #003366;
+	height: 25px;
+	COLOR: #fff;
+	font-weight: bold;
+	font-size: 17px;
+	FONT-FAMILY: 'Arial'
+	padding: 5px 10px 0 10px; /*alinhamento do texto*/
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+
+}
+.botao
+{
+    font-family: Tahoma;
+	background:#CCC;
+	background-position: 0 -1px;
+    font-size: 8 pt; 
+    font-weight: bold; 
+    background-color: #fff; 
+    border: 1px solid #C0C0C0;
+}
+
+.botaoIncluir
+{
+    font-family: Tahoma;
+	background-position: 0 -1px;
+    font-size: 8 pt; 
+    font-weight: bold; 
+    background-color: #fff; 
+    background-repeat:repeat-x;
+	background-color:#CFE0F2;
+    border: 1px solid #5CA2DA;
+}
+.botaoAlterar
+{
+    font-family: Tahoma;
+	background:#F90;
+	background-position: 0 -1px;
+    font-size: 8 pt; 
+    font-weight: bold; 
+    background-repeat:repeat-x;
+	background-color:#FFDCB9;
+    border: 1px solid #FF8040;
+}
+.botaoExcluir
+{
+    font-family: Tahoma;
+	background-position: 0 -1px;
+    font-size: 8 pt; 
+    font-weight: bold; 
+    background-repeat:repeat-x;
+	background-color:#FFC6C6;
+	border: 1px solid #F00;
+}
+
+.botaoLimpar
+{
+    font-family: Tahoma;
+	background-position: 0 -1px;
+    font-size: 8 pt; 
+    font-weight: bold; 
+    background-repeat:repeat-x;
+	background-color:#FFC;
+	border: 1px solid #FBFB00;
+}
+.TextoForm
+{
+   	border-top : #748349;
+	border-right : #748349;
+	border-left : #748349;
+	border-bottom : #748349;
+	font-family: Verdana; font-size: 11px; color: #000000;
+}
+.texto {
+	 font-family: Arial;
+	 font-size: 11px;
+	 color:#000;
+}
+
+.textSite {
+	 font-family: Arial;
+	 font-size: 12px;
+	 color:#FFFF08;
+}
+
+.textoRetrancaAgenda {
+	text-transform: uppercase;
+	font: bold 8px Verdana, Arial, Helvetica, sans-serif;
+	color: #FFF;
+}
+
+.textoRetranca {
+	text-transform: uppercase;
+	font: bold 8px Verdana, Arial, Helvetica, sans-serif;
+	color: #332F63;
+}
+.textoDataNoticia {
+	font: 11px Verdana, Arial, Helvetica, sans-serif;
+	color: #000000;
+}
+
+.textoNoticia {
+	font: 11px Verdana, Arial, Helvetica, sans-serif;
+	color: #666666;
+	display:block;
+}
+
+.textoRodape {
+	 font-family: Verdana;
+	 font-size: 11px;
+	 color: #666666;
+}
+.textoMenu {
+	 font-family: Arial;
+	 font-size: 12px;
+	 color: #FFF;
+}
+.textoDescricao {
+	 font-family: Arial;
+	 font-size: 11px;
+	 color: #FFFFFF;
+	 font: bold;
+}
+
+.text 
+{
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+	color: #000000;
+	border: 1px solid #003366;
+	background: #FFFFFF;
+	height:28px;
+}
+.textDesabilitado 
+{
+    background : #CACACA;
+	border-top : #003366;
+	border-right : #003366;
+	border-left : #003366;
+	border-bottom : #003366;
+	border: 1px solid #003366;
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+	height:28px;
+}
+.combo
+{
+
+	border: 1px solid #003366;
+	background: #FFFFFF;
+	height:28px;
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+}
+
+.textMensagem 
+{
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+	color: #003366;
+	border: 1px solid #003366;
+	background: #FFFFFF;
+}
+
+.tituloPagina
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 10pt;
+    COLOR:#FC3;
+    font-family:Tahoma, Geneva, sans-serif;
+    TEXT-DECORATION: none
+}
+
+.titulo
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 9pt;
+    COLOR: #FFF;
+    FONT-FAMILY: Verdana;
+}
+.tituloRodapeLogado
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 10pt;
+    COLOR:#FFF;
+    font-family:Tahoma, Geneva, sans-serif;
+    TEXT-DECORATION: none
+}
+.tituloPrincipal
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 14pt;
+    COLOR:#003;
+    font-family:Tahoma, Geneva, sans-serif;
+    TEXT-DECORATION: none
+}
+.tituloPrincipalGrupo
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 18pt;
+    COLOR:#003;
+    font-family:sans-serif;
+    TEXT-DECORATION: none
+}
+.tituloAdm
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 9pt;
+    COLOR:#060;
+    font-family: Verdana;
+    TEXT-DECORATION: none
+}
+
+.tituloFoto
+{
+    FONT-WEIGHT: bolder;
+    FONT-SIZE: 12pt;
+    COLOR: #060;
+    FONT-FAMILY: Verdana;
+}
+
+.Combo
+{
+    background : #F1F0EA;
+	border-top : #748349;
+	border-right : #748349;
+	border-left : #748349;
+	border-bottom : #748349;
+	border : 1px solid #748349;
+	font-family: Verdana; font-size: 11px; color: #000000;
+}
+.tabela 
+{ 
+	border-top: 1px solid #999999; 
+	border-left: 1px solid #999999; 
+	border-bottom: 1px solid #FFFFFF; 
+	border-right: 1px solid #FFFFFF 
+}
+.celula 
+{ 
+	border-top: 1px solid #FFFFFF; 
+	border-left: 1px solid #FFFFFF; 
+	border-bottom: 1px solid #999999; 
+	border-right: 1px solid #999999 
+}
+
+.TabelaDoCadastro 
+{ 
+	border-top: 1px solid #EAEAEA; 
+	border-left: 1px solid #EAEAEA; 
+	border-bottom: 1px solid #FFFFFF; 
+	border-right: 1px solid #FFFFFF 
+}
+.CelulaDoCadastro
+{ 
+	border-top: 1px solid #FFFFFF; 
+	border-left: 1px solid #FFFFFF; 
+	border-bottom: 1px solid #EAEAEA; 
+	border-right: 1px solid #EAEAEA 
+}
+
+a:link {color:#FFF; text-decoration: none; font-family: Verdana; font-size: 10px;
+}
+a:visited { color: #FFF; text-decoration: none }
+a:hover { color: #0F0; text-decoration: none }
+
+.menu1, .menu1 a:link{color:#FFFFFF; text-decoration: none; font-family: arial; font-size: 16px;font: bold;	}
+.menu1 a:visited {color:#FFF; text-decoration: none;}
+.menu1 a:hover {color: #F00; text-decoration: none ;}
+.menu1 a:active {color:#F00; text-decoration: none;}
+
+.menu2, .menu2 a:link{color:#FFF; text-decoration: none; font-family: Verdana; font-size: 13px;	}
+.menu2 a:visited {color:#FFF; text-decoration: none; font-family: Verdana; font-size: 13px;}
+.menu2 a:hover {color: #FF0; text-decoration: none; font-family: Verdana; font-size: 13px;}
+.menu2 a:active {color:#FFF; text-decoration: none; font-family: Verdana; font-size: 13px; }
+
+.menu3, .menu3 a:link{color:#006; text-decoration: none; font-family: arial; font-size: 11px;font: bold;	}
+.menu3 a:visited {color:#006; text-decoration: none; font-family: arial; font-size: 11px;font: bold;}
+.menu3 a:hover {color: #900; text-decoration: none; font-family: arial; font-size: 11px;font: bold;}
+.menu3 a:active {color:#900; text-decoration: none; font-family: arial; font-size: 11px;font: bold;}

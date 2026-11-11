@@ -1,0 +1,52 @@
+html body {
+   //background: url("http://www.gemul-aparecida.com.br/ead/img/backgrounds/fundo.jpg") no-repeat;
+  /* NEW*/ }
+  html body .blankpage-logo {
+    padding: 20px 0 30px; }
+  html body .blankpage-form-field {
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    width: 320px;
+    height: auto;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%); }
+    html body .blankpage-form-field .card {
+      margin: 0;
+      padding: 13.5px 20px 15.5px;
+      -webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); }
+    html body .blankpage-form-field .blankpage-btn {
+      font-size: 1rem;
+      font-weight: 400;
+      padding: 10px 15px;
+      margin: 10px 0 5px; }
+  html body .blankpage-footer {
+    padding: 10px 0;
+    font-size: 0.75rem;
+    color: #73579d; }
+  html body .login-footer {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.6875rem; }
+  html body {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -100;
+    -webkit-transform: translateX(-50%) translateY(-50%);
+            transform: translateX(-50%) translateY(-50%);
+    //background: url("http://www.gemul-aparecida.com.br/ead/img/backgrounds/fundo.jpg") no-repeat;
+    background-size: cover;
+    -webkit-transition: 1s opacity;
+    transition: 1s opacity; }
+  @media screen and (max-device-width: 800px) {
+    html body html {
+      //background: url("http://www.gemul-aparecida.com.br/ead/img/backgrounds/fundo.jpg") #FFF no-repeat center center fixed; }
+    html body #bgvid {
+      display: none; } }
+
+/*# sourceMappingURL=page-login.css.map */

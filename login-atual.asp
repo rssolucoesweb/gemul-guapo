@@ -1,0 +1,162 @@
+﻿<%
+	'Configuração regional do Brasil
+	session.LCID = 1046
+
+	'Armazena o caminho da raiz do banco
+	session("Titulo") = ":: Gemul - Gestor de Município ::"
+%>
+<!--#include file="config.asp"-->
+<style>
+    .content {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+.reg-page {
+    padding: 10px !important;
+}
+</style>
+<body>
+    <!--#include file="topoMenu.asp"-->
+    <!--=== Breadcrumbs ===-->
+    <div class="breadcrumbs">
+        <div class="container">
+            <h1 class="pull-left">Login</h1>
+            <ul class="pull-right breadcrumb">
+                <li><a href="default.asp">Home</a></li>
+                <li class="active">Login</li>
+            </ul>
+        </div><!--/container-->
+    </div><!--/breadcrumbs-->
+    <!--=== End Breadcrumbs ===-->
+    <!--=== Content Part ===-->
+	<%
+		'Apaga todas as sessions
+		session.Contents.removeAll()
+		'limpa sessions
+		Session("caminhoLogomarcaEmpresa")  = ""
+		session("EmpresaWeb")				= ""
+		session("MantenedoraWeb")			= ""
+		session("EmpresaWebCNPJ")			= ""
+		session("EnderecoEmpresaWeb")		= ""
+		session("CidadeEmpresaWeb")			= ""
+		session("BairroEmpresaWeb")			= ""
+		session("UFEmpresaWeb")				= ""
+		session("CepEmpresaWeb")			= ""
+		session("TelefoneEmpresaWeb")		= ""
+		session("NomeDiretorEmpresaWeb")	= ""
+		session("NomeSecretariaEmpresaWeb")	= ""
+		Session("UsuarioSenha")				= ""
+		Session("CodDeptoUsuario")			= ""
+		Session("DescDeptoUsuario")			= ""
+		Session("strAnoLetivo")				= ""
+		Session("strSemestre")				= ""
+		Session("strTodosSemestre") 		= ""
+		Session("strDescSemestre") 			= ""
+		Session("strMesEncerramentoPrimeiroSemestre")	= ""
+		Session("strMesEncerramentoSegundoSemestre")	= ""
+		Session("strChecarFinanceiro")					= ""
+		Session("strNomeGrupo") = ""
+		Session("CodTodasEmpresaGrupo") = ""
+		Session("UsuarioWeb") 		= ""
+		Session("PerfilUsuario")  	= ""
+		Session("Aluno")  			= ""
+		Session("CodSeguranca")     = ""
+	%>
+    <div class="container content">
+    	<div class="row">
+            <div class="col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3">
+                <form method="post" name="frm" id="frm" class="reg-page">
+                    <div>
+                        <h2>Acesso ao Portal</h2>
+                    </div>
+                    <div class="input-group margin-bottom-5">
+                        <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                        <input name="txtLogin" type="text" placeholder="Username" class="form-control" id="txtLogin" value="<%=request.cookies("usuarioLoginSisge")%>" size="20" maxlength="40" />
+                    </div>
+                    <div class="input-group margin-bottom-5">
+                        <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                        <input name="txtSenha" placeholder="Password" type="password" class="form-control" id="txtSenha" size="10" maxlength="30" />
+                    </div>
+                     <div class="row">
+                        <div class="col-md-12 checkbox">
+                        Utilize o navegador google chrome <img src="images/Google-Chrome-icon.png" width="24" height="24"> para acessar o sistema. <a href="https://www.google.com.br/chrome/browser/desktop/" target="_blank">Clique aqui</a> para instalar!
+                        </div>
+                       
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 checkbox">
+                        </div>
+                        <div class="col-md-6">
+                            <a  href="#" onclick="return validaCampo()"  class="btn-u pull-right">&nbsp;Acessar&nbsp;</a>  
+                        </div>
+                    </div>
+                    <h4> Esqueceu sua senha?</h4>
+                    <p>N&atilde;o se preocupe, <a class="color-green" href="esqueciSenha.asp">clique aqui</a> para redefinir sua senha.</p>
+					<%      
+                    if trim(request.ServerVariables("SERVER_NAME")) = "www.smeduc.com.br" or trim(request.ServerVariables("SERVER_NAME")) = "smeduc.com.br" then%>
+                            <h4> Deseja limpar o  cache do seu navegador?</h4>
+                            <p><a class="color-green" href="http://www.gemul.com.br/limparcachesmeduc.pdf" target="_blank">Clique aqui</a> para acessar o passo a passo em pdf.</p>
+                        </form>
+                    <%
+                    end if
+                    if trim(request.ServerVariables("SERVER_NAME")) = "www.gemul.com.br" or trim(request.ServerVariables("SERVER_NAME")) = "gemul.com.br" then%>
+                            <h4> Deseja limpar o  cache do seu navegador?</h4>
+                            <p><a class="color-green" href="http://www.gemul.com.br/limparcachegemul.pdf" target="_blank">Clique aqui</a> para acessar o passo a passo em pdf.</p>
+                        </form>
+                    <%
+                    end if                    
+                    %>                    
+            </div>
+        </div><!--/row-->
+    </div><!--/container-->
+    <!--=== End Content Part ===-->
+    <script language="JavaScript">
+	
+	function verificaTecla(){
+		if (window.event.keyCode==13)
+			return validaCampo()
+	}
+	
+	function isNumeric(valor)
+	{
+		validChar = '0123456789.,-';
+		for(var i=0;i<valor.length;i++)
+			if(validChar.indexOf(valor.substr(i,1))<0)
+				return false;
+		return true;
+	}
+	
+	function validaCampo(){
+		
+		var frm = document.getElementById("frm");
+		var login = frm.txtLogin.value.replace(/\./g,"");
+		var senha = frm.txtSenha.value.replace(/\./g,"");
+		
+		login = login.replace(/\-/g,"");
+		senha = senha.replace(/\-/g,""); 
+		
+		if (login == ""){
+			alert("O usuário deve ser informado");
+			frm.txtLogin.focus();
+			return false;
+		}
+		
+		if (senha == ""){
+			alert("O Senha deve ser informada");
+			frm.txtSenha.focus();
+			return false;
+		}
+		
+		if (isNumeric(login))
+			frm.action = "gemul/portal/validaPermissao.asp";
+		else
+			frm.action = "validaUsuario.asp";
+		
+		frm.submit();
+		
+	}
+	</script>
+   	<!--#include file="rodape.asp"-->
+	<!--#include file="js.asp"-->
+</body>
+</html>

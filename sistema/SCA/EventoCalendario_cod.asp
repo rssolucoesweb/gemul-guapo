@@ -1,0 +1,65 @@
+﻿<!--#include file="../../includes/inc_verificaSession.asp"-->
+<!--#include file="../../includes/inc_cnn.asp"-->
+<!--#include file="../../includes/inc_formatadata.asp"-->
+<!--#include file="../../includes/inc_log.asp"-->
+
+<%
+	'on error resume next
+	'----------Inicia uma tranzação--------------
+	cnn.begintrans
+	
+	strCodGrupo		        = Session("CodGrupo")
+	acao 				 	= Trim(Request.QueryString("acao"))
+
+    intCodCalendario 			= Trim(Request("txtCodigo"))
+    strAno	 					= Trim(Request("txtAno"))
+	intCodEvento 				= Trim(Request("cmbEvento"))
+	strMes				 		= Trim(Request("cmbMes"))
+	strDiaEvento		 		= Trim(Request("chkEventoDia"))
+	
+	sql = "Delete from sca_Calendario_dia "
+	sql = sql & " Where Cod_calendario = " & intCodCalendario
+	sql = sql & " And cod_calendario_evento = " & intCodEvento
+	cnn.execute sql
+	GravarLog sql	
+	
+	strMensagem = "Registro Salvo com sucesso..."
+	if strDiaEvento <> "" then   
+		vetDiaEvento = split(trim(strDiaEvento),",")			 
+	end if
+			
+	for i = 0 to ubound(vetDiaEvento)
+		strDetalhe = request.form("txtDetalhe_" & trim(vetDiaEvento(i)))
+		
+		sql = "Insert Into sca_Calendario_dia (cod_calendario, cod_calendario_evento, dia_mes, dia_semana, detalhes, mes, ano)"          
+		sql = sql & " Values ("
+		sql = sql & "" & intCodCalendario & ","
+		sql = sql & "" & intCodEvento & ","
+		sql = sql & "" & vetDiaEvento(i) & ","
+		sql = sql & "" & Weekday(DateSerial(strAno,strMes,vetDiaEvento(i))) & ","
+		sql = sql & "'" & strDetalhe & "',"
+		sql = sql & "" & strMes & ","
+		sql = sql & "" & strAno & ") "
+		cnn.Execute(sql)
+	next
+		
+	if err.number = 0 then
+	'----------Finaliza tranzação iniciada--------------
+		cnn.commitTrans
+		%>
+		<script>
+			alert("<%=strMensagem%>");
+			window.location='EventoCalendario_cad.asp?txtCodigo=<%=intCodCalendario%>&cmbEventoRetorno=<%=intCodEvento%>&cmbMesRetorno=<%=strMes%>&txtAno=<%=strAno%>';
+		</script>
+		<%
+		response.end
+	else
+		cnn.rollbackTrans
+		%>
+		<script>
+			alert("ATENÇÃO: \n\nNão foi possível executar esse procedimento, tente novamente.\nCaso persistir entre em contato com o administrador do sistema.");
+			window.history.back();
+		</script>
+		<%
+	end if
+%>

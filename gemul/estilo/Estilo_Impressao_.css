@@ -1,0 +1,225 @@
+BODY
+{
+    BORDER-RIGHT: medium none;
+    BORDER-TOP: medium none;
+    FONT-SIZE: 8pt;
+    MARGIN: 0px;
+    TEXT-TRANSFORM: none;
+    BORDER-LEFT: medium none;
+    COLOR: black;
+    BORDER-BOTTOM: medium none;
+    FONT-STYLE: normal;
+	FONT-FAMILY: 'Tahoma';
+    BACKGROUND-COLOR: white;
+    FONT-VARIANT: normal;
+		
+	scrollbar-arrow-color:#80CBEB;
+	scrollbar-3dlight-color:#FFFFFF;
+	scrollbar-highlight-color:#FFFFFF;
+	scrollbar-face-color:#DAF0FB;
+	scrollbar-shadow-color:#FFFFFF;
+	scrollbar-darkshadow-color:#80CBEB;
+	scrollbar-track-color:#FFFFFF		
+}
+BODY IMG
+{
+    BORDER-RIGHT: white 0px;
+    PADDING-RIGHT: 0px;
+    BORDER-TOP: white 0px;
+    PADDING-LEFT: 0px;
+    PADDING-BOTTOM: 0px;
+    MARGIN: 0px;
+    BORDER-LEFT: white 0px;
+    PADDING-TOP: 0px;
+    BORDER-BOTTOM: white 0px;
+    FONT-FAMILY: 'Tahoma';
+    TEXT-DECORATION: none
+}
+BODY TABLE
+{
+    FONT-SIZE: 8pt;
+    COLOR: black;
+    FONT-FAMILY: 'Tahoma'
+}
+BODY TD
+{
+    FONT-SIZE: 8pt;
+    COLOR: black;
+    FONT-FAMILY: 'Tahoma'
+}
+
+A:link 
+{
+	COLOR: #006699; 
+	TEXT-DECORATION: none
+}
+
+A:visited 
+{
+	COLOR: #006699; 
+	TEXT-DECORATION: none
+}
+
+A:hover 
+{
+	COLOR: #006633; 
+	TEXT-DECORATION: underline
+}
+
+A:active 
+{
+	COLOR: #006633; 
+	TEXT-DECORATION: underline
+}
+.tabela 
+{ 
+	border-top: 1 solid #000000; 
+	border-left: 1 solid #000000; 
+	border-bottom: 1 solid #FFFFFF; 
+	border-right: 1 solid #FFFFFF 
+}
+.celula 
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000 
+}
+
+.celulaCompleta
+{ 
+	border-top: 1 solid #000000; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000 
+}
+
+.celulaSemLinhaColuna
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #FFFFFF; 
+	border-right: 1 solid #FFFFFF 
+}
+.celulaSemLinhaDireita
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #FFFFFF; 
+	border-right: 1 solid #000000 
+}
+
+.celulaSemLinhaEsquerda
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #FFFFFF; 
+	border-right: 1 solid #000000 
+}
+
+.celulaTopo
+{ 
+	border-top: 1 solid #000000; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000;
+}
+
+.celulaBaixo
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000;
+}
+
+.celulaMenor
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000;
+	font-family: 'Tahoma';
+	font-size: 7;	
+}
+
+.celulaMenor0
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000;
+	font-family: 'Tahoma';
+	font-size: 6;	
+}
+
+.celulaMenor1
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000;
+	font-family: 'Tahoma';
+	font-size: 9;	
+}
+.celulaMenor2
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000;
+	font-family: 'Tahoma';
+	font-size: 8;	
+}
+.celulaMenor3
+{ 
+	border-top: 1 solid #FFFFFF; 
+	border-left: 1 solid #FFFFFF; 
+	border-bottom: 1 solid #000000; 
+	border-right: 1 solid #000000;
+	font-family: 'Tahoma';
+	font-size: 10;	
+}
+
+.QuebraPagina          
+{ 
+	PAGE-BREAK-AFTER : ALWAYS 
+}
+.TituloFormulario
+{
+	font-weight: bold;
+	font-size: 16px
+	FONT-FAMILY: 'Tahoma'
+}
+.Formulario
+{ 
+	border-top: 1 dotted #000000; 
+	border-left: 1 dotted #000000; 
+	border-bottom: 1 dotted #C0C0C0; 
+	border-right: 1 dotted #C0C0C0;
+	background-color: #F7F7F7
+}
+.Menu
+{
+	COLOR: #FFFFFF;
+	font-weight: bold;
+	FONT-FAMILY: 'Tahoma'
+}
+.CabecalhoConsulta
+{
+	background-color: #E5E5E5;
+	font-weight: bold;
+}
+.textoRelatorio
+{
+   	border-top : #748349;
+	border-right : #748349;
+	border-left : #748349;
+	border-bottom : #748349;
+	font-family: Verdana; font-size: 14px; color: #000000;
+}
+
+pre
+	{ 
+		PAGE-BREAK-AFTER : ALWAYS 
+	}

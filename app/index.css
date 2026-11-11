@@ -1,0 +1,40 @@
+/* this CSS is not part of the widget, it is here just as an example of the demo page styling.... Don't copy this one, roll your own. One
+ * of the key things about the widget is that it allows you to do your own styling!
+ */
+
+#editor {
+	max-height: 650px!important;
+	height: 450px!important;
+	background-color: white!important;
+	border-collapse: separate!important; 
+	border: 1px solid rgb(204, 204, 204)!important; 
+	padding: 4px!important; 
+	box-sizing: content-box!important; 
+	-webkit-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset!important; 
+	box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset!important;
+	border-top-right-radius: 3px; border-bottom-right-radius: 3px!important;
+	border-bottom-left-radius: 3px; border-top-left-radius: 3px!important;
+	overflow: scroll;
+	outline: none;
+}
+#voiceBtn {
+  width: 20px!important;
+  color: transparent!important;
+  background-color: transparent!important;
+  transform: scale(2.0, 2.0)!important;
+  -webkit-transform: scale(2.0, 2.0)!important;
+  -moz-transform: scale(2.0, 2.0)!important;
+  border: transparent!important;
+  cursor: pointer!important;
+  box-shadow: none!important;
+  -webkit-box-shadow: none!important;
+}
+
+div[data-role="editor-toolbar"] {
+  -webkit-user-select: none!important;
+  -moz-user-select: none!important;
+  -ms-user-select: none!important;
+  user-select: none!important;
+}
+
+

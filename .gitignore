@@ -9,7 +9,11 @@ web_Original.config
 
 global.asa
 
-# Uploads, logs e temporários
+# Fotos, uploads, PDFs, logs e temporários
+fotoAluno/
+fotoColaborador/
+pdf/
+banners/
 uploads/
 upload/
 arquivos/
@@ -36,23 +40,7 @@ desktop.ini
 *.wmv
 *.mkv
 
-# Versão antiga, fora de uso
-gemul2015/
-
-# Arquivos com senha no código, fora do escopo deste projeto
-includes/inc_apontamento.asp
-includes/inc_apontamento_remove.asp
-sistema/EST/Rel_ComparativoProduto_rel.asp
-sistema/SEG/Empresa_cod.asp
-# Credenciais (ficam só no servidor)
-*inc_serasa_config.asp
-*inc_whatsapp_config.asp
-
-# ===== Só estas pastas vão para o GitHub =====
-/*
-!/.gitignore
-
-!/gemul2015/
+# Versão antiga: no Guapó só sobem estas pastas da gemul2015
 /gemul2015/*
 !/gemul2015/sistema/
 /gemul2015/sistema/*
@@ -60,40 +48,14 @@ sistema/SEG/Empresa_cod.asp
 !/gemul2015/sistema/includes/
 !/gemul2015/sistema/json/
 
-!/sistema/
-/sistema/*
-!/sistema/includes/
-!/sistema/ckeditor4.4.7/
-!/sistema/SEG/
-!/sistema/SRH/
-!/sistema/SGE/
+# Portal antigo, fora de uso
+portal-old-canedo/
 
-# ===== Mesmo dentro dessas pastas, NÃO sobem =====
-# Conexão e credenciais (ficam só no servidor)
-*inc_cnn*.asp
-!*.exemplo.asp
+# Arquivos com senha no código
+includes/inc_apontamento.asp
+includes/inc_apontamento_remove.asp
+sistema/EST/Rel_ComparativoProduto_rel.asp
+sistema/SEG/Empresa_cod.asp
+# Credenciais (ficam só no servidor)
 *inc_serasa_config.asp
 *inc_whatsapp_config.asp
-web_Original.config
-global.asa
-# Senha no código (igual no Anápolis)
-sistema/SEG/Empresa_cod.asp
-# Uploads, logs, backups, vídeos
-uploads/
-upload/
-arquivos/
-logs/
-*.log
-*.tmp
-*.mdb
-*.accdb
-*.bak
-*.zip
-*.rar
-*.mp4
-*.avi
-*.mov
-*.wmv
-*.mkv
-Thumbs.db
-desktop.ini

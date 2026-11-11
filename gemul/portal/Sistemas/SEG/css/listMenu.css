@@ -1,0 +1,87 @@
+<style type="text/css">
+html{
+	height:100%;
+}
+body{	
+	font-family: Trebuchet MS, Lucida Sans Unicode, Arial, sans-serif;
+	margin:0px;
+	padding:0px;
+	height:100%;
+	font-size:0.9em;
+	line-height:130%;
+	background-color:#E2EBED;
+	text-align:center;
+}
+
+#mainContainer{
+	width:760px;
+	margin: 0 auto;
+	border-left:1px solid #000;
+	border-right:1px solid #000;
+	height:100%;
+	text-align:left;
+	background-color:#FFF;
+}
+#leftColumn{
+	width:140px;
+	float:left;
+	padding-left:10px;
+}
+#mainContent{
+	width:590px;
+	padding-left:10px;
+	padding-right:10px;
+	float:left;
+}
+#topBar{
+	height:100px;
+		
+}
+/* End of demo CSS */
+
+/****************************************************************************************
+* 	LAYOUT CSS FOR THE MENU
+****************************************************************************************/
+#dhtmlgoodies_listMenu a{	/* Main menu items */
+	color:#000;
+	text-decoration:none;
+	font-weight:bold;
+
+}
+#dhtmlgoodies_listMenu ul li a{	/* Sub menu */
+	color: #F00;
+	font-weight:normal;
+}
+#dhtmlgoodies_listMenu ul li ul li a{	/* Sub Sub menu */
+	color: #000;
+	font-style:italic;
+	font-size:0.9em;
+	font-weight:normal;		
+}
+
+#dhtmlgoodies_listMenu .activeMenuLink{	/* Styling of active menu item */
+	color:blue;
+}
+
+
+/*
+No bullets
+*/	
+#dhtmlgoodies_listMenu li{
+	list-style-type:none;	
+}
+
+/*
+No margin and padding
+*/
+#dhtmlgoodies_listMenu, #dhtmlgoodies_listMenu ul{
+	margin:0px;
+	padding:0px;
+}
+
+/* Margin of sub menu items */
+#dhtmlgoodies_listMenu ul{
+	display:none;
+	margin-left:10px;
+}
+</style>
