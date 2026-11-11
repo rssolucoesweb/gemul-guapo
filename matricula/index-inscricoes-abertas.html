@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=10, IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+
+    <!-- Bootstrap e estilos existentes -->
+    <link href="css/bootstrap.css" rel="stylesheet" />
+    <link href="css/bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="css/geral.css" rel="stylesheet" />
+
+    <!-- Fonte divertida e nosso tema infantil -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="css/infantil.css" rel="stylesheet" />
+
+    <title>Matrícula 2026 - Guapó</title>
+</head>
+<body>
+
+    <div class="container-fluid topo">
+        <div class="row">
+            <div class="col-md-6 imgTopo">
+                <img id="logoAparecida" src="img/logomarca-topo-guapo.png" alt="Guapó" vspace="15" />
+            </div>
+            <div class="col-md-6 imgTopo">
+                <img id="logoGemul" src="img/logomarca-topo-gemul.png" alt="Gemul - Gestor de Municípios" vspace="15" />
+            </div>
+        </div>
+    </div>
+
+    <div class="container box-msg">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-dismissible fade in" role="alert" style="background: linear-gradient(180deg, #FFF 0%, #F8F9FF 100%);">
+                    <h1 align="center"><strong><font color="#990000">Matrícula Informatizada 2026</font></strong></h1>
+                    <p align="center">&nbsp;</p>
+                    <h2 align="center"><strong>Inscrições para Educação Infantil e Ensino Fundamental!</strong></h2>
+                    <!--h2 align="center"><strong>ENCERRADAS</strong>!</h2-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container box-msg">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="alert alert-warning alert-dismissible fade in" role="alert">
+                    <h2 align="center"><strong>EDUCAÇÃO INFANTIL</strong></h2>
+                    <h3 align="center">CMEIS - Agrupamentos de I a V</h3>
+                    <h4 align="center">Período de 01/12/2025 até 05/12/2025</h4>
+                    <div class="row btn-ajuste">
+                        <input type="button" class="btn btn-lg btn-success" name="btnInscricao" id="btnSalvarInfantil" value="Clique para Cadastrar" onclick="location.href='matricula-gemul-infantil/inscricao.html'" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="alert alert-info alert-dismissible fade in" role="alert">
+                    <h2 align="center"><strong>ENSINO FUNDAMENTAL</strong></h2>
+                    <h3 align="center">1º ao 7º ano</h3>
+                    <h4 align="center">Período de 01/12/2025 até 05/12/2025</h4>
+                    <div class="row btn-ajuste">
+                        <input type="button" class="btn btn-lg btn-success" name="btnInscricao" id="btnSalvarFundamental" value="Clique para Cadastrar" onclick="location.href='matricula-gemul-fundamental/inscricao.html'" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	<div class="container box-msg">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="alert alert-danger alert-dismissible fade in" role="alert">
+					<h2 align="center"><strong>CONFIRMAÇÃO DE MATRÍCULA</strong></h2>
+					<h3 align="center">Na Unidade Escolar</h3>
+                    <h4 align="center">Período de 08/12/2025 até 12/12/2025</h4>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<div class="alert alert-success alert-dismissible fade in" role="alert">
+					<h2 align="center"><strong>MAIS INFORMAÇÕES</strong></h2>
+					<h3 align="center">Procure a Unidade Escolar mais próxima ou SME</h3>
+					<h3 align="center"><a href="https://wa.me/5562999982720" target="_blank"><img src="imagens/icone_zap.png" width="24" height="24"> (62) 99998-2720</a></h3>
+				</div>
+			</div>
+		</div>
+	</div>
+    <!-- Botão Atualizar com estilo especial -->
+    <div class="row atualizar-zone">
+        <div class="col-md-11">
+            <div class="row btn-ajuste" align="center">
+                <input type="button" class="btn btn-lg btn-success" name="btnInscricao" id="btnAtualizar" value="Atualizar" onClick="window.location='index.html'" />
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery-2.1.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/index.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if (window.index && typeof index.inicialize === "function") {
+                index.inicialize();
+            }
+        });
+    </script>
+</body>
+</html>
