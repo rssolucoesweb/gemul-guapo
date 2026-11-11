@@ -1,0 +1,69 @@
+<%
+function sqlAlunoTurma(turma, alunos)		
+	'**** SELECIONA OS ALUNOS DE UMA DETERMINADA TURMA INCLUINDO TODAS AS SITUAÇÕES CADASTRAIS
+	if intCodSituacaoAluno = "" then intCodSituacaoAluno = 0
+
+	sql = "SELECT distinct SCA_ALUNO_TURMA.CODIGO AS CODALUNOTURMA, SCA_ALUNO_TURMA.situacao, SCA_ALUNO.CODIGO, SCA_ALUNO.DATANASCIMENTO, SCA_ALUNO.MATRICULA, SCA_ALUNO.NOMEALUNO, SCA_ALUNO_TURMA.SEQUENCIA, SCA_ALUNO_TURMA.COD_TURMA, SCA_GRADECURRICULAR.Cod_Periodo, SCA_TURMA.NomeTurma,SCA_TURMA.TURMAALUNO, SCA_SITUACAOALUNO.Desc_SituacaoAluno, SCA_ALUNO.PERC_DESCONTO, SCA_ALUNO.PERC_DESCONTO2, SCA_ALUNO.PERC_DESCONTO3, SCA_ALUNO.PERC_DESCONTO4, SCA_TURMA.Cod_FichaDescritiva, SCA_ALUNO.COD_SITUACAOALUNO, SCA_ALUNO_ANO_LETIVO.cod_empresa FROM SCA_ALUNO_TURMA INNER JOIN SCA_ALUNO ON SCA_ALUNO_TURMA.COD_ALUNO = SCA_ALUNO.CODIGO INNER JOIN SCA_ALUNO_ANO_LETIVO ON SCA_ALUNO_ANO_LETIVO.COD_ALUNO = SCA_ALUNO.CODIGO AND SCA_ALUNO_TURMA.COD_EMPRESA = SCA_ALUNO_ANO_LETIVO.COD_EMPRESA INNER JOIN SCA_TURMA ON SCA_ALUNO_TURMA.COD_TURMA = SCA_TURMA.Cod_Turma and SCA_TURMA.cod_empresa = SCA_ALUNO_ANO_LETIVO.cod_empresa INNER JOIN SCA_GRADECURRICULAR ON SCA_TURMA.Cod_GradeCurricular = SCA_GRADECURRICULAR.Cod_GradeCurricular LEFT JOIN SCA_SITUACAOALUNO ON SCA_SITUACAOALUNO.Cod_SituacaoAluno = SCA_ALUNO.COD_SITUACAOALUNO "
+	sql = sql & " where SCA_ALUNO_TURMA.cod_empresa = " & Session("CodEmpresa")			
+	sql = sql & " and SCA_ALUNO_TURMA.COD_TURMA = " & turma & ""	
+	sql = sql & " and SCA_ALUNO_TURMA.situacao in ('A')"
+	
+	if alunos <> "" then
+		sql = sql & " AND   SCA_ALUNO.CODIGO in (" & alunos & ")"
+	end if
+	IF strAnoLetivo<> "" THEN
+		sql = sql & " And   SCA_ALUNO_TURMA.ANO_LETIVO = " & strAnoLetivo
+		sql = sql & " And   SCA_ALUNO_ANO_LETIVO.ANO_LETIVO = " & strAnoLetivo
+	ELSE
+		sql = sql & " And   SCA_ALUNO_TURMA.ANO_LETIVO = " & year(date)
+		sql = sql & " And   SCA_ALUNO_ANO_LETIVO.ANO_LETIVO = " & year(date)
+	END IF
+	if intCodSituacaoAluno <> "0" then
+		sql = sql & " And   SCA_ALUNO.COD_SITUACAOALUNO = " & intCodSituacaoAluno
+	end if
+	sql = sql & " union"
+	sql = sql & " SELECT distinct SCA_ALUNO_TURMA.CODIGO AS CODALUNOTURMA, SCA_ALUNO_TURMA.situacao, SCA_ALUNO.CODIGO, SCA_ALUNO.DATANASCIMENTO, SCA_ALUNO.MATRICULA, SCA_ALUNO.NOMEALUNO, SCA_ALUNO_TURMA.SEQUENCIA, SCA_ALUNO_TURMA.COD_TURMA, SCA_GRADECURRICULAR.Cod_Periodo, SCA_TURMA.NomeTurma,SCA_TURMA.TURMAALUNO, SCA_SITUACAOALUNO.Desc_SituacaoAluno, SCA_ALUNO.PERC_DESCONTO, SCA_ALUNO.PERC_DESCONTO2, SCA_ALUNO.PERC_DESCONTO3, SCA_ALUNO.PERC_DESCONTO4, SCA_TURMA.Cod_FichaDescritiva, SCA_ALUNO.COD_SITUACAOALUNO, SCA_ALUNO_ANO_LETIVO.cod_empresa FROM SCA_ALUNO_TURMA INNER JOIN SCA_ALUNO ON SCA_ALUNO_TURMA.COD_ALUNO = SCA_ALUNO.CODIGO INNER JOIN SCA_ALUNO_ANO_LETIVO ON SCA_ALUNO_ANO_LETIVO.COD_ALUNO = SCA_ALUNO.CODIGO AND SCA_ALUNO_TURMA.COD_EMPRESA = SCA_ALUNO_ANO_LETIVO.COD_EMPRESA INNER JOIN SCA_TURMA ON SCA_ALUNO_TURMA.COD_TURMA = SCA_TURMA.Cod_Turma and SCA_TURMA.cod_empresa = SCA_ALUNO_ANO_LETIVO.cod_empresa INNER JOIN SCA_GRADECURRICULAR ON SCA_TURMA.Cod_GradeCurricular = SCA_GRADECURRICULAR.Cod_GradeCurricular LEFT JOIN SCA_SITUACAOALUNO ON SCA_SITUACAOALUNO.Cod_SituacaoAluno = SCA_ALUNO.COD_SITUACAOALUNO "
+	sql = sql & " where SCA_ALUNO_TURMA.cod_empresa = " & Session("CodEmpresa")			
+	sql = sql & " and SCA_ALUNO_TURMA.COD_TURMA = " & turma & ""	
+	sql = sql & " and SCA_ALUNO_TURMA.situacao in ('T')"
+	
+	if alunos <> "" then
+		sql = sql & " AND   SCA_ALUNO.CODIGO in (" & alunos & ")"
+	end if
+	IF strAnoLetivo<> "" THEN
+		sql = sql & " And   SCA_ALUNO_TURMA.ANO_LETIVO = " & strAnoLetivo
+		sql = sql & " And   SCA_ALUNO_ANO_LETIVO.ANO_LETIVO = " & strAnoLetivo
+	ELSE
+		sql = sql & " And   SCA_ALUNO_TURMA.ANO_LETIVO = " & year(date)
+		sql = sql & " And   SCA_ALUNO_ANO_LETIVO.ANO_LETIVO = " & year(date)
+	END IF
+	if intCodSituacaoAluno <> "0" then
+		sql = sql & " And   SCA_ALUNO.COD_SITUACAOALUNO = " & intCodSituacaoAluno
+	end if
+	sql = sql & " and SCA_ALUNO.CODIGO not in ("
+	sql = sql & " SELECT distinct SCA_ALUNO.CODIGO FROM SCA_ALUNO_TURMA INNER JOIN SCA_ALUNO ON SCA_ALUNO_TURMA.COD_ALUNO = SCA_ALUNO.CODIGO INNER JOIN SCA_ALUNO_ANO_LETIVO ON SCA_ALUNO_ANO_LETIVO.COD_ALUNO = SCA_ALUNO.CODIGO AND SCA_ALUNO_TURMA.COD_EMPRESA = SCA_ALUNO_ANO_LETIVO.COD_EMPRESA INNER JOIN SCA_TURMA ON SCA_ALUNO_TURMA.COD_TURMA = SCA_TURMA.Cod_Turma and SCA_TURMA.cod_empresa = SCA_ALUNO_ANO_LETIVO.cod_empresa INNER JOIN SCA_GRADECURRICULAR ON SCA_TURMA.Cod_GradeCurricular = SCA_GRADECURRICULAR.Cod_GradeCurricular LEFT JOIN SCA_SITUACAOALUNO ON SCA_SITUACAOALUNO.Cod_SituacaoAluno = SCA_ALUNO.COD_SITUACAOALUNO "
+	sql = sql & " where SCA_ALUNO_TURMA.cod_empresa = " & Session("CodEmpresa")			
+	sql = sql & " and SCA_ALUNO_TURMA.COD_TURMA = " & turma & ""	
+	sql = sql & " and SCA_ALUNO_TURMA.situacao in ('A')"
+	
+	if alunos <> "" then
+		sql = sql & " AND   SCA_ALUNO.CODIGO in (" & alunos & ")"
+	end if
+	IF strAnoLetivo<> "" THEN
+		sql = sql & " And   SCA_ALUNO_TURMA.ANO_LETIVO = " & strAnoLetivo
+		sql = sql & " And   SCA_ALUNO_ANO_LETIVO.ANO_LETIVO = " & strAnoLetivo
+	ELSE
+		sql = sql & " And   SCA_ALUNO_TURMA.ANO_LETIVO = " & year(date)
+		sql = sql & " And   SCA_ALUNO_ANO_LETIVO.ANO_LETIVO = " & year(date)
+	END IF
+	if intCodSituacaoAluno <> "0" then
+		sql = sql & " And   SCA_ALUNO.COD_SITUACAOALUNO = " & intCodSituacaoAluno
+	end if
+	sql = sql & " )"
+	sql = sql & " order by SCA_ALUNO.NOMEALUNO"
+
+	sqlAlunoTurma = sql
+	
+
+end function
+%>

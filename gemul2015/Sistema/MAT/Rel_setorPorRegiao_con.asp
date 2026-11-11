@@ -1,0 +1,81 @@
+<!--
+	::	DESENVOLVIDO POR "RS SOLUÇÕES WEB - www.rssolucoesweb.com.br"
+	::	Data de Criação...: 22/12/2016
+	::	Desenvolvedores...: Sergio Borges - sergio@rssolucoesweb.com.b
+	::	Objetivo Pagina...: Nomes Diferentes
+-->
+<html>
+<head>
+<title><%=session("Titulo")%></title>
+<link type="text/css" rel="stylesheet" href="../../Estilo/css.css">
+</head>
+<body  leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<script src="../../js/js_funcoes_gerais.js"></script>
+<script type="text/javascript" src="../../js/js_dragdrop.js"></script>
+<script>
+	function gerar(){
+		if (frm.cmbSetores.value == "0") {
+			alert("O setor deve ser informado!");
+			frm.cmbSetores.focus();
+			return false;
+		}
+
+		var caminho;
+		caminho = "Rel_setorPorRegiao_rel.asp"
+		frm.action = caminho;
+		frm.submit();
+		return true;	
+	}
+</script>
+<!--#include file="../../includes/inc_verificaSession.asp"-->
+<!--#include file="../../includes/inc_cnn.asp"-->
+<!--#include file=topo.asp-->
+<!--#include file="../../includes/inc_formatadata.asp"-->
+<%
+	strPaginaTitulo = "Rel_setorPorRegiao_con.asp"
+	
+	
+	intCodSetores 		= request.Form("cmbSetores")
+
+	'controla os botões
+	strDesabilitaIncluir = "disabled"
+	strDesabilitaExcluir = "disabled"
+	strDesabilitaAlterar = ""
+	strDesabilitaLimpar = ""
+
+%>
+<form method="post" id="frm" action="#">
+<table width="100%" height="325" border="0"  class="CorFundo" cellpadding="0" cellspacing="0">
+<tr valign="top">
+		  <td height="22" align="center" class="tituloSistema">Rela&ccedil;&atilde;o de Regiões por Setor</td>
+	</tr>
+		<tr valign="top">
+		  <td align="center">
+<br>
+<table width="98%" border="0" align="center" cellpadding="0" cellspacing="2" class="Formulario"><tr><td width="60%" valign="top" class="texto1"><table width="98%" border="0" align="center" cellpadding="0" cellspacing="2" class="Formulario"><tr></tr>
+</table>
+      <table width="98%" border="0" align="center" cellpadding="0" cellspacing="2" class="Formulario">
+        <tr>
+          <td width="14%" height="20" class="texto">Setor:</td>
+          <td width="86%"><!--#include file="../includes/inc_cmbSetores.asp" --></td>
+        </tr>
+        <tr>
+          <td height="2" colspan="2"><hr size="1" color="#CCCCCC"></td>
+        </tr>
+        <tr>
+          <td colspan="2"><!--#include file="../../includes/inc_botoes_geraRelatorio.asp"-->
+            &nbsp;</td>
+        </tr>
+      </table>      
+      <strong></strong></td>
+       </tr>
+</table>
+<br>
+<br>		  </td>
+		</tr>
+  </table>
+
+</form>
+<!--#include file="../rodape.asp"-->
+</body>
+</html>
