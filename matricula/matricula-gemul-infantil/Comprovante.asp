@@ -1,3 +1,4 @@
+<!--#include file="../../includes/inc_smtp_config.asp"-->
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -296,13 +297,13 @@ if strEMAIL <> "" and request.QueryString("m")="" then
    '****** SENDBLUE *****************
     'servidorSMTP = "smtp-relay.sendinblue.com"
     'usuarioSMTP  =  "suporte@gemul.com.br" 
-    'senhaSMTP    = "IOW5qh9Pdn3zvBFp" 
+    'senhaSMTP    = "" 
     'NomeSMTP     = "GEMUL"
 	
 	'****** LOCAWEB *****************	
 	servidorSMTP = "smtplw.com.br"
     usuarioSMTP  = "suportegemul" 
-    senhaSMTP    = "BwIpkcmI2999" 
+    senhaSMTP    = SMTP_LW_SENHA 
     NomeSMTP     = "Matrícula " & strAnoLetivo
     '***********************
 

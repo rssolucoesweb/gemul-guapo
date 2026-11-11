@@ -1,3 +1,4 @@
+<!--#include file="../includes/inc_smtp_config.asp"-->
 	<!--#include file="../includes/inc_cnn.asp"-->
 	<!--#include file="../includes/inc_formatadata.asp"-->
 
@@ -90,14 +91,14 @@
 		'****** CONFIGURAÇÃO DE EMAIL sendinblue *****************
 		'servidorSMTP = "smtp-relay.sendinblue.com"
 		'usuarioSMTP  =  "suporte@gemul.com.br" 
-		'senhaSMTP    = "IOW5qh9Pdn3zvBFp" 
+		'senhaSMTP    = "" 
 		'NomeSMTP     = "GEMUL"
 		'usuarioEmailEnvioSMTP = "suporte@gemul.com.br"
 		'***********************
 		'****** CONFIGURAÇÃO DE EMAIL LOCAWEB *****************
 		servidorSMTP = "smtplw.com.br"
 		usuarioSMTP  = "suportegemul" 
-		senhaSMTP    = "BwIpkcmI2999" 
+		senhaSMTP    = SMTP_LW_SENHA 
 		NomeSMTP     = "GEMUL"
 		usuarioEmailEnvioSMTP = "suporte@gemul.com.br"
 		'********************************************************'

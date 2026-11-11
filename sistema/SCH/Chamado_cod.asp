@@ -1,3 +1,4 @@
+<!--#include file="../../includes/inc_smtp_config.asp"-->
 <!--
 	::	DESENVOLVIDO POR "RS SOLUÇÕES WEB - www.rssolucoesweb.com.br"
 	::	Data de Criação...: 08/02/2010
@@ -122,7 +123,7 @@
 			   '****** CONFIGURAÇÃO DE EMAIL *****************
 				servidorSMTP = "smtp-relay.sendinblue.com"
 				usuarioSMTP  =  "suporte@gemul.com.br" 
-				senhaSMTP    = "IOW5qh9Pdn3zvBFp" 
+				senhaSMTP    = SMTP_BREVO_SENHA 
 				NomeSMTP     = "GEMUL"
 				'***********************
 			

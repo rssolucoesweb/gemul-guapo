@@ -59,3 +59,5 @@ sistema/SEG/Empresa_cod.asp
 # Credenciais (ficam só no servidor)
 *inc_serasa_config.asp
 *inc_whatsapp_config.asp
+# Senhas do e-mail (SMTP) - ficam só no servidor
+*inc_smtp_config.asp

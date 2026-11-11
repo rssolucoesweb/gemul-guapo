@@ -1,3 +1,4 @@
+<!--#include file="../includes/inc_smtp_config.asp"-->
 	<!--
 	::	DESENVOLVIDO POR Gemul - Gestor de Município"
 	::	Data de Criação...: 26/01/2015
@@ -133,7 +134,7 @@
 			   '****** CONFIGURAÇÃO DE EMAIL *****************
 				servidorSMTP = "smtp-relay.sendinblue.com"
 				usuarioSMTP  =  "suporte@gemul.com.br" 
-				senhaSMTP    = "IOW5qh9Pdn3zvBFp" 
+				senhaSMTP    = SMTP_BREVO_SENHA 
 				NomeSMTP     = "GEMUL"
 				'***********************
 			
