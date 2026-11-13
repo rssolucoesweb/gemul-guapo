@@ -12,6 +12,7 @@ $(document).ready(function () {
    });
 });
 
+/*
 var obterEndercoPorCEP = function (numeroCEP) {
    $("#txtLogradouro").val("");
    $("#txtBairroaluno").val("");
@@ -20,9 +21,8 @@ var obterEndercoPorCEP = function (numeroCEP) {
    $("#txtComp_endereco").val("");
 
    var cep = numeroCEP.replace("-", "");
-   //var url = "https://viacep.com.br/ws/" + cep + "/json/";
-   var url = "https://opencep.com/v1/" + cep + ".json";
-   
+   var url = "https://viacep.com.br/ws/" + cep + "/json/";
+
    $.getJSON(url, cep)
 	.done(function (endereco) {
 		if (endereco != null) {
@@ -34,6 +34,69 @@ var obterEndercoPorCEP = function (numeroCEP) {
 		}
 	});;
 };
+*/
+
+var obterEndercoPorCEP = function (numeroCEP) {
+
+	$("#txtLogradouro").val("");
+	$("#txtBairroaluno").val("");
+	$("#cmbUFResidencia").val("9");
+	$("#txtCidaderesidencia").val("");
+	$("#txtComp_endereco").val("");
+
+	var cep = numeroCEP.replace(/\D/g, '');
+
+	// Validação simples
+	if (!/^[0-9]{8}$/.test(cep)) {
+		alert("Cep inválido!")
+		return;
+	}
+
+	var apis = [
+		function (c) { return "https://viacep.com.br/ws/" + c + "/json/"; },
+		function (c) { return "https://opencep.com/v1/" + c + ".json"; },
+		function (c) { return "https://brasilcep.dev/v1/" + c + ".json"; }
+	];
+
+	var tentarAPI = function (index) {
+
+		if (index >= apis.length) {
+			alert("Não foi possível consultar o CEP.");
+			return;
+		}
+
+		var url = apis[index](cep);
+
+		$.getJSON(url)
+			.done(function (endereco) {
+
+				// ViaCEP retorna { erro: true }
+				if (endereco.erro === true) {
+					tentarAPI(index + 1);
+					return;
+				}
+
+				if (endereco) {
+					$("#txtLogradouro").val($.trim(endereco.logradouro || endereco.street));
+					$("#txtBairroaluno").val(endereco.bairro || endereco.neighborhood);
+					//$("#cmbUFResidencia").val(endereco.uf || endereco.state);
+					$("#txtComp_endereco").val(endereco.complemento || "");
+					$("#txtCidaderesidencia").val(endereco.localidade || endereco.city);
+				}
+
+				$.unblockUI();
+			})
+			.fail(function () {
+				// tenta próxima API
+				tentarAPI(index + 1);
+			});
+	};
+
+	tentarAPI(0);
+};
+
+
+
 
 var definirMascaraCelular = function (el) {
    $(el).keydown(function (event) {
@@ -138,6 +201,7 @@ function validaDigitacaoBolsaFamilia(){
    var frm = document.getElementById("frm");
    if (frm.txtBolsaFamilia.value.length!=11 && frm.txtBolsaFamilia.value != "") {
 	   alert("Número inválido!");
+	   frm.txtBolsaFamilia.value="";
 	   frm.txtBolsaFamilia.focus();
 	   return false;
    }	
@@ -253,11 +317,11 @@ function salvar(acao){
 		   frm.txtNomealuno.focus()
 		   return false;
 	   }
-	   
+
 	   if (verificaEspacoDuplo('txtNomealuno')) {
 		   alert("O Nome do Aluno não pode conter espaços duplos.")
 		   frm.txtNomealuno.focus()
-		   return false;		   
+		   return false;
 	   }
 
 	   if (frm.txtDatamatricula.value==""){
@@ -281,6 +345,12 @@ function salvar(acao){
 	   if (frm.cmbSexo.value=="0"){
 		   alert("O Sexo deve ser informado.")
 		   frm.cmbSexo.focus()
+		   return false;
+	   } 
+	   
+	   if (frm.txtNumeroRegistroNascimento.value==""){
+		   alert("O Número RG Nascimento deve ser informado.")
+		   frm.txtNumeroRegistroNascimento.focus()
 		   return false;
 	   }
 
@@ -351,10 +421,11 @@ function salvar(acao){
 	   if (verificaEspacoDuplo('txtMae')) {
 		   alert("O Nome da Mãe não pode conter espaços duplos.")
 		   frm.txtMae.focus()
-		   return false;		   
-	   }	   
-	   
-	   
+		   return false;
+	   }
+
+	   //troca o caracter ' ou ´ antes de submiter a pagina (js/js_funcoes_gerais.js)
+	   trocaCaracter();
 	   
 	   var turma = frm.cmbTurma.value;
 	   var gradeNova = "";
@@ -380,13 +451,12 @@ function salvar(acao){
 		   }
 	   }else{
 		   if (frm.cmbTurma.value == "0"){
-			  alert("A turma do aluno deve ser informada.");
-			  //mostraDadosEscolares.style.display="table-row"
-			 
-			  frm.cmbTurma.focus();
-		   return false;
-	   }
-	   
+				alert("A turma do aluno deve ser informada.");
+				//mostraDadosEscolares.style.display="table-row"
+				frm.cmbTurma.focus();
+				return false;
+			}
+			
 		   frm.action="sca_aluno_cod.asp?acao=" + acao;
 		   frm.submit();
 		   return true;
@@ -416,8 +486,6 @@ function renovar(){
 	   frm.txtNomealuno.focus()
 	   return false;
    }
-   
-   
 
    if (frm.txtDatamatricula.value==""){
 	   alert("A Data de Matrícula deve ser informada.")
@@ -434,6 +502,12 @@ function renovar(){
    if (frm.cmbSexo.value=="0"){
 	   alert("O Sexo deve ser informado.")
 	   frm.cmbSexo.focus()
+	   return false;
+   }
+
+   if (frm.txtNumeroRegistroNascimento.value==""){
+	   alert("O Número RG Nascimento deve ser informado.")
+	   frm.txtNumeroRegistroNascimento.focus()
 	   return false;
    }
 
@@ -514,6 +588,12 @@ function renovar(){
 
 // Validação CNS
 function validaCNS(vlrCNS) {
+
+    // Se o CNS estiver vazio, não valida e permite continuar
+    if (vlrCNS.value == "") {
+        return true;
+    }
+
    if (vlrCNS.value!="") {
 	   if ( (vlrCNS.substring(0,1) != "7")  && (vlrCNS.substring(0,1) != "8") && (vlrCNS.substring(0,1) != "9") )
 		  {
@@ -525,8 +605,9 @@ function validaCNS(vlrCNS) {
 		   var resultado = new String;
 		   var tamCNS = vlrCNS.length;
 		   if ((tamCNS) != 15) {
-			   alert("Numero de CNS invalido...");
+			   alert("Numero do SUS (CNS) invalido.");
 			   frm.txtCartaoSUS.value="";
+			   //frm.txtCartaoSUS.focus();
 			   return false;
 		   }
 		   pis = vlrCNS.substring(0,11);
@@ -565,8 +646,9 @@ function validaCNS(vlrCNS) {
 			   resultado = pis + "000" + String(dv);
 		   }
 		   if (vlrCNS != resultado) {
-			   alert("Numero de CNS invalido.");
+			   alert("Numero do SUS (CNS) invalido...");
 			   frm.txtCartaoSUS.value="";
+			   frm.txtCartaoSUS.focus();
 			   return false;
 		   } 
 	   } else {
@@ -655,10 +737,6 @@ function verificaCondicaoEspecial(){
 	}
 
 function verificaEspacoDuplo(campo) {
-    var nome = document.getElementById(campo).value;
-
-    if (nome.indexOf("  ") >= 0) {
-        return true;
-    }
-    return false;
+	var nome = document.getElementById(campo).value;
+	return (nome.indexOf("  ") >= 0);
 }

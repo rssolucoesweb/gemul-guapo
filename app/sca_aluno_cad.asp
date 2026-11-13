@@ -39,6 +39,12 @@
 
 <%
 	mensagem_alerta_pagina_2 = ""
+	function removeAspasSimples(texto)
+		if not isnull(texto) then
+			removeAspasSimples = replace(texto, "'", "´")
+		end if
+	end function
+
 	retira_incluir = "S"
 	strUsuarioLiberadoParaMatricularDireto = ""
 	sql = "SELECT CODIGO_SEG_USUARIOS_SISTEMA"
@@ -308,7 +314,7 @@
 			strCodAluno						= TRIM(rs("Codigo"))
 			intCodAluno						= TRIM(rs("Codigo"))
 			strMatricula 					= TRIM(rs("Matricula"))
-			strNomealuno 					= TRIM(rs("Nomealuno"))
+			strNomealuno 					= removeAspasSimples(TRIM(rs("Nomealuno")))
 			strDatamatricula 				= formataDataAP(TRIM(rs("Datamatricula")))
 			strNumeroRegistroNascimento  	= TRIM(rs("NUMREGISTRONASC"))
 			strCPF  						= formataCPFap(TRIM(rs("cpf")))
@@ -316,11 +322,11 @@
 			strFolha						= TRIM(rs("Folha"))
 			strLivro						= TRIM(rs("Livro"))
 			strTermo						= TRIM(rs("Termo"))
-			strNomeCartorio					= TRIM(rs("NomeCartorio"))
+			strNomeCartorio					= removeAspasSimples(TRIM(rs("NomeCartorio")))
 			strSexo		 					= TRIM(rs("SexoAluno"))
 			strDatanascimento 				= formataDataAP(TRIM(rs("Datanascimento")))
 			strDataEmissaoCertidaoNasc 		= formataDataAP(TRIM(rs("DataEmissaoCertidaoNascimento")))
-			strCidadenascimento 			= TRIM(rs("Cidadenascimento"))
+			strCidadenascimento 			= removeAspasSimples(TRIM(rs("Cidadenascimento")))
 			strUfnascimento 				= TRIM(rs("Ufnascimento"))
 			strNacionalidade 				= TRIM(rs("Nacionalidade"))
 			if isnull(strNacionalidade) then strNacionalidade 		= "Brasileira"
@@ -339,33 +345,33 @@
 			strFoneResidencial 				= TRIM(rs("FoneResidencial"))
 			strFonecomercial 				= TRIM(rs("Fonecomercial"))
 			strFoneCelular	 				= TRIM(rs("Fonecelular"))
-			strEmail 						= TRIM(rs("Email"))
+			strEmail 						= removeAspasSimples(TRIM(rs("Email")))
 			
 			'endereço
-			strLogradouro 					= TRIM(rs("Logradouro"))
-			strNumero_endereco 				= TRIM(rs("Numero_endereco"))
-			strComp_endereco 				= TRIM(rs("Comp_endereco"))
-			strBairroaluno 					= TRIM(rs("Bairroaluno"))
-			strCidaderesidencia				= TRIM(rs("Cidaderesidencia"))
-			strUfresidencia 				= TRIM(rs("Ufresidencia"))
-			strCepresidencia 				= TRIM(rs("Cepresidencia"))
+			strLogradouro 					= removeAspasSimples(TRIM(rs("Logradouro")))
+			strNumero_endereco 				= removeAspasSimples(TRIM(rs("Numero_endereco")))
+			strComp_endereco 				= removeAspasSimples(TRIM(rs("Comp_endereco")))
+			strBairroaluno 					= removeAspasSimples(TRIM(rs("Bairroaluno")))
+			strCidaderesidencia				= removeAspasSimples(TRIM(rs("Cidaderesidencia")))
+			strUfresidencia 				= removeAspasSimples(TRIM(rs("Ufresidencia")))
+			strCepresidencia 				= removeAspasSimples(TRIM(rs("Cepresidencia")))
 			
 			'dados familiares
-			strPai 							= TRIM(rs("Pai"))
-			strPaifalecido 					= TRIM(rs("Paifalecido"))
+			strPai 							= removeAspasSimples(TRIM(rs("Pai")))
+			strPaifalecido 					= removeAspasSimples(TRIM(rs("Paifalecido")))
 			strPaifone 						= TRIM(rs("Paifone"))
 			strPaidatanascimento			= formataDataAP(TRIM(rs("Paidatanascimento")))
 			intCodProfissaoPai				= TRIM(rs("Pai_cod_profissao"))
 			intCodGrauInstrucaoPai			= TRIM(rs("Pai_cod_grauinstrucao"))
 
-			strMae 							= TRIM(rs("Mae"))
-			strMaefalecida 					= TRIM(rs("Maefalecida"))
-			strMaefone 						= TRIM(rs("Maefone"))
+			strMae 							= removeAspasSimples(TRIM(rs("Mae")))
+			strMaefalecida 					= removeAspasSimples(TRIM(rs("Maefalecida")))
+			strMaefone 						= removeAspasSimples(TRIM(rs("Maefone")))
 			strMaedatanascimento			= formataDataAP(TRIM(rs("Maedatanascimento")))
 			intCodProfissaoMae				= TRIM(rs("Mae_cod_profissao"))
 			intCodGrauInstrucaoMae			= TRIM(rs("Mae_cod_grauinstrucao"))
 
-			strResponsavel 					= TRIM(rs("Responsavel"))
+			strResponsavel 					= removeAspasSimples(TRIM(rs("Responsavel")))
 			if isnull(rs("Responsavel")) then strResponsavel = strMae
 			strCPFResponsavel				= TRIM(rs("CPFResponsavel"))
 			strResponsavelfone 				= TRIM(rs("Responsavelfone"))
@@ -414,34 +420,34 @@
 			'dados finaceiro
 			intCodPlanoPagamento 			= TRIM(rs("cod_PlanoTurma"))
 		
-			strLogradouro_cobranca 			= TRIM(rs("Logradouro_cobranca"))
-			strNumero_endereco_cobranca		= TRIM(rs("Numero_endereco_cobranca"))
-			strComp_endereco_cobranca 		= TRIM(rs("Comp_endereco_cobranca"))
+			strLogradouro_cobranca 			= removeAspasSimples(TRIM(rs("Logradouro_cobranca")))
+			strNumero_endereco_cobranca		= removeAspasSimples(TRIM(rs("Numero_endereco_cobranca")))
+			strComp_endereco_cobranca 		= removeAspasSimples(TRIM(rs("Comp_endereco_cobranca")))
 		
-			strEscola						= Trim(RS("Escola_ensinomedio"))
-			strEscolaOrigem					= Trim(RS("Escola_origem"))
-			strCodigoInep					= Trim(RS("CodigoInep"))
-			strCidade			 			= Trim(RS("Cidade_ensinomedio"))
-			strAnoconclusaoEnsinoMedio 		= Trim(RS("ano_ensinomedio"))
-			strSemestreconclusaoEnsinoMedio	= Trim(RS("semestre_ensinomedio"))
-			strUfEnsinoMedio				= Trim(RS("uf_ensinomedio"))		
-			strBolsaFamilia					= Trim(RS("bolsa_Familia"))
-			strCartaoSUS					= Trim(RS("CartaoSUS"))
+			strEscola						= removeAspasSimples(Trim(RS("Escola_ensinomedio")))
+			strEscolaOrigem					= removeAspasSimples(Trim(RS("Escola_origem")))
+			strCodigoInep					= removeAspasSimples(Trim(RS("CodigoInep")))
+			strCidade			 			= removeAspasSimples(Trim(RS("Cidade_ensinomedio")))
+			strAnoconclusaoEnsinoMedio 		= removeAspasSimples(Trim(RS("ano_ensinomedio")))
+			strSemestreconclusaoEnsinoMedio	= removeAspasSimples(Trim(RS("semestre_ensinomedio")))
+			strUfEnsinoMedio				= removeAspasSimples(Trim(RS("uf_ensinomedio")))		
+			strBolsaFamilia					= removeAspasSimples(Trim(RS("bolsa_Familia")))
+			strCartaoSUS					= removeAspasSimples(Trim(RS("CartaoSUS")))
 			if isnull(strBolsaFamilia) then strBolsaFamilia = ""
 
-			RESPONSAVEL_QUEM = RS("RESPONSAVEL_QUEM")	
-			RESPONSAVEL_GRAU_PARESTESCO = RS("RESPONSAVEL_GRAU_PARESTESCO")	
-			RESPOSAVEL_POSSUI_DOCUMENTACAO = RS("RESPOSAVEL_POSSUI_DOCUMENTACAO")	
-			MEDICAMENTO_CONTROLADO = RS("MEDICAMENTO_CONTROLADO")	
-			MEDICAMENTO_CONTROLADO_QUAL  = RS("MEDICAMENTO_CONTROLADO_QUAL")	
-			TRANSPORTE_ESCOLAR 	 = RS("TRANSPORTE_ESCOLAR")		
-			AUTORIZA_USO_IMAGEM  = RS("AUTORIZA_USO_IMAGEM")			
-			RESTRICAO_ALIMENTAR  = RS("RESTRICAO_ALIMENTAR")			
-			RESTRICAO_ALIMENTAR_QUAL  = RS("RESTRICAO_ALIMENTAR_QUAL")		
-			ALERGIA  				= RS("ALERGIA")			
-			ALERGIA_QUAL  			= RS("ALERGIA_QUAL")	
+			RESPONSAVEL_QUEM = removeAspasSimples(RS("RESPONSAVEL_QUEM"))	
+			RESPONSAVEL_GRAU_PARESTESCO = removeAspasSimples(RS("RESPONSAVEL_GRAU_PARESTESCO"))	
+			RESPOSAVEL_POSSUI_DOCUMENTACAO = removeAspasSimples(RS("RESPOSAVEL_POSSUI_DOCUMENTACAO"))	
+			MEDICAMENTO_CONTROLADO = removeAspasSimples(RS("MEDICAMENTO_CONTROLADO"))	
+			MEDICAMENTO_CONTROLADO_QUAL  = removeAspasSimples(RS("MEDICAMENTO_CONTROLADO_QUAL"))	
+			TRANSPORTE_ESCOLAR 	 = removeAspasSimples(RS("TRANSPORTE_ESCOLAR"))		
+			AUTORIZA_USO_IMAGEM  = removeAspasSimples(RS("AUTORIZA_USO_IMAGEM"))			
+			RESTRICAO_ALIMENTAR  = removeAspasSimples(RS("RESTRICAO_ALIMENTAR"))			
+			RESTRICAO_ALIMENTAR_QUAL  = removeAspasSimples(RS("RESTRICAO_ALIMENTAR_QUAL"))		
+			ALERGIA  				= removeAspasSimples(RS("ALERGIA"))			
+			ALERGIA_QUAL  			= removeAspasSimples(RS("ALERGIA_QUAL"))	
 			intCodCondicaoEspecial 			= TRIM(rs("Cod_condicao_especial"))
-			strCondicaoEspecialOutro 		= TRIM(rs("condicao_especial_outro"))
+			strCondicaoEspecialOutro 		= removeAspasSimples(TRIM(rs("condicao_especial_outro")))
 
 			
 			intCodTamanhoRoupa				= Trim(RS("cod_tamanho_roupa"))
@@ -522,19 +528,19 @@
 						''intCodAluno						= TRIM(rs("Codigo"))
 						''strMatricula 					= TRIM(rs("Matricula"))
 						SITUACAO_NECESSIDADE_ESPECIAL	= TRIM(rs("SITUACAO_NECESSIDADE_ESPECIAL"))
-						strNomealuno 					= TRIM(rs("Nomealuno"))
+						strNomealuno 					= removeAspasSimples(TRIM(rs("Nomealuno")))
 						strNumeroRegistroNascimento  	= TRIM(rs("NUMREGISTRONASC"))
 						strCPF  						= formataCPFap(TRIM(rs("cpf")))
 						strFolha						= TRIM(rs("Folha"))
 						strLivro						= TRIM(rs("Livro"))
 						strTermo						= TRIM(rs("Termo"))
-						strNomeCartorio					= TRIM(rs("NomeCartorio"))
+						strNomeCartorio					= removeAspasSimples(TRIM(rs("NomeCartorio")))
 						strSexo		 					= TRIM(rs("SexoAluno"))
 						strDatanascimento 				= formataDataAP(TRIM(rs("Datanascimento")))
 						strDataEmissaoCertidaoNasc 		= formataDataAP(TRIM(rs("DataEmissaoCertidaoNascimento")))
-						'strCidadenascimento 			= TRIM(rs("Cidadenascimento"))
+						'strCidadenascimento 			= removeAspasSimples(TRIM(rs("Cidadenascimento")))
 						if Trim(Request.Form("cmbCodigoMunicipio")) = "0" or Trim(Request.Form("cmbCodigoMunicipio")) = "" then 
-							strCidadenascimento	= TRIM(rs("Cidadenascimento"))
+							strCidadenascimento	= removeAspasSimples(TRIM(rs("Cidadenascimento")))
 						end if
 						if Trim(Request.Form("cmbUfnascimento")) = "0"  or Trim(Request.Form("cmbUfnascimento")) = ""  then 
 							strUfnascimento 	= TRIM(rs("Ufnascimento"))
@@ -543,7 +549,7 @@
 						if strUfnascimento = "" or isnull(strUfnascimento) then strUfnascimento = "0"
 			
 						strUfnascimento 	= TRIM(rs("Ufnascimento"))
-						strCidadenascimento	= TRIM(rs("Cidadenascimento"))
+						strCidadenascimento	= removeAspasSimples(TRIM(rs("Cidadenascimento")))
 			
 			
 						strNacionalidade 				= TRIM(rs("Nacionalidade"))
@@ -559,33 +565,33 @@
 						strFoneResidencial 				= TRIM(rs("FoneResidencial"))
 						strFonecomercial 				= TRIM(rs("Fonecomercial"))
 						strFoneCelular	 				= TRIM(rs("Fonecelular"))
-						strEmail 						= TRIM(rs("Email"))
+						strEmail 						= removeAspasSimples(TRIM(rs("Email")))
 						
 						'endereço
-						strLogradouro 					= TRIM(rs("Logradouro"))
-						strNumero_endereco 				= TRIM(rs("Numero_endereco"))
-						strComp_endereco 				= TRIM(rs("Comp_endereco"))
-						strBairroaluno 					= TRIM(rs("Bairroaluno"))
-						strCidaderesidencia				= TRIM(rs("Cidaderesidencia"))
-						strUfresidencia 				= TRIM(rs("Ufresidencia"))
-						strCepresidencia 				= TRIM(rs("Cepresidencia"))
+						strLogradouro 					= removeAspasSimples(TRIM(rs("Logradouro")))
+						strNumero_endereco 				= removeAspasSimples(TRIM(rs("Numero_endereco")))
+						strComp_endereco 				= removeAspasSimples(TRIM(rs("Comp_endereco")))
+						strBairroaluno 					= removeAspasSimples(TRIM(rs("Bairroaluno")))
+						strCidaderesidencia				= removeAspasSimples(TRIM(rs("Cidaderesidencia")))
+						strUfresidencia 				= removeAspasSimples(TRIM(rs("Ufresidencia")))
+						strCepresidencia 				= removeAspasSimples(TRIM(rs("Cepresidencia")))
 						
 						'dados familiares
-						strPai 							= TRIM(rs("Pai"))
-						strPaifalecido 					= TRIM(rs("Paifalecido"))
+						strPai 							= removeAspasSimples(TRIM(rs("Pai")))
+						strPaifalecido 					= removeAspasSimples(TRIM(rs("Paifalecido")))
 						strPaifone 						= TRIM(rs("Paifone"))
 						strPaidatanascimento			= formataDataAP(TRIM(rs("Paidatanascimento")))
 						intCodProfissaoPai				= TRIM(rs("Pai_cod_profissao"))
 						intCodGrauInstrucaoPai			= TRIM(rs("Pai_cod_grauinstrucao"))
 			
-						strMae 							= TRIM(rs("Mae"))
-						strMaefalecida 					= TRIM(rs("Maefalecida"))
-						strMaefone 						= TRIM(rs("Maefone"))
+						strMae 							= removeAspasSimples(TRIM(rs("Mae")))
+						strMaefalecida 					= removeAspasSimples(TRIM(rs("Maefalecida")))
+						strMaefone 						= removeAspasSimples(TRIM(rs("Maefone")))
 						strMaedatanascimento			= formataDataAP(TRIM(rs("Maedatanascimento")))
 						intCodProfissaoMae				= TRIM(rs("Mae_cod_profissao"))
 						intCodGrauInstrucaoMae			= TRIM(rs("Mae_cod_grauinstrucao"))
 			
-						strResponsavel 					= TRIM(rs("Responsavel"))
+						strResponsavel 					= removeAspasSimples(TRIM(rs("Responsavel")))
 						strCPFResponsavel				= TRIM(rs("CPFResponsavel"))
 						strResponsavelfone 				= TRIM(rs("Responsavelfone"))
 						strResponsaveldatanascimento	= formataDataAP(TRIM(rs("Responsaveldatanascimento")))
@@ -613,24 +619,24 @@
 						end if
 						
 						'dados finaceiro
-						strEscola						= Trim(RS("Escola_ensinomedio"))
-						strBolsaFamilia					= Trim(RS("bolsa_Familia"))
-						strCartaoSUS					= Trim(RS("CartaoSUS"))
+						strEscola						= removeAspasSimples(Trim(RS("Escola_ensinomedio")))
+						strBolsaFamilia					= removeAspasSimples(Trim(RS("bolsa_Familia")))
+						strCartaoSUS					= removeAspasSimples(Trim(RS("CartaoSUS")))
 						
-						RESPONSAVEL_QUEM = RS("RESPONSAVEL_QUEM")	
-						RESPONSAVEL_GRAU_PARESTESCO = RS("RESPONSAVEL_GRAU_PARESTESCO")	
-						RESPOSAVEL_POSSUI_DOCUMENTACAO = RS("RESPOSAVEL_POSSUI_DOCUMENTACAO")	
-						MEDICAMENTO_CONTROLADO = RS("MEDICAMENTO_CONTROLADO")	
-						MEDICAMENTO_CONTROLADO_QUAL  = RS("MEDICAMENTO_CONTROLADO_QUAL")	
-						TRANSPORTE_ESCOLAR 	 = RS("TRANSPORTE_ESCOLAR")		
-						AUTORIZA_USO_IMAGEM  = RS("AUTORIZA_USO_IMAGEM")			
-						RESTRICAO_ALIMENTAR  = RS("RESTRICAO_ALIMENTAR")			
-						RESTRICAO_ALIMENTAR_QUAL  = RS("RESTRICAO_ALIMENTAR_QUAL")	
-						ALERGIA  = RS("ALERGIA")			
-						ALERGIA_QUAL  = RS("ALERGIA_QUAL")
+						RESPONSAVEL_QUEM = removeAspasSimples(RS("RESPONSAVEL_QUEM"))	
+						RESPONSAVEL_GRAU_PARESTESCO = removeAspasSimples(RS("RESPONSAVEL_GRAU_PARESTESCO"))	
+						RESPOSAVEL_POSSUI_DOCUMENTACAO = removeAspasSimples(RS("RESPOSAVEL_POSSUI_DOCUMENTACAO"))	
+						MEDICAMENTO_CONTROLADO = removeAspasSimples(RS("MEDICAMENTO_CONTROLADO"))	
+						MEDICAMENTO_CONTROLADO_QUAL  = removeAspasSimples(RS("MEDICAMENTO_CONTROLADO_QUAL"))	
+						TRANSPORTE_ESCOLAR 	 = removeAspasSimples(RS("TRANSPORTE_ESCOLAR"))		
+						AUTORIZA_USO_IMAGEM  = removeAspasSimples(RS("AUTORIZA_USO_IMAGEM"))			
+						RESTRICAO_ALIMENTAR  = removeAspasSimples(RS("RESTRICAO_ALIMENTAR"))			
+						RESTRICAO_ALIMENTAR_QUAL  = removeAspasSimples(RS("RESTRICAO_ALIMENTAR_QUAL"))	
+						ALERGIA  = removeAspasSimples(RS("ALERGIA"))			
+						ALERGIA_QUAL  = removeAspasSimples(RS("ALERGIA_QUAL"))
 						
 						intCodCondicaoEspecial 			= TRIM(rs("Cod_condicao_especial"))
-						strCondicaoEspecialOutro 		= TRIM(rs("condicao_especial_outro"))
+						strCondicaoEspecialOutro 		= removeAspasSimples(TRIM(rs("condicao_especial_outro")))
 						
 						intCodTamanhoRoupa				= Trim(RS("cod_tamanho_roupa"))
 						intCodTamanhoCalcado			= Trim(RS("cod_tamanho_calcado"))
@@ -678,7 +684,7 @@
 				strCodAluno						= TRIM(rs("Codigo"))
 				intCodAluno						= TRIM(rs("Codigo"))
 				strMatricula 					= TRIM(rs("Matricula"))
-				strNomealuno 					= TRIM(rs("Nomealuno"))
+				strNomealuno 					= removeAspasSimples(TRIM(rs("Nomealuno")))
 				strDatamatricula 				= formataDataAP(TRIM(rs("Datamatricula")))
 				strNumeroRegistroNascimento  	= TRIM(rs("NUMREGISTRONASC"))
 				strCPF  						= formataCPFap(TRIM(rs("cpf")))
@@ -686,11 +692,11 @@
 				strFolha						= TRIM(rs("Folha"))
 				strLivro						= TRIM(rs("Livro"))
 				strTermo						= TRIM(rs("Termo"))
-				strNomeCartorio					= TRIM(rs("NomeCartorio"))
+				strNomeCartorio					= removeAspasSimples(TRIM(rs("NomeCartorio")))
 				strSexo		 					= TRIM(rs("SexoAluno"))
 				strDatanascimento 				= formataDataAP(TRIM(rs("Datanascimento")))
 				strDataEmissaoCertidaoNasc 		= formataDataAP(TRIM(rs("DataEmissaoCertidaoNascimento")))
-				strCidadenascimento 			= TRIM(rs("Cidadenascimento"))
+				strCidadenascimento 			= removeAspasSimples(TRIM(rs("Cidadenascimento")))
 				strUfnascimento 				= TRIM(rs("Ufnascimento"))
 				strNacionalidade 				= TRIM(rs("Nacionalidade"))
 				if isnull(strNacionalidade) then strNacionalidade 		= "Brasileira"
@@ -709,33 +715,33 @@
 				strFoneResidencial 				= TRIM(rs("FoneResidencial"))
 				strFonecomercial 				= TRIM(rs("Fonecomercial"))
 				strFoneCelular	 				= TRIM(rs("Fonecelular"))
-				strEmail 						= TRIM(rs("Email"))
+				strEmail 						= removeAspasSimples(TRIM(rs("Email")))
 				
 				'endereço
-				strLogradouro 					= TRIM(rs("Logradouro"))
-				strNumero_endereco 				= TRIM(rs("Numero_endereco"))
-				strComp_endereco 				= TRIM(rs("Comp_endereco"))
-				strBairroaluno 					= TRIM(rs("Bairroaluno"))
-				strCidaderesidencia				= TRIM(rs("Cidaderesidencia"))
-				strUfresidencia 				= TRIM(rs("Ufresidencia"))
-				strCepresidencia 				= TRIM(rs("Cepresidencia"))
+				strLogradouro 					= removeAspasSimples(TRIM(rs("Logradouro")))
+				strNumero_endereco 				= removeAspasSimples(TRIM(rs("Numero_endereco")))
+				strComp_endereco 				= removeAspasSimples(TRIM(rs("Comp_endereco")))
+				strBairroaluno 					= removeAspasSimples(TRIM(rs("Bairroaluno")))
+				strCidaderesidencia				= removeAspasSimples(TRIM(rs("Cidaderesidencia")))
+				strUfresidencia 				= removeAspasSimples(TRIM(rs("Ufresidencia")))
+				strCepresidencia 				= removeAspasSimples(TRIM(rs("Cepresidencia")))
 				
 				'dados familiares
-				strPai 							= TRIM(rs("Pai"))
-				strPaifalecido 					= TRIM(rs("Paifalecido"))
+				strPai 							= removeAspasSimples(TRIM(rs("Pai")))
+				strPaifalecido 					= removeAspasSimples(TRIM(rs("Paifalecido")))
 				strPaifone 						= TRIM(rs("Paifone"))
 				strPaidatanascimento			= formataDataAP(TRIM(rs("Paidatanascimento")))
 				intCodProfissaoPai				= TRIM(rs("Pai_cod_profissao"))
 				intCodGrauInstrucaoPai			= TRIM(rs("Pai_cod_grauinstrucao"))
 
-				strMae 							= TRIM(rs("Mae"))
-				strMaefalecida 					= TRIM(rs("Maefalecida"))
-				strMaefone 						= TRIM(rs("Maefone"))
+				strMae 							= removeAspasSimples(TRIM(rs("Mae")))
+				strMaefalecida 					= removeAspasSimples(TRIM(rs("Maefalecida")))
+				strMaefone 						= removeAspasSimples(TRIM(rs("Maefone")))
 				strMaedatanascimento			= formataDataAP(TRIM(rs("Maedatanascimento")))
 				intCodProfissaoMae				= TRIM(rs("Mae_cod_profissao"))
 				intCodGrauInstrucaoMae			= TRIM(rs("Mae_cod_grauinstrucao"))
 
-				strResponsavel 					= TRIM(rs("Responsavel"))
+				strResponsavel 					= removeAspasSimples(TRIM(rs("Responsavel")))
 				if isnull(rs("Responsavel")) then strResponsavel = strMae
 				strCPFResponsavel				= TRIM(rs("CPFResponsavel"))
 				strResponsavelfone 				= TRIM(rs("Responsavelfone"))
@@ -784,35 +790,35 @@
 				'dados finaceiro
 				intCodPlanoPagamento 			= TRIM(rs("cod_PlanoTurma"))
 			
-				strLogradouro_cobranca 			= TRIM(rs("Logradouro_cobranca"))
-				strNumero_endereco_cobranca		= TRIM(rs("Numero_endereco_cobranca"))
-				strComp_endereco_cobranca 		= TRIM(rs("Comp_endereco_cobranca"))
+				strLogradouro_cobranca 			= removeAspasSimples(TRIM(rs("Logradouro_cobranca")))
+				strNumero_endereco_cobranca		= removeAspasSimples(TRIM(rs("Numero_endereco_cobranca")))
+				strComp_endereco_cobranca 		= removeAspasSimples(TRIM(rs("Comp_endereco_cobranca")))
 			
-				strEscola						= Trim(RS("Escola_ensinomedio"))
-				strEscolaOrigem					= Trim(RS("Escola_origem"))
-				strCodigoInep					= Trim(RS("CodigoInep"))
-				strCidade			 			= Trim(RS("Cidade_ensinomedio"))
-				strAnoconclusaoEnsinoMedio 		= Trim(RS("ano_ensinomedio"))
-				strSemestreconclusaoEnsinoMedio	= Trim(RS("semestre_ensinomedio"))
-				strUfEnsinoMedio				= Trim(RS("uf_ensinomedio"))		
-				strBolsaFamilia					= Trim(RS("bolsa_Familia"))
-				strCartaoSUS					= Trim(RS("CartaoSUS"))
+				strEscola						= removeAspasSimples(Trim(RS("Escola_ensinomedio")))
+				strEscolaOrigem					= removeAspasSimples(Trim(RS("Escola_origem")))
+				strCodigoInep					= removeAspasSimples(Trim(RS("CodigoInep")))
+				strCidade			 			= removeAspasSimples(Trim(RS("Cidade_ensinomedio")))
+				strAnoconclusaoEnsinoMedio 		= removeAspasSimples(Trim(RS("ano_ensinomedio")))
+				strSemestreconclusaoEnsinoMedio	= removeAspasSimples(Trim(RS("semestre_ensinomedio")))
+				strUfEnsinoMedio				= removeAspasSimples(Trim(RS("uf_ensinomedio")))		
+				strBolsaFamilia					= removeAspasSimples(Trim(RS("bolsa_Familia")))
+				strCartaoSUS					= removeAspasSimples(Trim(RS("CartaoSUS")))
 				if isnull(strBolsaFamilia) then strBolsaFamilia = ""
 
 
-				RESPONSAVEL_QUEM = RS("RESPONSAVEL_QUEM")	
-				RESPONSAVEL_GRAU_PARESTESCO = RS("RESPONSAVEL_GRAU_PARESTESCO")	
-				RESPOSAVEL_POSSUI_DOCUMENTACAO = RS("RESPOSAVEL_POSSUI_DOCUMENTACAO")	
-				MEDICAMENTO_CONTROLADO = RS("MEDICAMENTO_CONTROLADO")	
-				MEDICAMENTO_CONTROLADO_QUAL  = RS("MEDICAMENTO_CONTROLADO_QUAL")	
-				TRANSPORTE_ESCOLAR 	 = RS("TRANSPORTE_ESCOLAR")		
-				AUTORIZA_USO_IMAGEM  = RS("AUTORIZA_USO_IMAGEM")			
-				RESTRICAO_ALIMENTAR  = RS("RESTRICAO_ALIMENTAR")			
-				RESTRICAO_ALIMENTAR_QUAL  = RS("RESTRICAO_ALIMENTAR_QUAL")	
-				ALERGIA  = RS("ALERGIA")			
-				ALERGIA_QUAL  = RS("ALERGIA_QUAL")	
+				RESPONSAVEL_QUEM = removeAspasSimples(RS("RESPONSAVEL_QUEM"))	
+				RESPONSAVEL_GRAU_PARESTESCO = removeAspasSimples(RS("RESPONSAVEL_GRAU_PARESTESCO"))	
+				RESPOSAVEL_POSSUI_DOCUMENTACAO = removeAspasSimples(RS("RESPOSAVEL_POSSUI_DOCUMENTACAO"))	
+				MEDICAMENTO_CONTROLADO = removeAspasSimples(RS("MEDICAMENTO_CONTROLADO"))	
+				MEDICAMENTO_CONTROLADO_QUAL  = removeAspasSimples(RS("MEDICAMENTO_CONTROLADO_QUAL"))	
+				TRANSPORTE_ESCOLAR 	 = removeAspasSimples(RS("TRANSPORTE_ESCOLAR"))		
+				AUTORIZA_USO_IMAGEM  = removeAspasSimples(RS("AUTORIZA_USO_IMAGEM"))			
+				RESTRICAO_ALIMENTAR  = removeAspasSimples(RS("RESTRICAO_ALIMENTAR"))			
+				RESTRICAO_ALIMENTAR_QUAL  = removeAspasSimples(RS("RESTRICAO_ALIMENTAR_QUAL"))	
+				ALERGIA  = removeAspasSimples(RS("ALERGIA"))			
+				ALERGIA_QUAL  = removeAspasSimples(RS("ALERGIA_QUAL"))	
 				intCodCondicaoEspecial 			= TRIM(rs("Cod_condicao_especial"))
-				strCondicaoEspecialOutro 		= TRIM(rs("condicao_especial_outro"))
+				strCondicaoEspecialOutro 		= removeAspasSimples(TRIM(rs("condicao_especial_outro")))
 				
 				intCodTamanhoRoupa				= Trim(RS("cod_tamanho_roupa"))
 				intCodTamanhoCalcado			= Trim(RS("cod_tamanho_calcado"))	
@@ -922,19 +928,20 @@
 		if  trim(strCodAluno) <> "" then
 			intIdadeParaPeriodo = 0
 			'aluno na turma
-			sql = "select top 1 T.NomeTurma, T.TurmaAluno, T.COD_TURMA, P.idade_limite"
+			sql = "select top 1 T.NomeTurma, T.TurmaAluno, T.COD_TURMA, P.idade_limite, p.Descricao as periodo"
 			sql = sql & " from SCA_ALUNO_TURMA AT"
 			sql = sql & " INNER JOIN SCA_TURMA T ON T.COD_TURMA = AT.COD_TURMA AND T.COD_EMPRESA = AT.COD_EMPRESA AND AT.ANO_LETIVO = T.AnoLetivo "
 			sql = sql & " INNER JOIN SCA_PERIODO P ON P.COD_PERIODO = T.COD_PERIODO "
 			sql = sql & " Where AT.COD_EMPRESA = " &  strCod_empresa
 			sql = sql & " and AT.COD_ALUNO = " &  strCodAluno
+			sql = sql & " and AT.ANO_LETIVO = " &  session("strAnoLetivo")
 			sql = sql & " order by AT.CODIGO desc"
 			rs.open sql, cnn
 			if not rs.eof then
 				intCodTurma = rs("COD_TURMA")
 				intIdadeParaPeriodo = rs("idade_limite")
 				strNomeTurma 	= rs("NomeTurma")
-				strNomeTurmaAluno	= rs("TurmaAluno")
+				strNomeTurmaAluno	= rs("periodo") & " " & rs("TurmaAluno")
 			else
 				if alunoAtivo = "S" then
 					strNomeTurma = "SEM TURMA"
@@ -1139,6 +1146,7 @@
 
 	totalAlunoCadCompleto = totalAlunoAtivo - totalAlunoCadIncompleto
 	
+	if strDataingresso = "" then strDataingresso = formatadataAP(date)
 	
 %>
 
@@ -1401,10 +1409,10 @@
 								</div>
 								<div class="col-sm-4">
 									<div class="form-group">
-										<%IF strAcessoPerfil = "ADMINISTRADOR" then %>
+										<%'IF strAcessoPerfil = "ADMINISTRADOR" then %>
 										<br>
 										<button class="btn btn-success waves-effect waves-themed" type="button" id="button-addon5" onClick="return verificar()" >Incluir Aluno <i class="fal fa-arrow-alt-circle-right"></i></button>
-										<%end if%>
+										<%'end if%>
 									</div>
 								</div>
 								
@@ -1485,7 +1493,7 @@
 												<div class="row">
 													<div class="col-sm-2">	
 														<div class="form-group">
-															<label class="form-label">Número RG Nasc.</label>
+															<label class="form-label">Número RG Nasc. *</label>
 															<input name="txtNumeroRegistroNascimento" type="text" class="form-control" id="txtNumeroRegistroNascimento" size="40" maxlength="40" value="<%=strNumeroRegistroNascimento%>"  onKeyPress="return formataCampo(this, 2, 40)">
 														</div>
 													</div>	
@@ -1548,7 +1556,7 @@
 													</div>
 													<div class="col-sm-2">
 														<div class="form-group">
-															<label class="form-label">Etnia *</label>
+															<label class="form-label">Cor *</label>
 															<!--#include file="includes/inc_cmdEtnia.asp" -->
 														</div>
 													</div>	
@@ -1557,7 +1565,7 @@
 												<div class="row">
 													<div class="col-sm-2">
 														<div class="form-group">
-															<label class="form-label">Cartão SUS *</label>
+															<label class="form-label">Cartão SUS</label>
 															<input name="txtCartaoSUS" type="text" class="form-control" id="txtCartaoSUS" size="15" maxlength="15"  onBlur="validaCNS(this.value)" value="<%=strCartaoSUS%>"  />
 														</div>
 													</div>	
@@ -1673,7 +1681,9 @@
 								'sql = sql & " AND AT.SEMESTRE = T.Cod_Semestre"
 								sql = sql & " where AT.COD_EMPRESA = " &  strCod_empresa
 								sql = sql & " and AT.COD_ALUNO = " &  strCodAluno
-								'sql = sql & " and AT.ANO_LETIVO = " &  strAnoLetivo
+								'turma do ano letivo da sessão (a combo lista as turmas desse ano): sem isso, aluno renovado
+								'pegava a turma do ano seguinte (vínculo mais recente) e a combo ficava sem seleção
+								if isnumeric(strAnoLetivo & "") and trim(strAnoLetivo & "") <> "" then sql = sql & " and AT.ANO_LETIVO = " & clng(strAnoLetivo)
 								'sql = sql & " and AT.SEMESTRE in (" &  intSemestre & ")"
 								sql = sql & " and AT.SITUACAO = 'A'"'ATIVA
 								sql = sql & " order by AT.CODIGO desc"
@@ -1985,8 +1995,8 @@
 											</div>
 											<div class="col-sm-4">	
 												<div class="form-group">
-													<label class="form-label">Data ingresso</label>
-													<input name="txtDataingresso" type="text" class="form-control" id="txtDataingresso" onBlur="return validaData(this)" onKeyPress="return formataCampo(this, 3, 10)" size="11" maxlength="10" value="<%=strDataingresso%>">
+													<label class="form-label">Data ingresso<%if strAcessoPerfil = "ADMINISTRADOR" then%> <i>(liberado alteração)</i><%end if%></label>
+													<input name="txtDataingresso" <%if strAcessoPerfil <> "ADMINISTRADOR" then%> readonly <%end if%> type="text" class="form-control" id="txtDataingresso" onBlur="return validaData(this)" onKeyPress="return formataCampo(this, 3, 10)" size="11" maxlength="10" value="<%=strDataingresso%>">
 												</div>
 											</div>	
 											<div class="col-sm-4">	
