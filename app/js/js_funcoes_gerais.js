@@ -2,6 +2,21 @@ var aberto = false;
 var strAltura = (screen.height);
 var strLargura = (screen.width);
 
+//troca o caracter ' ou ´ antes de submiter a pagina
+function trocaCaracter() {
+	const textFields = document.querySelectorAll(
+		"input[type='text'], input[type='search'], input[type='email'], input[type='tel'], input[type='url'], textarea"
+	);
+
+	textFields.forEach(function (field) {
+		if (field.value) {
+			field.value = field.value
+				.replace(/'/g, "´");
+		}
+	});
+}
+
+
 function voltaTela(destino) {
 	var frm = document.getElementById("frm");
 	$('.form-control').removeAttr('disabled');
@@ -867,4 +882,6 @@ function site(v) {
 	v = "http://" + dominio + caminho
 	return v
 }
+
+
 

@@ -29,7 +29,7 @@ Contato: sergio@rssolucoesweb.com.br
     <body class="nav-function-top header-function-fixed" style="">
         <!-- DOC: script para salvar e carregar as configurações da página -->
 		<script src="js/configuracoes_pagina.js"></script>
-		<script src="js/js_funcoes_gerais.js"></script>
+		<script src="js/js_funcoes_gerais.js?v=2"></script>
 		<!-- inicio funções para cep e mascara telefone -->
 		<script src="js/jquery-2.1.3.min.js"></script>
 		<script src="js/jquery.mask.min.js"></script>
@@ -103,7 +103,7 @@ Contato: sergio@rssolucoesweb.com.br
 						+ src/../jquery-snippets.js (core) -->
         <script src="js/vendors.bundle.js"></script>
         <script src="js/app.bundle.js"></script>
-		<script src="js_app/sca_aluno.js?v=2"></script>
+		<script src="js_app/sca_aluno.js?v=3"></script>
 		<script type="text/javascript">
 			$(document).ready(function () {
 				 //definirMascaraCelular($("#txtFoneResidencial"));
@@ -115,10 +115,11 @@ Contato: sergio@rssolucoesweb.com.br
 				 
 				 $("#txtCepresidencia").on("blur", function () {
 					var cep = $(this).val();
-					obterEndercoPorCEP(cep);			
+					obterEndercoPorCEP(cep);	//dentro do sca_aluno.js
 				});
 			});
 			
+			/* busca de CEP agora fica no js_app/sca_aluno.js (tenta ViaCEP, OpenCEP e BrasilCEP)
 			var obterEndercoPorCEP = function (numeroCEP) {
 				$("#txtLogradouro").val("");
 				$("#txtBairroaluno").val("");
@@ -141,6 +142,7 @@ Contato: sergio@rssolucoesweb.com.br
 					 }
 				 });;
 			};
+			*/
 			
 			//var definirMascaraCelular = function (el) {
 			//	$(el).keydown(function (event) {
