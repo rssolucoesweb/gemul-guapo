@@ -59,3 +59,6 @@ sistema/SEG/Empresa_cod.asp
 # Credenciais (ficam só no servidor)
 *inc_serasa_config.asp
 *inc_whatsapp_config.asp
+# configuração do IIS e cópias antigas (ficam só no servidor)
+/Web.config
+*.OLD
