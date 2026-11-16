@@ -11,7 +11,7 @@
 	
 		sql = "SELECT Cod_SituacaoAluno, Desc_SituacaoAluno, Cod_Vinculo_Inep, status"
 		sql = sql & " FROM SCA_SITUACAOALUNO"
-		sql = sql & " where Cod_SituacaoAluno = " & intCodigo
+		sql = sql & " where mostrar='S' and Cod_SituacaoAluno = " & intCodigo
 		rs.open sql, cnn
 		
 		if rs.eof = false then
@@ -93,7 +93,7 @@
 	cont =0
 
 	sql = "SELECT Cod_SituacaoAluno, Desc_SituacaoAluno, status"
-	sql = sql & " FROM SCA_SITUACAOALUNO"
+	sql = sql & " FROM SCA_SITUACAOALUNO where mostrar='S'"
 	sql = sql & " Order by status, Desc_SituacaoAluno"
 	rs.open sql, cnn
 			

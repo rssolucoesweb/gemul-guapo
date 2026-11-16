@@ -110,6 +110,7 @@ if intCodCurso<>"0" then
 								<thead class="thead-themed">
 								  <tr>
 									<th><strong>Código</strong></th>
+									<th><strong>Turno</strong></th>
 									<th><strong>Nome da Turma</strong></th>
 									<th><strong>Descri&ccedil;&atilde;o F&iacute;sica da Turma</strong></th>
 									<th><strong>Capacidade</strong></th>
@@ -131,6 +132,7 @@ if intCodCurso<>"0" then
 							sql = sql & " and T.Cod_Semestre = " & intSemestre
 							sql = sql & " and P.Cod_Curso = " & intCodCurso
 							sql = sql & " and ISNULL(T.cod_turma_grupo,'0')=0 "
+							sql = sql & " and T.situacao = 'A'"
 							sql = sql & " Order by T.AnoLetivo, P.sequencia, TU.DESC_TURNO, T.Nometurma"
 							rs.open sql, cnn
 							if rs.eof = false then
@@ -145,6 +147,7 @@ if intCodCurso<>"0" then
 									
 									strTurmaAluno = right(strTurmaAluno,len(strTurmaAluno)-len(strPeriodo))
 									
+									
 									strTurmaAlunoComplemento = trim(rs("TurmaAlunoComplemento")) 
 									diferenciada = ""
 									if trim(rs("diferenciada")) = "S" then diferenciada = " <strong><font color=blue>(Matriz Diferenciada)</font></strong>"
@@ -152,6 +155,7 @@ if intCodCurso<>"0" then
 									 <input name="txtCodTurma_<%=trim(rs("cod_turma"))%>" type="hidden" value="<%=trim(rs("cod_turma"))%>" >
 									 <tr style="cursor: pointer"  onClick="return resultadoConsulta('<%=rs("Cod_Turma")%>')">
 										<td><%=trim(rs("cod_turma"))%></td>
+										<td><%=trim(rs("DESC_TURNO"))%></td>
 										<td><%=trim(rs("NomeTurma"))%> <%=diferenciada%></td>
 										<td><%=trim(rs("DESCRICAO"))%>&nbsp;<input name="txtTurmaAluno_<%=trim(rs("cod_turma"))%>" type="text" class="text" id="txtTurmaAluno_<%=trim(rs("cod_turma"))%>"  value="<%=strTurmaAluno%>" size="2" maxlength="2" >
 										<%if trim(rs("curso")) = "EJA" then%>

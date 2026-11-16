@@ -35,8 +35,8 @@ Contato: sergio@rssolucoesweb.com.br
 		sistema = "GEMUL"
 		sistema_sigla = "SCA"
 		modulo = "SCA"
-		pagina = "Cálculo"
-		descricao_pagina = "Cadastro de Cálculo das avaliações, opções de inclusão, alteração, exclusão e consulta."
+		pagina = "Cálculo das médias"
+		descricao_pagina = "Cadastro de cálculo das mádias, opções de inclusão, alteração, exclusão e consulta."
 		mensagem_alerta_pagina = ""
 		%>
         <!-- INICIO pagina -->

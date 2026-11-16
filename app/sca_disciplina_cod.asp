@@ -15,11 +15,12 @@ response.ContentType = "text/html"
 	
 	intCodigo			= Trim(Request.Form("txtCodigo"))
 	strDescricao 		= ucase(Trim(Request.Form("txtDescricao")))
+	strOrdem	 		= ucase(Trim(Request.Form("txtOrdem")))
 	strDescAbreviada	= ucase(Trim(Request.Form("txtDescAbreviada")))
 	strDescHistorico	= ucase(Trim(Request.Form("txtDescHistorico")))
 	strSituacao         = Trim(Request.Form("cmbSituacao"))
 	strUsoHistorico         = Trim(Request.Form("cmbUsoHistorico"))
-	
+	if strOrdem = "" then strOrdem = 99
 			
 	if acao="I" then
 	
@@ -48,9 +49,10 @@ response.ContentType = "text/html"
 
 		
 
-		sql = "Insert Into SCA_DISCIPLINA(DESC_Disciplina, Desc_Abreviada, Desc_Historico, uso_historico, Situacao)"
+		sql = "Insert Into SCA_DISCIPLINA(DESC_Disciplina, ordem, Desc_Abreviada, Desc_Historico, uso_historico, Situacao)"
 		sql = sql & " Values ("
 		sql = sql & "'" & strDescricao & "',"
+		sql = sql & "" & strOrdem & ","
 		sql = sql & "'" & strDescAbreviada & "',"
 		sql = sql & "'" & strDescHistorico & "',"
 		sql = sql & "'" & strUsoHistorico & "',"
@@ -64,6 +66,7 @@ response.ContentType = "text/html"
 		strMensagem = "Registro Alterado com sucesso..."
 		sql = "Update SCA_DISCIPLINA Set"
 		sql = sql & " DESC_Disciplina = '" & strDescricao & "',"
+		sql = sql & " ordem = " & strOrdem & ","
 		sql = sql & " Desc_Abreviada = '" & strDescAbreviada & "',"
 		sql = sql & " Desc_Historico = '" & strDescHistorico & "', "
 		sql = sql & " uso_historico = '" & strUsoHistorico & "', "

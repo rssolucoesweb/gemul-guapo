@@ -60,7 +60,8 @@ Contato: sergio@rssolucoesweb.com.br
 						sql = sql & " SCA_GRADECURRICULARDISCIPLINA.Cod_GradeCurricular_Equivalente,"
 						sql = sql & " SCA_GRADECURRICULARDISCIPLINA.Cod_Disciplina_Equivalente, "
 						sql = sql & " SCA_GRADECURRICULARDISCIPLINA.Ch_Mensal, SCA_GRADECURRICULARDISCIPLINA.Ch_Anual, "
-						sql = sql & " ISNULL(SCA_GRADECURRICULARDISCIPLINA.Omitir_Criterio,'N') as Omitir_Criterio "
+						sql = sql & " ISNULL(SCA_GRADECURRICULARDISCIPLINA.Omitir_Criterio,'N') as Omitir_Criterio, "
+						sql = sql & " ISNULL(SCA_GRADECURRICULARDISCIPLINA.Omitir_Documentacao,'N') as Omitir_Documentacao "
 						sql = sql & " FROM SCA_GRADECURRICULARDISCIPLINA INNER JOIN SCA_DISCIPLINA "
 						sql = sql & " ON SCA_GRADECURRICULARDISCIPLINA.Cod_Disciplina = SCA_DISCIPLINA.COD_Disciplina "
 						sql = sql & " WHERE SCA_GRADECURRICULARDISCIPLINA.COD_GRADECURRICULAR = " &  intCodGrade
@@ -75,6 +76,7 @@ Contato: sergio@rssolucoesweb.com.br
 							strCh_Pratica 		= trim(rs("Ch_Pratica"))
 							strCh_Teorica 		= trim(rs("Ch_Teorica"))
 							strOmitirCriterio 	= trim(rs("Omitir_Criterio"))
+							strOmitirDocumentacao 	= trim(rs("Omitir_Documentacao"))
 							
 							acao = "A"
 
@@ -138,7 +140,8 @@ Contato: sergio@rssolucoesweb.com.br
 																<td colspan="3" align="center" class="celula"><strong>Aulas</strong></td>
 																<td colspan="2" align="center" class="celula"><strong>Horas</strong></td>
 																<td colspan="2" align="center" class="celula"><strong>Horas - (Opcional)</strong></td>
-																<td width="13%" colspan="2" rowspan="2" align="center" class="celula"><strong>Omitir Crit&eacute;rio de Avalia&ccedil;&atilde;o</strong></td>
+																<td width="13%" rowspan="2" align="center" class="celula"><strong>Omitir Crit&eacute;rio de Avalia&ccedil;&atilde;o</strong></td>
+																<td width="13%" rowspan="2" align="center" class="celula"><strong>Omitir Documentação<br>Notas/Extrato/Ata</strong></td>
 															  </tr>
 															  <tr bgcolor="#D3D3D3">
 																<td width="13%" align="center" class="celula"><strong>C.H. Semanal </strong></td>
@@ -157,9 +160,14 @@ Contato: sergio@rssolucoesweb.com.br
 																<td align="center" class="celula"><input name="txtChHoras" type="text" class="form-control" id="txtChHoras" onKeyPress="return formataCampo(this,2,5)"  value="<%=strCh_Horas%>" size="5" maxlength="8"></td>
 																<td align="center" class="celula"><input name="txtChPratica" type="text" class="form-control" id="txtChPratica" onKeyPress="return formataCampo(this,2,5)"  value="<%=strCh_Pratica%>" size="5" maxlength="8"></td>
 																<td align="center" class="celula"><input name="txtChTeorica" type="text" class="form-control" id="txtChTeorica" onKeyPress="return formataCampo(this,2,5)"  value="<%=strCh_Teorica%>" size="5" maxlength="8"></td>
-																<td align="center" class="celula"><select name="cmbOmitirCriterio" class="form-control" id="cmbOmitirCriterio"  style="width:50pt" onchange='' >
+																<td align="center" class="celula"><select name="cmbOmitirCriterio" class="form-control" id="cmbOmitirCriterio"  style="width:70pt" onchange='' >
 																  <option value="N" <%if strOmitirCriterio = "N" then response.Write("selected") %>>NAO</option>
 																  <option value="S" <%if strOmitirCriterio = "S" then response.Write("selected") %>>SIM</option>
+																</select>
+																</td>
+																<td align="center" class="celula"><select name="cmbOmitirDocumentacao" class="form-control" id="cmbOmitirDocumentacao"  style="width:70pt" onchange='' >
+																  <option value="N" <%if strOmitirDocumentacao = "N" then response.Write("selected") %>>NAO</option>
+																  <option value="S" <%if strOmitirDocumentacao = "S" then response.Write("selected") %>>SIM</option>
 																</select>
 																</td>
 															  </tr>

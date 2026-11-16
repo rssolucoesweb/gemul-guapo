@@ -55,6 +55,7 @@ Contato: sergio@rssolucoesweb.com.br
 					<!--#include file=inc_rodape.asp-->
 					
 					<!--#include file=inc_modal_atalho.asp-->
+					<!--#include file=includes/inc_videoTutorial.asp-->
 					
                 </div>
             </div>

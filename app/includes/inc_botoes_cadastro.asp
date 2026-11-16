@@ -2,7 +2,7 @@
 <%if retira_incluir="S" then%>								
 <%else%>
 <%if left(acao,1) = "I" then%>
-	<button onClick="salvar('I')"  type="button" class="btn btn-outline-success">Incluir</button>
+	<button onClick="salvar('I')" id="btnIncluir" type="button" class="btn btn-outline-success">Incluir</button>
 <%end if%>
 <%end if%>
 <%if left(acao,1) = "A" then%>
@@ -18,6 +18,9 @@
 <button onClick="window.location='<%=pagina_anterior%>'"  type="button" class="btn btn-outline-info">Voltar</button>
 <%end if%>
 
+<%if strBotaoDisciplinasHistoricoEscolar = "S" then %>
+<button onClick="disciplinaHistorico('<%=codHistoricoEscolar%>')"  type="button" class="btn btn-outline-warning">Editar Disciplinas</button>
+<%end if%>
 
 <%if strBotaoExcluirDiscGradeAluno = "S" then %>
 <button onClick="ExcluirDisciplina()"  type="button" class="btn btn-outline-danger">Excluir Grade Disciplina</button>

@@ -17,7 +17,11 @@
 		sql = sql & "" & intCodAluno & ","
 		sql = sql & "" & strAnoLetivo & ","
 		sql = sql & "" & intSemestre & ","
-		sql = sql & "'" & strDataOcorrencia & " " & time & "',"
+		if strDataOcorrencia = "" then
+			sql = sql & "getdate(),"
+		else
+			sql = sql & "'" & strDataOcorrencia & " " & time & "',"
+		end if
 		if strDataValidade = "" then
 			sql = sql & "null,"
 		else

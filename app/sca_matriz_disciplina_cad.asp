@@ -128,6 +128,7 @@
 		sql = sql & " LEFT JOIN SCF_UF UFI ON UFI.CODIGO = A.IDENTIDADEUF"
 		sql = sql & " WHERE A.MATRICULA = " & strMatricula
 		sql = sql & " AND AA.cod_empresa = " & Session("CodEmpresa")	
+		sql = sql & " AND AT.ANO_LETIVO = " & strAnoLetivo
 		sql = sql & " Order BY AT.CODIGO DESC "
 		rs.open sql, cnn
 		'response.write sql
@@ -170,6 +171,7 @@
 
 		sql = sql & " where AL.cod_empresa = " & Session("CodEmpresa")	
 		sql = sql & " and AL.CODIGO = " & intCodigo
+		sql = sql & " and T.ANOLETIVO = " & strAnoLetivo
 			
 		rs.open sql, cnn
 		
@@ -573,6 +575,8 @@ if strCodAluno <> "" then
 				sql = sql & " left join SCA_PERIODO p ON p.Cod_Periodo = gc.Cod_Periodo"
 				sql = sql & " left join SCA_SITUACAO_PROMOCAO sp ON sp.CODIGO = ad.COD_SITUACAO_ACADEMICA"
 				sql = sql & " where	ad.cod_aluno = " & strCodAluno
+				sql = sql & " and ad.cod_empresa = " & Session("CodEmpresa")
+				sql = sql & " and t.ANOLETIVO = " & strAnoLetivo
 				sql = sql & " order by p.sequencia, d.desc_disciplina"
 				rs.open sql, cnn		
 				if not rs.eof then
