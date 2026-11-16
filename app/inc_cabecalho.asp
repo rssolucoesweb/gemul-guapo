@@ -45,7 +45,52 @@
 			</a>
 		</form>
 	</div>
-	<div class="ml-auto d-flex">
+	<style>
+		/* botões do cabeçalho: ano letivo, módulos e suporte */
+		.hdr-pill {
+			display: inline-flex; align-items: center; gap: .45rem;
+			height: 2.25rem; padding: 0 .9rem; margin-left: .5rem;
+			border: 1px solid rgba(255,255,255,.45); border-radius: 1.2rem;
+			color: #ffffff !important; font-size: .85rem; white-space: nowrap;
+			text-decoration: none !important; background: rgba(255,255,255,.08);
+			transition: background .15s, border-color .15s;
+		}
+		.hdr-pill:hover, .hdr-pill[aria-expanded="true"] { background: rgba(255,255,255,.2); border-color: #ffffff; }
+		.page-header .hdr-pill, .page-header .hdr-pill:hover, .page-header .hdr-pill:focus, .page-header .hdr-pill:visited,
+		.page-header .hdr-pill *, .page-header .hdr-pill:hover * {
+			text-decoration: none !important; border-bottom: 0 !important; background-image: none !important; box-shadow: none !important;
+		}
+		.hdr-pill i { font-size: 1.05rem; }
+		.hdr-pill svg { width: 1.15rem; height: 1.15rem; }
+		.hdr-pill.hdr-whats:hover { background: #25D366; border-color: #25D366; }
+		/* suporte: "Suporte" pequeno em cima e o nome embaixo */
+		.hdr-sup { display: inline-flex; flex-direction: column; line-height: 1; }
+		.hdr-sup small { font-size: .62rem; opacity: .85; letter-spacing: .02em; }
+		.hdr-sup b { font-size: .85rem; font-weight: 600; letter-spacing: .03em; }
+		.hdr-ano-menu { min-width: 13rem; }
+		.hdr-ano-menu .dropdown-item { display: flex; align-items: center; }
+		.hdr-ano-atual { font-weight: 600; cursor: default; background: #eef4fb; }
+		.hdr-ano-espaco { display: inline-block; width: 1.4rem; }
+		/* smartphones: só ícones (o ano continua visível) */
+		/* abaixo de 992px o tema deixa o cabeçalho branco: botões coloridos e só ícones;
+		   o nome/endereço da unidade (texto branco) some para não sobrepor o conteúdo */
+		@media (max-width: 991.98px) {
+			.page-header .search { display: none !important; }
+			.page-header .hdr-pill { background: #1a5ea8; border-color: #1a5ea8; }
+			.page-header .hdr-pill.hdr-whats { background: #25D366; border-color: #25D366; }
+			.hdr-pill .hdr-txt { display: none; }
+		}
+		@media (max-width: 767px) {
+			.hdr-pill { height: 2.1rem; min-width: 2.1rem; padding: 0 .55rem; margin-left: .3rem; gap: .3rem; justify-content: center; }
+			.hdr-pill svg { width: 1.2rem; height: 1.2rem; }
+			.hdr-ano-menu { min-width: 11rem; }
+		}
+		@media (max-width: 400px) {
+			.hdr-pill { margin-left: .2rem; padding: 0 .45rem; }
+			.hdr-pill .fa-angle-down { display: none; }
+		}
+	</style>
+	<div class="ml-auto d-flex align-items-center">
 		<%
 		'--- Trocar ano letivo sem sair do módulo (login/trocar-ano-letivo.asp?ano=&volta=)
 		vetAnosCabecalho = ""
@@ -60,11 +105,13 @@
 		if Request.ServerVariables("QUERY_STRING") <> "" then strVoltaAnoCab = strVoltaAnoCab & "?" & Request.ServerVariables("QUERY_STRING")
 		if isArray(vetAnosCabecalho) then
 		%>
-		<div>
-			<a href="#" data-toggle="dropdown" title="Trocar ano letivo" class="header-icon d-flex align-items-center justify-content-center" style="width:auto; padding:0 .7rem; text-decoration:none; color:#fff !important;">
-				<i class="fal fa-calendar-alt mr-1" style="color:#fff;"></i><span class="hidden-xs-down mr-1" style="color:#fff; font-size:.85rem;">Ano letivo</span><strong style="color:#fff; font-size:1rem;"><%=Session("strAnoLetivo")%></strong><i class="fal fa-angle-down ml-1" style="color:#fff;"></i>
+		<div class="d-flex align-items-center">
+			<a href="#" data-toggle="dropdown" title="Trocar ano letivo" style="text-decoration:none !important; text-decoration-line:none !important;" class="hdr-pill">
+				<i class="fal fa-calendar-alt"></i>
+				<span class="hdr-txt">Ano letivo</span><strong><%=Session("strAnoLetivo")%></strong>
+				<i class="fal fa-angle-down"></i>
 			</a>
-			<div class="dropdown-menu dropdown-menu-animated dropdown-menu-right" style="min-width:11rem;">
+			<div class="dropdown-menu dropdown-menu-animated dropdown-menu-right hdr-ano-menu">
 				<div class="dropdown-header fw-500">Trocar ano letivo</div>
 				<div class="dropdown-divider m-0"></div>
 				<%for iAnoCab = 0 to ubound(vetAnosCabecalho, 2)
@@ -72,10 +119,10 @@
 					strPadraoCab = ""
 					if trim(vetAnosCabecalho(1, iAnoCab) & "") = "S" then strPadraoCab = "<span class=""badge badge-success ml-2"">padrão</span>"
 					if intAnoCab = trim(Session("strAnoLetivo") & "") then%>
-				<span class="dropdown-item"><i class="fal fa-check mr-2"></i><%=intAnoCab%><%=strPadraoCab%><span class="badge badge-primary ml-2">atual</span></span>
+				<span class="dropdown-item hdr-ano-atual"><i class="fal fa-check mr-2"></i><%=intAnoCab%><%=strPadraoCab%><span class="badge badge-primary ml-2">atual</span></span>
 					<%else%>
 				<a class="dropdown-item" href="<%=session("urlRaizLocalSistema")%>/login/trocar-ano-letivo.asp?ano=<%=intAnoCab%>&volta=<%=Server.URLEncode(strVoltaAnoCab)%>">
-					<span class="mr-4"></span><%=intAnoCab%><%=strPadraoCab%>
+					<span class="hdr-ano-espaco"></span><%=intAnoCab%><%=strPadraoCab%>
 				</a>
 					<%end if
 				next%>
