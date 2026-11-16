@@ -61,8 +61,8 @@
 		if isArray(vetAnosCabecalho) then
 		%>
 		<div>
-			<a href="#" data-toggle="dropdown" title="Trocar ano letivo" class="header-icon d-flex align-items-center justify-content-center" style="width:auto; padding:0 .6rem; text-decoration:none;">
-				<i class="fal fa-calendar-alt mr-1"></i><strong><%=Session("strAnoLetivo")%></strong><i class="fal fa-angle-down ml-1"></i>
+			<a href="#" data-toggle="dropdown" title="Trocar ano letivo" class="header-icon d-flex align-items-center justify-content-center" style="width:auto; padding:0 .7rem; text-decoration:none; color:#fff !important;">
+				<i class="fal fa-calendar-alt mr-1" style="color:#fff;"></i><span class="hidden-xs-down mr-1" style="color:#fff; font-size:.85rem;">Ano letivo</span><strong style="color:#fff; font-size:1rem;"><%=Session("strAnoLetivo")%></strong><i class="fal fa-angle-down ml-1" style="color:#fff;"></i>
 			</a>
 			<div class="dropdown-menu dropdown-menu-animated dropdown-menu-right" style="min-width:11rem;">
 				<div class="dropdown-header fw-500">Trocar ano letivo</div>
