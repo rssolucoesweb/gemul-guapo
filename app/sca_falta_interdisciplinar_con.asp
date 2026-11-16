@@ -382,6 +382,8 @@
 											sql = " select ad.codigo, ad.COD_DISCIPLINA, nf.codigo as codNota from SCA_ALUNO_DISCIPLINA ad "
 											sql = sql & " left join SCA_NOTAS_FALTAS nf on nf.cod_aluno_disciplina = ad.CODIGO "
 											sql = sql & " where ad.COD_ALUNO = " & strCodigoAluno
+											'só disciplinas de turma do ano letivo da tela: sem isso, depois da renovação, criava notas do ano anterior nas disciplinas da turma do ano seguinte
+											sql = sql & " and exists (select 1 from SCA_TURMA tma where tma.Cod_Turma = ad.COD_TURMA and tma.AnoLetivo = " & clng(strAnoLetivo) & ")"
 											sql = sql & " and ISNULL(nf.codigo,'0') = '0' " 
 											rs1.open sql, cnn
 											if rs1.eof = false then
