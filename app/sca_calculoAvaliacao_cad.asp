@@ -6,6 +6,7 @@
 	strExecutarSubmitCurso 	= "S"
 	
 	strAnoLetivo 				= Trim(Request.Form("txtAnoLetivo"))
+	strAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
 	if strAnoLetivo 			= "" then strAnoLetivo = session("strAnoLetivo")
 	intCodigo 					= Trim(Request.Form("txtCodigo"))
 	intCodCriterioAvaliacao		= Trim(Request("cmbCriterioAvaliacao"))
@@ -86,7 +87,7 @@
 								<div class="col-sm-2">
 									<div class="form-group">
 										<label class="form-label">Ano Letivo</label>
-										<input name="txtAnoLetivo" type="text" class="form-control" id="txtAnoLetivo" onBlur="submit()"  value="<%=strAnoLetivo%>" size="5" maxlength="5" onKeyPress="return formataCampo(this,2,5)">
+										<input name="txtAnoLetivo" type="text" class="form-control" id="txtAnoLetivo"  value="<%=strAnoLetivo%>" size="5" maxlength="5" onKeyPress="return formataCampo(this,2,5)" readonly>
 									</div>
 								</div>								
 								<div class="col-sm-6">

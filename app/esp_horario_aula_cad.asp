@@ -40,6 +40,7 @@
 		strAnoLetivo = session("strAnoLetivo")
 	else
 		strAnoLetivo = request("txtAnoLetivo")
+		strAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
 	end if
 
 	intCodHorario 		= Trim(Request.Form("txtCodigo"))
@@ -93,7 +94,7 @@
 								<div class="col-sm-3">
 									<div class="form-group">
 										<label class="form-label">Ano Letivo</label>
-										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" class="form-control" onBlur="submit()"  value="<%=strAnoLetivo%>" maxlength="4" onKeyPress="return formataCampo(this,2,4)">
+										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" class="form-control"  value="<%=strAnoLetivo%>" maxlength="4" onKeyPress="return formataCampo(this,2,4)" readonly>
 									</div>
 								</div>	
 								<div class="col-sm-6">

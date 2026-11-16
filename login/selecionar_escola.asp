@@ -450,14 +450,18 @@
 			strBloqueio                         = RsAux("BLOQUEIO")
 			
 			'busca informações ano e semestre letivo
+			'ano escolhido pelo usuário (trocar-ano-letivo.asp), se existir para a unidade; senão o mais recente
+			intAnoLetivoEscolhido = 0
+			if isnumeric(Session("strAnoLetivoEscolhido") & "") and trim(Session("strAnoLetivoEscolhido") & "") <> "" then intAnoLetivoEscolhido = clng(Session("strAnoLetivoEscolhido"))
 			sql = " SELECT top 1 ano_letivo, semestre, notificacao1, notificacao2 "
 			sql = sql & " FROM SEG_ENCERRAMENTOATIVIDADES "
 			sql = sql & " Where cod_empresa = " & Session("CodEmpresa") 
-			sql = sql & " order by ano_letivo desc"
+			sql = sql & " order by case when ano_letivo = " & intAnoLetivoEscolhido & " then 0 else 1 end, ano_letivo desc"
 			
 			RS1.Open SQL, cnn
 			if RS1.EOF = false then								
 				Session("strAnoLetivo")			= RS1("ano_letivo")
+				if intAnoLetivoEscolhido > 0 then Session("strAnoLetivo") = intAnoLetivoEscolhido
 				Session("strSemestre")			= RS1("semestre")
 				strSemestre 					= Session("strSemestre")
 				strNotificacao1                 =  RS1("notificacao1")

@@ -46,7 +46,42 @@
 		</form>
 	</div>
 	<div class="ml-auto d-flex">
-		
+		<%
+		'--- Trocar ano letivo sem sair do módulo (login/trocar-ano-letivo.asp?ano=&volta=)
+		vetAnosCabecalho = ""
+		if trim(Session("CodGrupo") & "") <> "" and isnumeric(Session("CodGrupo") & "") then
+			set rsAnoCab = Server.CreateObject("adodb.recordset")
+			rsAnoCab.open "SELECT ANO_LETIVO, PADRAO FROM SEG_ANO_LETIVO WHERE COD_GRUPO = " & clng(Session("CodGrupo")) & " AND SITUACAO = 'A' ORDER BY ANO_LETIVO DESC", cnn
+			if not rsAnoCab.eof then vetAnosCabecalho = rsAnoCab.getRows
+			rsAnoCab.close
+			set rsAnoCab = nothing
+		end if
+		strVoltaAnoCab = Request.ServerVariables("URL")
+		if Request.ServerVariables("QUERY_STRING") <> "" then strVoltaAnoCab = strVoltaAnoCab & "?" & Request.ServerVariables("QUERY_STRING")
+		if isArray(vetAnosCabecalho) then
+		%>
+		<div>
+			<a href="#" data-toggle="dropdown" title="Trocar ano letivo" class="header-icon d-flex align-items-center justify-content-center" style="width:auto; padding:0 .6rem; text-decoration:none;">
+				<i class="fal fa-calendar-alt mr-1"></i><strong><%=Session("strAnoLetivo")%></strong><i class="fal fa-angle-down ml-1"></i>
+			</a>
+			<div class="dropdown-menu dropdown-menu-animated dropdown-menu-right" style="min-width:11rem;">
+				<div class="dropdown-header fw-500">Trocar ano letivo</div>
+				<div class="dropdown-divider m-0"></div>
+				<%for iAnoCab = 0 to ubound(vetAnosCabecalho, 2)
+					intAnoCab = trim(vetAnosCabecalho(0, iAnoCab) & "")
+					strPadraoCab = ""
+					if trim(vetAnosCabecalho(1, iAnoCab) & "") = "S" then strPadraoCab = "<span class=""badge badge-success ml-2"">padrão</span>"
+					if intAnoCab = trim(Session("strAnoLetivo") & "") then%>
+				<span class="dropdown-item"><i class="fal fa-check mr-2"></i><%=intAnoCab%><%=strPadraoCab%><span class="badge badge-primary ml-2">atual</span></span>
+					<%else%>
+				<a class="dropdown-item" href="<%=session("urlRaizLocalSistema")%>/login/trocar-ano-letivo.asp?ano=<%=intAnoCab%>&volta=<%=Server.URLEncode(strVoltaAnoCab)%>">
+					<span class="mr-4"></span><%=intAnoCab%><%=strPadraoCab%>
+				</a>
+					<%end if
+				next%>
+			</div>
+		</div>
+		<%end if%>
 		
 		<!--#include file=inc_meus_modulos.asp-->
 		

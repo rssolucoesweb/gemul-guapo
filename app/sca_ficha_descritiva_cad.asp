@@ -10,6 +10,7 @@
 
 	intCodigo						= Trim(Request.Form("txtCodigo"))
 	intAnoLetivo					= Trim(Request.Form("txtAnoLetivo"))
+	intAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
 	intSemestre 					= Trim(Request.Form("txtSemestre"))
 	strDescricao 					= Trim(Request.Form("txtDescricao"))
 	strDescricaoAbreviada			= Trim(Request.Form("txtDescricaoAbreviada"))
@@ -102,7 +103,7 @@
 								<div class="col-sm-3">	
 									<div class="form-group">
 										<label class="form-label">Ano</label>
-										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" class="form-control" value="<%=intAnoLetivo%>" maxlength="4"  onKeyPress="return formataCampo(this,2,4)">
+										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" class="form-control" value="<%=intAnoLetivo%>" maxlength="4"  onKeyPress="return formataCampo(this,2,4)" readonly>
 									</div>
 								</div>
 								<div class="col-sm-3">	

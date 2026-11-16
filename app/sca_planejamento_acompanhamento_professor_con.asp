@@ -10,6 +10,7 @@
 	strBotaoVoltaTelaAnterior = "N"
 	strExecutarSubmitCurso = "S"
 	strAnoLetivo 			= Trim(Request("txtAnoLetivo"))
+	strAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
 	if strAnoLetivo = "" then 	strAnoLetivo = session("strAnoLetivo")
 	intSemestre = session("strSemestre")
 	strConsultar			= Trim(Request("strConsultar"))
@@ -76,7 +77,7 @@
 								<div class="col-sm-2">
 									<div class="form-group">
 										<label class="form-label">Ano Letivo</label>
-										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" class="form-control" value="<%=strAnoLetivo%>"  maxlength="4">
+										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" class="form-control" value="<%=strAnoLetivo%>"  maxlength="4" readonly>
 									</div>
 								</div>	
 								<div class="col-sm-4">
