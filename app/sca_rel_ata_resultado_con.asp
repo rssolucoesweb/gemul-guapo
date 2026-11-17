@@ -94,8 +94,8 @@
 								<div class="form-group">
 									<label class="form-label">Opções:</label>
 									<select name="cmbTipo" id="cmbTipo"  class="form-control" onchange="submit()">
-										<option value="A" <% if strTipo = "A" then response.Write("selected")%>>Anual</option>
-										<option value="B" <% if strTipo = "B" then response.Write("selected")%>>Por Avaliação </option>
+										<option value="A" <% if strTipo = "A" then response.Write("selected")%>>Ata de Resultados Anual</option>
+										<option value="B" <% if strTipo = "B" then response.Write("selected")%>>Mapa de Notas Por Avaliação</option>
 									</select>
 								</div>
 							</div>
