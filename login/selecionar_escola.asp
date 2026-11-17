@@ -97,6 +97,7 @@
 				<span class="user-name">Usuário</span>
 
 				<div class="dropdown">
+					<a href="trocar-ano-letivo.asp"><i class="fa-solid fa-calendar-days"></i> Trocar Ano Letivo <%if Session("strAnoLetivo") <> "" then%>(<%=Session("strAnoLetivo")%>)<%end if%></a>
 					<a href="alterar-senha.asp"><i class="fa-solid fa-key"></i> Alterar Senha</a>
 					<a href="index.asp"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
 				</div>
