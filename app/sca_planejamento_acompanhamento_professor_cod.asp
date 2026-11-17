@@ -1,4 +1,4 @@
-<%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%>
+﻿<%@LANGUAGE="VBSCRIPT" CODEPAGE="65001"%>
 <%
 response.Charset = "utf-8" 
 response.ContentType = "text/html" 
@@ -24,6 +24,7 @@ response.ContentType = "text/html"
 	strTurno				= Trim(Request("txtTurno"))
 	numeroAula              = Trim(Request("aula"))
 	dataAula           		= Trim(Request("dataAula"))
+	dataAulaDestino          = Trim(Request("dataAulaDestino"))
 	intCodTurma             = trim(Request("codTurma"))
 	
 	intCodPeriodo           = trim(Request("codPeriodo"))
@@ -194,6 +195,161 @@ response.ContentType = "text/html"
 			cnn.CommitTrans 
 		end if			
 
+	elseif acao = "replicarSemana" then
+
+		' A replicação semanal é executada via AJAX e retorna:
+		' OK|aulas_encontradas|aulas_replicadas|aulas_ignoradas
+		Response.ContentType = "text/plain"
+
+		if codigoPlanejamentoProf = "" or not IsNumeric(codigoPlanejamentoProf) then
+			Response.Write "ERRO|Código do planejamento inválido."
+			Response.End
+		end if
+
+		if dataAula = "" then
+			Response.Write "ERRO|Data da aula não informada."
+			Response.End
+		end if
+
+		strUsuarioReplicaSemana = Replace(Session("usuarioWeb"), "'", "''")
+
+		' dataAula chega da tela no formato dd/mm/aaaa.
+		' Montamos DATEFROMPARTS para não depender de formatação/regionalização do SQL Server.
+		vetDataReplicaSemana = Split(dataAula, "/")
+		if UBound(vetDataReplicaSemana) <> 2 then
+			Response.Write "ERRO|Data da aula inválida: " & dataAula
+			Response.End
+		end if
+
+		intDiaReplicaSemana = CInt(vetDataReplicaSemana(0))
+		intMesReplicaSemana = CInt(vetDataReplicaSemana(1))
+		intAnoReplicaSemana = CInt(vetDataReplicaSemana(2))
+
+		' Usa ADODB.Command parametrizado para evitar qualquer dependência
+		' de formato regional de data e problemas de sintaxe com dd/mm/aaaa.
+		set cmdSemana = Server.CreateObject("ADODB.Command")
+		set cmdSemana.ActiveConnection = cnn
+		cmdSemana.CommandType = 4 ' adCmdStoredProc
+		cmdSemana.CommandText = "SP_SCA_ReplicarAulaPlanejamentoProfessorSemana"
+
+		cmdSemana.Parameters.Append cmdSemana.CreateParameter("@codigoPlanejamentoOrigem", 3, 1, , CLng(codigoPlanejamentoProf)) ' adInteger
+		cmdSemana.Parameters.Append cmdSemana.CreateParameter("@dataAulaOrigem", 133, 1, , DateSerial(intAnoReplicaSemana, intMesReplicaSemana, intDiaReplicaSemana)) ' adDBDate
+		cmdSemana.Parameters.Append cmdSemana.CreateParameter("@usuario", 200, 1, 50, Left(strUsuarioReplicaSemana, 50)) ' adVarChar
+
+		GravarLog "SP_SCA_ReplicarAulaPlanejamentoProfessorSemana | planejamento=" & CLng(codigoPlanejamentoProf) & " | data=" & Right("0" & intDiaReplicaSemana, 2) & "/" & Right("0" & intMesReplicaSemana, 2) & "/" & intAnoReplicaSemana & " | usuario=" & strUsuarioReplicaSemana
+
+		on error resume next
+		set rsSemana = cmdSemana.Execute
+
+		if err.number <> 0 then
+			strErroReplicaSemana = Replace(err.description, "|", "-")
+			if rsSemana.state = 1 then rsSemana.close
+			set rsSemana = nothing
+			set cmdSemana = nothing
+			err.clear
+			on error goto 0
+			Response.Write "ERRO|" & strErroReplicaSemana
+			Response.End
+		end if
+		on error goto 0
+
+		if not rsSemana.eof then
+			Response.Write "OK|" & rsSemana("aulas_encontradas") & "|" & rsSemana("aulas_replicadas") & "|" & rsSemana("aulas_ignoradas")
+		else
+			Response.Write "ERRO|A procedure não retornou o resultado da replicação."
+		end if
+
+		if rsSemana.state = 1 then rsSemana.close
+		set rsSemana = nothing
+		set cmdSemana = nothing
+		Response.End
+
+	elseif acao = "replicarDia" then
+
+		' A replicação por dia é executada via AJAX e retorna:
+		' OK|numero_aula_destino|data_aula_destino
+		Response.ContentType = "text/plain"
+
+		if codigoPlanejamentoProf = "" or not IsNumeric(codigoPlanejamentoProf) then
+			Response.Write "ERRO|Código do planejamento inválido."
+			Response.End
+		end if
+
+		if dataAula = "" or dataAulaDestino = "" then
+			Response.Write "ERRO|Informe a data da aula de origem e a data de destino."
+			Response.End
+		end if
+
+		' A origem chega como dd/mm/aaaa.
+		vetDataOrigemDia = Split(dataAula, "/")
+		if UBound(vetDataOrigemDia) <> 2 then
+			Response.Write "ERRO|Data da aula de origem inválida: " & dataAula
+			Response.End
+		end if
+
+		if not IsNumeric(vetDataOrigemDia(0)) or not IsNumeric(vetDataOrigemDia(1)) or not IsNumeric(vetDataOrigemDia(2)) then
+			Response.Write "ERRO|Data da aula de origem inválida: " & dataAula
+			Response.End
+		end if
+
+		intDiaOrigemDia = CInt(vetDataOrigemDia(0))
+		intMesOrigemDia = CInt(vetDataOrigemDia(1))
+		intAnoOrigemDia = CInt(vetDataOrigemDia(2))
+
+		' O input type=date envia o destino como aaaa-mm-dd.
+		vetDataDestinoDia = Split(dataAulaDestino, "-")
+		if UBound(vetDataDestinoDia) <> 2 then
+			Response.Write "ERRO|Data de destino inválida: " & dataAulaDestino
+			Response.End
+		end if
+
+		if not IsNumeric(vetDataDestinoDia(0)) or not IsNumeric(vetDataDestinoDia(1)) or not IsNumeric(vetDataDestinoDia(2)) then
+			Response.Write "ERRO|Data de destino inválida: " & dataAulaDestino
+			Response.End
+		end if
+
+		intAnoDestinoDia = CInt(vetDataDestinoDia(0))
+		intMesDestinoDia = CInt(vetDataDestinoDia(1))
+		intDiaDestinoDia = CInt(vetDataDestinoDia(2))
+		strUsuarioReplicaDia = Replace(Session("usuarioWeb"), "'", "''")
+
+		set cmdDia = Server.CreateObject("ADODB.Command")
+		set cmdDia.ActiveConnection = cnn
+		cmdDia.CommandType = 4 ' adCmdStoredProc
+		cmdDia.CommandText = "SP_SCA_ReplicarAulaPlanejamentoProfessorDia"
+
+		cmdDia.Parameters.Append cmdDia.CreateParameter("@codigoPlanejamentoOrigem", 3, 1, , CLng(codigoPlanejamentoProf)) ' adInteger
+		cmdDia.Parameters.Append cmdDia.CreateParameter("@dataAulaOrigem", 133, 1, , DateSerial(intAnoOrigemDia, intMesOrigemDia, intDiaOrigemDia)) ' adDBDate
+		cmdDia.Parameters.Append cmdDia.CreateParameter("@dataAulaDestino", 133, 1, , DateSerial(intAnoDestinoDia, intMesDestinoDia, intDiaDestinoDia)) ' adDBDate
+		cmdDia.Parameters.Append cmdDia.CreateParameter("@usuario", 200, 1, 50, Left(strUsuarioReplicaDia, 50)) ' adVarChar
+
+		GravarLog "SP_SCA_ReplicarAulaPlanejamentoProfessorDia | planejamento=" & CLng(codigoPlanejamentoProf) & " | origem=" & dataAula & " | destino=" & dataAulaDestino & " | usuario=" & strUsuarioReplicaDia
+
+		on error resume next
+		set rsDia = cmdDia.Execute
+
+		if err.number <> 0 then
+			strErroReplicaDia = Replace(err.description, "|", "-")
+			set rsDia = nothing
+			set cmdDia = nothing
+			err.clear
+			on error goto 0
+			Response.Write "ERRO|" & strErroReplicaDia
+			Response.End
+		end if
+		on error goto 0
+
+		if not rsDia.eof then
+			Response.Write "OK|" & rsDia("numero_aula_destino") & "|" & Right("0" & Day(rsDia("data_aula_destino")), 2) & "/" & Right("0" & Month(rsDia("data_aula_destino")), 2) & "/" & Year(rsDia("data_aula_destino"))
+		else
+			Response.Write "ERRO|A procedure não retornou o resultado da replicação."
+		end if
+
+		if rsDia.state = 1 then rsDia.close
+		set rsDia = nothing
+		set cmdDia = nothing
+		Response.End
+
 	elseif acao = "listarTurmasDisciplinaProfessor" then
 		intCodTurno = trim(Request("cod_turno")) 'turno da tela
 		strTurnoTurma=""
@@ -207,12 +363,24 @@ response.ContentType = "text/html"
 		end if
 		rs.close
 		
-		intQtdeTurnoTurma = 1
-		'verifica se a turma tem 2 turnos para diferenciar da turma integral de um só turno
-		sql= "select count(*) as qtde from SRH_TURMA_MODULACAO_FUNCAO where Cod_Turma = " & intCodTurma
-		rs.open sql, cnn,3,1
-		if rs.eof = false then
-			intQtdeTurnoTurma = rs("qtde")
+		sql = "select codigo, CodCategoria "
+		sql = sql & " from SRH_COLABORADOR"
+		sql = sql & " where codigo_SEG_USUARIOS_SISTEMA = '" & trim(session("usuarioWeb")) & "'"
+		sql = sql & " and (CodCategoria = 1 OR CodCategoria = 8)"'professor
+		sql = sql & " and Situacao = 'A'"'ativo
+		rs.open sql, cnn
+		if rs.eof then
+			strTipoAcessoTurmas = "ADM"
+		else
+			if (Session("Seg_CodCategoria") = "1") then
+				strTipoAcessoTurmas = "PROF"
+			ELSE
+				if rs("CodCategoria") = "1" then
+					strTipoAcessoTurmas = "PROF"
+				else
+					strTipoAcessoTurmas = "ADM"
+				end if
+			END IF	
 		end if
 		rs.close
 		
@@ -221,6 +389,7 @@ response.ContentType = "text/html"
 		sql=sql & " 		HA.AnoLetivo,"
 		sql=sql & " 		HA.Semestre,"
 		sql=sql & " 		P.Cod_Periodo,"
+		sql=sql & " 		P.descricao as periodo,"
 		sql=sql & " 		HA.Cod_Colaborador as codProfessor," 
 		sql=sql & " 		DI.Cod_Disciplina,"
 		sql=sql & " 		TU.Cod_Turno,"
@@ -244,12 +413,14 @@ response.ContentType = "text/html"
 		sql=sql & " AND HA.SEMESTRE in (" & strSemestre & ")" 
 		sql=sql & " AND P.COD_PERIODO =" & intCodPeriodo
 		'sql=sql & " AND HA.Cod_Colaborador =" & intCodProfessor
-		sql=sql & " AND HA.Cod_Colaborador in (select codigo from SRH_COLABORADOR where cpf in  (select cpf from SRH_COLABORADOR where codigo =" & intCodProfessor & "))"
+		if strTipoAcessoTurmas = "PROF" THEN
+			sql=sql & " AND HA.Cod_Colaborador in (select codigo from SRH_COLABORADOR where cpf in  (select cpf from SRH_COLABORADOR where codigo =" & intCodProfessor & "))"
+		end if
 		sql=sql & " AND DI.Cod_Disciplina =" & intCodDisciplina
 		if strTurnoTurma<>"INTEGRAL" then
 			sql=sql & " AND T.COD_TURMA <>" & intCodTurma
 		end if
-		if strTurnoTurma="INTEGRAL" and intQtdeTurnoTurma = 1 then
+		if strTurnoTurma="INTEGRAL" then
 			sql=sql & " AND T.COD_TURMA <>" & intCodTurma
 		end if
 		if bolAulaExtra then
@@ -261,7 +432,12 @@ response.ContentType = "text/html"
 			response.write "<ul style='padding-top: 15px ;'>"
 			while not rs.eof 
 				' Verifica se a turma já possui planejamento
-
+				
+				strObsTurma = ""
+				if cint(rs("codProfessor")) <> cint(intCodProfessor) then
+					strObsTurma = "&nbsp;<span style='font-size: 11px; color: orange; font-style: italic;'>(turma de outro contrato)</span>"
+				end if
+				
 				sql="select cod_turma from sca_PLANEJAMENTO_PROFESSOR" 
 				sql=sql & " where cod_empresa =" &  Session("CodEmpresa") 
 				sql=sql & " and anoLetivo =" & strAnoLetivo
@@ -299,18 +475,16 @@ response.ContentType = "text/html"
 				rsAux.open sql,cnn
 				if rsAux.eof = false then
 					strDesabilitaTurma = "S"
+					strObsTurma = "&nbsp;<span style='font-size: 11px; color: red; font-style: italic;'>(já existe planejamento)</span>"
 				else
 					strDesabilitaTurma = "N"
 				end if
 				rsAux.close
 				
-				strObsTurma = ""
-				if cint(rs("codProfessor")) <> cint(intCodProfessor) then
-					strObsTurma = "<i>(turma de outro contrato)</i>"
-				end if
+				
 
 				%>
-					<li><input type="checkbox" value="<%=rs("Cod_Turma") & "|" & rs("codProfessor") & "|" & intCodTurno%>" name="chkTurma" id="chkTurma<%=rs("Cod_Turma")%>" <%if strDesabilitaTurma="S" then response.write "disabled"%>> <%=rs("TurmaAluno")%> <%=strObsTurma%></li>
+					<li><input type="checkbox" value="<%=rs("Cod_Turma") & "|" & rs("codProfessor") & "|" & intCodTurno%>" name="chkTurma" id="chkTurma<%=rs("Cod_Turma")%>" <%if strDesabilitaTurma="S" then response.write "disabled"%>> <%=rs("Periodo")%>&nbsp;<%=rs("TurmaAluno")%> <%=strObsTurma%></li>
 				<%
 				rs.movenext
 			wend
