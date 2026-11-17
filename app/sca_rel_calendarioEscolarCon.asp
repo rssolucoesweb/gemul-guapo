@@ -34,7 +34,7 @@ Contato: sergio@rssolucoesweb.com.br
 		<script src="js/configuracoes_pagina.js"></script>
 		<%
 		pagina_inicial_do_modulo = "academico.asp"
-		pagina_atual = "/app/sca_rel_conteudo_ministradoCon.asp?pagina=" & strControlePagina
+		pagina_atual = "/app/sca_rel_calendarioEscolarCon.asp"
 		menu_principal = "Relatórios"
 		sistema = "GEMUL"
 		sistema_sigla = "SCA"

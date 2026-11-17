@@ -80,7 +80,7 @@
 							<div class="col-sm-12">
 								<table width="98%" border="0" align="center" cellpadding="0" cellspacing="2" class="Formulario">
 									<tr>
-									  <td  colspan="6" class="texto1"><strong>Selecione o(s) campo(s) que deseja checar incosistencias:<br></strong></td>
+									  <td  colspan="6" class="texto1"><strong>Selecione o(s) campo(s) que deseja checar incosistências:<br></strong></td>
 									</tr>
 									<tr>
 									  <td align="right" class="texto1"><input type="checkbox" name="nomealuno" id="nomealuno" value="S"></td>

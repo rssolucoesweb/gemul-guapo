@@ -39,8 +39,8 @@ Contato: sergio@rssolucoesweb.com.br
 		sistema = "GEMUL"
 		sistema_sigla = "SCA"
 		modulo = "SCA"
-		pagina = "Inconsistencia do Cadastro do Aluno"
-		descricao_pagina = "Relatório de Inconsistencia do Cadastro do Aluno"
+		pagina = "Inconsistência do Cadastro do Aluno"
+		descricao_pagina = "Relatório de Inconsistência do Cadastro do Aluno"
 		mensagem_alerta_pagina = ""
 		%>
         <!-- INICIO pagina -->

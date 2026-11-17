@@ -4,7 +4,7 @@
 	strExecutarSubmitPeriodo  = "S"
 	strExecutarSubmitSemestre = "S"
 	strEmpresaGrupo_submit    = "S"
-	
+	strExecutarSubmitAnoFechamentoMes = "S"
 
 	intCodEmpresaGrupo		    = Trim(Request.Form("cmbEmpresaGrupo"))
 	intCodEmpresaGrupoUsuario	= Trim(Request.Form("cmdEmpresaGrupoUsuario"))
@@ -13,9 +13,12 @@
 	intSemestre 				= Trim(Request.Form("cmbSemestre"))
 	intCodSituacaoAluno			= Trim(Request.Form("cmbSituacaoAluno"))
 	intTipoCurso				= Trim(Request.Form("cmbTipoCurso"))
+	strTipo						= Trim(Request.Form("cmbTipo"))
+	if strTipo = "" then strTipo = "M"
 
 	strAnoLetivo 			= Trim(Request.Form("txtAnoLetivo"))
 	strAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
+	strMes		 			= Trim(Request.Form("cmbMes"))
 	if strAnoLetivo = "" then 	strAnoLetivo = session("strAnoLetivo")
 	intSemestre 			= Trim(Request.Form("cmbSemestre"))
 	if intSemestre = "" then 	intSemestre  = session("strSemestre")
@@ -75,9 +78,10 @@
 							<div class="col-sm-2">
 								<div class="form-group">
 									<label class="form-label">Opções:</label>
-									<select name="cmbTipo" id="cmbTipo"  class="form-control" >
-										<option value="1" <% if intTipo = "E" then response.Write("selected")%>>Por Idade </option>
-										<option value="2" <% if intTipo = "N" then response.Write("selected")%>>Por Período/Série</option>
+									<select name="cmbTipo" id="cmbTipo"  class="form-control" onchange="submit()">
+										<option value="M" <% if strTipo = "M" then response.Write("selected")%>>Por Mês</option>
+										<option value="I" <% if strTipo = "I" then response.Write("selected")%>>Por Idade </option>
+										<option value="P" <% if strTipo = "P" then response.Write("selected")%>>Por Período/Série</option>
 									</select>
 								</div>
 							</div>
@@ -93,12 +97,34 @@
 						</div>
 						<br>
 						<div class="row">
+							<%if strTipo = "I" or strTipo = "P" then%>
+							<%
+							col = "3"
+							%>
 							<div class="col-sm-2">
 								<div class="form-group">
 									<label class="form-label">Ano Letivo:</label>
 									<input name="txtAnoLetivo" type="text" class="form-control" id="txtAnoLetivo" value="<%=strAnoLetivo%>" size="5" maxlength="5" onKeyPress="return formataCampo(this,2,10)" readonly>
 								</div>
 							</div>
+							<%end if%>
+							<%if strTipo = "M" then%>
+							<%
+							col = "2"
+							%>
+							<div class="col-sm-2">
+								<div class="form-group">
+									<label class="form-label">Ano Letivo:</label>
+									 <!--#include file="includes/inc_cmdAnoFechamentoMes.asp" -->
+								</div>
+							</div>
+							<div class="col-sm-2">
+								<div class="form-group">
+									<label class="form-label">Mês <i>(dados do último dia do Mês)</i>:</label>
+									 <!--#include file="includes/inc_cmdMesFechamento.asp" -->
+								</div>
+							</div>
+							<%end if%>
 							<div class="col-sm-2">
 								<div class="form-group">
 									<label class="form-label">Semestre:</label>
@@ -111,13 +137,13 @@
 									 <!--#include file="includes/inc_cmdSituacaoAluno.asp" -->
 								</div>
 							</div>
-							<div class="col-sm-3">
+							<div class="col-sm-<%=col%>">
 								<div class="form-group">
 									<label class="form-label">Curso:</label>
 									 <!--#include file="includes/inc_cmbTipoCurso.asp" -->
 								</div>
 							</div>
-							<div class="col-sm-3">
+							<div class="col-sm-<%=col%>">
 								<div class="form-group">
 									<label class="form-label">Turno:</label>
 									 <!--#include file="includes/inc_cmbTurnoRH.asp" -->

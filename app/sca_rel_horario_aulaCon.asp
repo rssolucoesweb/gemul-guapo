@@ -20,6 +20,7 @@ Contato: sergio@rssolucoesweb.com.br
 		<!--#include file="includes/inc_verificaSessionApp.asp"-->
 		<!--#include file="includes/inc_cnn.asp"-->
 		<!--#include file="includes/inc_formatadata.asp"-->
+		<!--#include file="includes/inc_VerificaAcessoPerfilAdmProfessor.asp"-->
 		<!--#include file=inc_meta.asp-->
 		<!--#include file=inc_css.asp-->
 		<!--#include file=inc_ico.asp-->

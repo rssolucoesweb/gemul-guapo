@@ -103,11 +103,19 @@ Contato: sergio@rssolucoesweb.com.br
 					return false
 				}
 				
-				if (frm.cmbTipo.value == "1"){
+				if (frm.cmbTipo.value == "I"){
 					frm.action = "sca_rel_quantitativo_detalhado_rel.asp";
 				}
-				if (frm.cmbTipo.value == "2"){
+				if (frm.cmbTipo.value == "P"){
 					frm.action = "sca_rel_quantitativo_detalhado_periodo_rel.asp";
+				}
+				if (frm.cmbTipo.value == "M"){
+					if (frm.cmbMes.value == "0"){
+						alert("Mês deve ser informado!")
+						frm.cmbMes.focus()
+						return false
+					}
+					frm.action = "sca_rel_quantitativo_mensal_rel.asp";
 				}
 				
 				frm.submit();

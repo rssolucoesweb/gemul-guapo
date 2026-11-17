@@ -53,7 +53,8 @@ sub montaCalendario (MesCal, AnoCal, codCal)
                         Data = DateSerial(AnoCal,MesCal,i)
                         bloqueio = ""
                         sql="select e.cod_calendario_evento, e.cor, d.detalhes from sca_calendario_dia_ue d inner join sca_calendario_evento e on e.cod_calendario_evento = d.cod_calendario_evento "
-                        sql=sql & " where ("
+						sql=sql & " where d.cod_calendario_ue = " & intCodCalendario
+                        sql=sql & " and ("
                         sql=sql & " 	dia_mes =" & day(DateSerial(AnoCal,MesCal,i)) 
                         sql=sql & " 	and mes =" & month(DateSerial(AnoCal,MesCal,i))
                         sql=sql & " 	and ano =" & year(DateSerial(AnoCal,MesCal,i))
@@ -227,6 +228,7 @@ sub montaCalendario (MesCal, AnoCal, codCal)
 		SQL = SQL & " and d.ano = " & strAno 
 		SQL = SQL & " and d.cod_calendario_ue = " & intCodCalendario
 		SQL = SQL & " ORDER BY ANO, MES, dia_mes"
+		'response.write sql
 		rs.open sql, cnn
 		if not rs.eof then
 			%>
@@ -266,6 +268,7 @@ sub montaCalendario (MesCal, AnoCal, codCal)
 		SQL = SQL & " and d.cod_calendario_ue = " & intCodCalendario
 		SQL = SQL & " GROUP BY MES"
 		SQL = SQL & " order by 1"
+		'response.write sql
 		rs.open sql, cnn
 		if not rs.eof then
 			%>
