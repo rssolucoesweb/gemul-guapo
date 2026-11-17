@@ -145,9 +145,9 @@
 		sql = sql & " and SCA_TURMA.cod_empresa = " & Session("CodEmpresa")
 		sql = sql & " and SCA_TURMA.anoletivo = " & strAnoLetivo
 		sql = sql & " and SCA_TURMA.cod_Semestre in (" & intSemestre & ")"
-		sql = sql & " order by SCA_TURMA.NomeTurma"
+		sql = sql & " order by SCA_PERIODO.Cod_Curso, SCA_TURMA.NomeTurma"
 	else
-		sql = sql & " order by SCA_TURMA.NomeTurma"
+		sql = sql & " order by SCA_PERIODO.Cod_Curso, SCA_TURMA.NomeTurma"
 	end if
 	RS.OPEN SQL, CNN
 %>
