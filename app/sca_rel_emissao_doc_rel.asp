@@ -56,7 +56,7 @@ Server.ScriptTimeout = 1200
 		sql = "Select a.Codigo, a.NomeAluno, a.matricula, a.dataNascimento, a.CIDADENASCIMENTO, UF.SIGLA as UF, a.CIDADERESIDENCIA, UFR.SIGLA as UFR, a.DATACOLACAO, a.DATACERTIFICADO, A.EMAIL, 'Fone(s) - Residencial: '+isnull(A.FONERESIDENCIAL,'(00)0000-0000')+' - Celular: '+ isnull(A.FONECELULAR,'(00)0000-0000') as FONE, "
 		sql = sql & " 	a.TITULOELEITOR, a.TITULOZONA, a.TITULOSECAO,	a.NACIONALIDADE, a.DATAMATRICULA, a.CPFALUNO, "
 		sql = sql & " 	a.pai, a.mae, a.ANOCONCLUSAO, a.CPFALUNO, a.dataINGRESSO,"
-		sql = sql & " 	ufRG.sigla, a.RESPONSAVEL, CONVERT(VARCHAR,A.IDENTIDADE) + '-' + RTRIM(CONVERT(VARCHAR,IdentidadeOrgao)) + '/' + ufRG.sigla AS IDENTIDADE, ec.Desc_EstadoCivil as ESTADOCIVIL , a.LOGRADOURO, a.NUMERO_ENDERECO, a.COMP_ENDERECO, a.BAIRROALUNO, sit.Cod_SituacaoAluno, sit.Desc_SituacaoAluno as SITUACAOALUNO"
+		sql = sql & " 	ufRG.sigla, a.RESPONSAVEL, CONVERT(VARCHAR,A.IDENTIDADE) + '-' + RTRIM(CONVERT(VARCHAR,IdentidadeOrgao)) + '/' + ufRG.sigla AS IDENTIDADE, ec.Desc_EstadoCivil as ESTADOCIVIL , a.LOGRADOURO, a.NUMERO_ENDERECO, a.COMP_ENDERECO, a.BAIRROALUNO, isnull(sit.Cod_SituacaoAluno,1) as Cod_SituacaoAluno, isnull(sit.Desc_SituacaoAluno,'ATIVO') as SITUACAOALUNO"	'Guapó: sem controle de situação no ano = ATIVO
 		sql = sql & " 	from sca_aluno a"
 		sql = sql & " 	left join scf_uf uf on uf.codigo = a.ufnascimento"
 		sql = sql & " 	left join scf_uf ufR on ufr.codigo = a.ufresidencia"
