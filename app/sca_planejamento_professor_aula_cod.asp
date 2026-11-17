@@ -29,6 +29,16 @@ codTurma                  = Trim(Request("codTurma"))
 codTipo                   = Trim(Request("codTipo"))	
 descricao	              = Trim(Request("descricao"))
 
+' Materiais de apoio
+codigoRecurso            = Trim(Request("codigoRecurso"))
+descricaoRecurso         = Trim(Request("descricaoRecurso"))
+nomeArquivo              = Trim(Request("nomeArquivo"))
+tipoArquivo              = Trim(Request("tipoArquivo"))
+tamanhoArquivo           = Trim(Request("tamanhoArquivo"))
+arquivoBase64            = Request.Form("arquivoBase64")
+urlRecurso               = Trim(Request("urlRecurso"))
+strEdicaoRecurso         = Trim(Request("edicao"))
+
 'campo da validação do coordenador
 strObservacao 	= Trim(Request("observacao"))
 strObservacaoSecretaria 	= Trim(Request("observacaoSecretaria"))
@@ -241,6 +251,26 @@ function incluiPlanejamentoProfessor()
 
 end function
 
+function itemPlanejamentoJaCadastrado(codPlanejamentoProfessor, codItemPlanejamentoGeral, codTipo)
+
+    itemPlanejamentoJaCadastrado = false
+
+    sql = "SELECT COUNT(*) AS total "
+    sql = sql & " FROM SCA_ITEM_PLANEJAMENTO_PROFESSOR "
+    sql = sql & " WHERE cod_planejamento_professor = " & codPlanejamentoProfessor
+    sql = sql & " AND cod_item_planejamento_geral = " & codItemPlanejamentoGeral
+    sql = sql & " AND cod_tipo_planejamento = " & codTipo
+
+    rsAux.open sql, cnn
+
+    if rsAux("total") > 0 then
+        itemPlanejamentoJaCadastrado = true
+    end if
+
+    rsAux.close
+
+end function
+
 function incluiItemPlanejamento() 
 
     sql="SET NoCount ON insert into SCA_ITEM_PLANEJAMENTO_PROFESSOR ("
@@ -278,6 +308,16 @@ function alteraMetodologiaAvaliacao(codTipo)
     else
         sql=sql & " desc_avaliacao='" & descricao & "',"
     end if
+    sql=sql & " cod_colaborador_ultima_interacao=" & codProfessor
+    sql=sql & " where cod_planejamento_professor=" & codPlanejamentoProfessor
+    cnn.execute sql
+	'GravarLog sql
+end function
+
+function alteraRegistroReflexivo(codTipo)
+
+    sql="update SCA_PLANEJAMENTO_PROFESSOR set"
+    sql=sql & " desc_RegistroReflexivo='" & descricao & "',"
     sql=sql & " cod_colaborador_ultima_interacao=" & codProfessor
     sql=sql & " where cod_planejamento_professor=" & codPlanejamentoProfessor
     cnn.execute sql
@@ -331,11 +371,14 @@ function carregaPlanejamentoProfessor(codTipo)
 
         if codTipo = 3 then
             sql=sql & " desc_metodologia"
-        else
+        elseif codTipo = 4 then
             sql=sql & " desc_avaliacao"
+        elseif codTipo = 5 then
+            sql=sql & " desc_RegistroReflexivo"
         end if
         sql=sql & " from SCA_PLANEJAMENTO_PROFESSOR"
         sql=sql & " where cod_planejamento_professor=" & codPlanejamentoProfessor
+		
         rs.open sql, cnn
         if rs.eof= false then
             response.write rs(0)
@@ -406,15 +449,222 @@ function cancelarValidacaoPlanejamentoProfessor()
     sql = sql & " usuario_validado = null,"
     sql = sql & " data_hora_validado = null"
     sql = sql & " where cod_planejamento_professor = " & codPlanejamentoProfessor
+	'response.write sql
     cnn.execute sql
 	'GravarLog sql
 end function
 
+
+function recursoTextoSeguro(valor)
+    if isnull(valor) then
+        recursoTextoSeguro = ""
+    else
+        recursoTextoSeguro = Server.HTMLEncode(CStr(valor))
+    end if
+end function
+
+function urlHttpValida(valor)
+    dim v
+    v = lcase(trim(valor & ""))
+    urlHttpValida = (left(v,7) = "http://" or left(v,8) = "https://")
+end function
+
+function garantePlanejamentoProfessorRecurso()
+    if codPlanejamentoProfessor = "" or codPlanejamentoProfessor = "0" then
+        codPlanejamentoProfessor = incluiPlanejamentoProfessor()
+    end if
+    garantePlanejamentoProfessorRecurso = codPlanejamentoProfessor
+end function
+
+function planejamentoRecursoBloqueado()
+    dim rsBloq, sqlBloq
+    planejamentoRecursoBloqueado = false
+
+    if codPlanejamentoProfessor = "" or codPlanejamentoProfessor = "0" or not isnumeric(codPlanejamentoProfessor) then exit function
+
+    sqlBloq = "SELECT validado FROM SCA_PLANEJAMENTO_PROFESSOR WHERE cod_planejamento_professor=" & CLng(codPlanejamentoProfessor) & _
+              " AND cod_empresa=" & CLng(session("codEmpresa"))
+    set rsBloq = cnn.Execute(sqlBloq)
+    if not rsBloq.eof then
+        if ucase(trim(rsBloq("validado") & "")) = "S" then planejamentoRecursoBloqueado = true
+    end if
+    rsBloq.close
+    set rsBloq = nothing
+end function
+
+function incluirArquivoPlanejamento()
+    dim cmdRecurso, rsRecurso, tamanhoBase64
+
+    if nomeArquivo = "" or arquivoBase64 = "" then
+        incluirArquivoPlanejamento = 0
+        exit function
+    end if
+
+    if not isnumeric(tamanhoArquivo) then tamanhoArquivo = 0
+    if clng(tamanhoArquivo) > (10 * 1024 * 1024) then
+        incluirArquivoPlanejamento = -2
+        exit function
+    end if
+
+    if len(tipoArquivo) > 100 then tipoArquivo = left(tipoArquivo,100)
+    if len(nomeArquivo) > 255 then nomeArquivo = left(nomeArquivo,255)
+    if len(descricaoRecurso) > 500 then descricaoRecurso = left(descricaoRecurso,500)
+
+    tamanhoBase64 = len(arquivoBase64)
+
+    set cmdRecurso = Server.CreateObject("ADODB.Command")
+    set cmdRecurso.ActiveConnection = cnn
+    cmdRecurso.CommandType = 1
+    cmdRecurso.CommandText = "SET NOCOUNT ON; INSERT INTO SCA_PLANEJAMENTO_PROFESSOR_RECURSO " & _
+        "(cod_planejamento_professor,tipo,descricao,nome_arquivo,tipo_arquivo,tamanho_arquivo,arquivo_base64,url,usuario_incl,data_hora_incl) " & _
+        "VALUES (?,?,?,?,?,?,?,NULL,?,GETDATE()); SELECT CAST(SCOPE_IDENTITY() AS INT) AS codigo;"
+
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@cod_planejamento_professor", 3, 1, , CLng(codPlanejamentoProfessor))
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@tipo", 200, 1, 1, "A")
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@descricao", 200, 1, 500, descricaoRecurso)
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@nome_arquivo", 200, 1, 255, nomeArquivo)
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@tipo_arquivo", 200, 1, 100, tipoArquivo)
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@tamanho_arquivo", 3, 1, , CLng(tamanhoArquivo))
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@arquivo_base64", 201, 1, tamanhoBase64, arquivoBase64)
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@usuario_incl", 200, 1, 100, strUsuario_incl)
+
+    set rsRecurso = cmdRecurso.Execute
+    incluirArquivoPlanejamento = rsRecurso("codigo")
+    rsRecurso.close
+    set rsRecurso = nothing
+    set cmdRecurso = nothing
+end function
+
+function incluirLinkPlanejamento()
+    dim cmdRecurso, rsRecurso
+
+    if urlRecurso = "" or not urlHttpValida(urlRecurso) then
+        incluirLinkPlanejamento = 0
+        exit function
+    end if
+
+    if len(urlRecurso) > 2000 then
+        incluirLinkPlanejamento = -2
+        exit function
+    end if
+    if len(descricaoRecurso) > 500 then descricaoRecurso = left(descricaoRecurso,500)
+
+    set cmdRecurso = Server.CreateObject("ADODB.Command")
+    set cmdRecurso.ActiveConnection = cnn
+    cmdRecurso.CommandType = 1
+    cmdRecurso.CommandText = "SET NOCOUNT ON; INSERT INTO SCA_PLANEJAMENTO_PROFESSOR_RECURSO " & _
+        "(cod_planejamento_professor,tipo,descricao,nome_arquivo,tipo_arquivo,tamanho_arquivo,arquivo_base64,url,usuario_incl,data_hora_incl) " & _
+        "VALUES (?,'L',?,NULL,NULL,NULL,NULL,?,?,GETDATE()); SELECT CAST(SCOPE_IDENTITY() AS INT) AS codigo;"
+
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@cod_planejamento_professor", 3, 1, , CLng(codPlanejamentoProfessor))
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@descricao", 200, 1, 500, descricaoRecurso)
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@url", 200, 1, 2000, urlRecurso)
+    cmdRecurso.Parameters.Append cmdRecurso.CreateParameter("@usuario_incl", 200, 1, 100, strUsuario_incl)
+
+    set rsRecurso = cmdRecurso.Execute
+    incluirLinkPlanejamento = rsRecurso("codigo")
+    rsRecurso.close
+    set rsRecurso = nothing
+    set cmdRecurso = nothing
+end function
+
+sub listarRecursosPlanejamento()
+    dim rsRecurso, sqlRecurso, descExibicao, nomeExibicao, urlExibicao, btnExcluir, temRegistro
+
+    if codPlanejamentoProfessor = "" or codPlanejamentoProfessor = "0" or not isnumeric(codPlanejamentoProfessor) then
+        response.write "<div class='text-muted'>Nenhum material de apoio incluído.</div>"
+        exit sub
+    end if
+
+    sqlRecurso = "SELECT r.codigo,r.tipo,r.descricao,r.nome_arquivo,r.tipo_arquivo,r.tamanho_arquivo,r.url,r.data_hora_incl " & _
+                 "FROM SCA_PLANEJAMENTO_PROFESSOR_RECURSO r " & _
+                 "INNER JOIN SCA_PLANEJAMENTO_PROFESSOR p ON p.cod_planejamento_professor=r.cod_planejamento_professor " & _
+                 "WHERE r.cod_planejamento_professor=" & CLng(codPlanejamentoProfessor) & _
+                 " AND p.cod_empresa=" & CLng(session("codEmpresa")) & " ORDER BY r.data_hora_incl,r.codigo"
+
+    set rsRecurso = Server.CreateObject("ADODB.Recordset")
+    rsRecurso.open sqlRecurso, cnn
+    temRegistro = false
+
+    if not rsRecurso.eof then
+        response.write "<div class='list-group'>"
+        do while not rsRecurso.eof
+            temRegistro = true
+            descExibicao = recursoTextoSeguro(rsRecurso("descricao"))
+            btnExcluir = ""
+            if ucase(strEdicaoRecurso) <> "S" then
+                btnExcluir = " <button type='button' class='btn btn-outline-danger btn-xs ml-2' title='Excluir' onclick='excluirRecursoPlanejamento(" & rsRecurso("codigo") & ");'><i class='fal fa-trash'></i></button>"
+            end if
+
+            if rsRecurso("tipo") = "A" then
+                nomeExibicao = recursoTextoSeguro(rsRecurso("nome_arquivo"))
+                response.write "<div class='list-group-item d-flex justify-content-between align-items-center'>"
+                response.write "<div><i class='fal fa-file mr-2'></i><strong>" & nomeExibicao & "</strong>"
+                if descExibicao <> "" then response.write "<div class='text-muted small mt-1'>" & descExibicao & "</div>"
+                response.write "</div><div class='text-nowrap'>"
+                response.write "<a class='btn btn-outline-primary btn-xs' target='_blank' href='sca_planejamento_professor_recurso_visualizar.asp?codigo=" & rsRecurso("codigo") & "'><i class='fal fa-eye mr-1'></i> Abrir</a>"
+                response.write btnExcluir & "</div></div>"
+            else
+                urlExibicao = recursoTextoSeguro(rsRecurso("url"))
+                response.write "<div class='list-group-item d-flex justify-content-between align-items-center'>"
+                response.write "<div><i class='fal fa-link mr-2'></i>"
+                if descExibicao <> "" then
+                    response.write "<strong>" & descExibicao & "</strong><div class='text-muted small text-truncate' style='max-width:550px'>" & urlExibicao & "</div>"
+                else
+                    response.write "<span class='text-muted'>" & urlExibicao & "</span>"
+                end if
+                response.write "</div><div class='text-nowrap'>"
+                response.write "<a class='btn btn-outline-primary btn-xs' target='_blank' rel='noopener noreferrer' href='" & urlExibicao & "'><i class='fal fa-external-link mr-1'></i> Abrir</a>"
+                response.write btnExcluir & "</div></div>"
+            end if
+
+            rsRecurso.movenext
+        loop
+        response.write "</div>"
+    end if
+
+    if not temRegistro then
+        response.write "<div class='text-muted'>Nenhum material de apoio incluído.</div>"
+    end if
+
+    rsRecurso.close
+    set rsRecurso = nothing
+end sub
+
+sub excluirRecursoPlanejamento()
+    if codigoRecurso = "" or not isnumeric(codigoRecurso) then
+        response.write "ERRO|Recurso inválido."
+        exit sub
+    end if
+    if codPlanejamentoProfessor = "" or not isnumeric(codPlanejamentoProfessor) then
+        response.write "ERRO|Planejamento inválido."
+        exit sub
+    end if
+
+    if planejamentoRecursoBloqueado() then
+        response.write "ERRO|Este planejamento está bloqueado para edição."
+        exit sub
+    end if
+
+    sql = "DELETE r FROM SCA_PLANEJAMENTO_PROFESSOR_RECURSO r " & _
+          "INNER JOIN SCA_PLANEJAMENTO_PROFESSOR p ON p.cod_planejamento_professor=r.cod_planejamento_professor " & _
+          "WHERE r.codigo=" & CLng(codigoRecurso) & _
+          " AND r.cod_planejamento_professor=" & CLng(codPlanejamentoProfessor) & _
+          " AND p.cod_empresa=" & CLng(session("codEmpresa"))
+    cnn.execute sql
+    'GravarLog sql
+    response.write "OK"
+end sub
+
 function excluirPlanejamentoProfessor()
+
+    sql="delete from SCA_PLANEJAMENTO_PROFESSOR_RECURSO where cod_planejamento_professor=" & codPlanejamentoProfessor
+    cnn.execute sql
+    'GravarLog sql
 
     sql="delete from SCA_ITEM_PLANEJAMENTO_PROFESSOR where cod_planejamento_professor=" & codPlanejamentoProfessor
     cnn.execute sql
-	'GravarLog sql
+	GravarLog sql
     sql="delete SCA_CONTEUDO_MINISTRADO_PROFESSOR "
     sql = sql & " where cod_planejamento_professor = " & codPlanejamentoProfessor
     cnn.execute sql
@@ -424,7 +674,6 @@ function excluirPlanejamentoProfessor()
     cnn.execute sql
 	'GravarLog sql
 end function
-
 
 
 if acao = "carregaPlanejamento" then
@@ -439,24 +688,62 @@ elseif acao = "incluiItemPlanejamento" then
     
     cnn.beginTrans
 
-    if codPlanejamentoProfessor = "" or codPlanejamentoProfessor="0" then
+    if codPlanejamentoProfessor = "" or codPlanejamentoProfessor = "0" then
         codPlanejamentoProfessor = incluiPlanejamentoProfessor()
     end if
 
-    response.write codPlanejamentoProfessor & ","
+    '=========================================================
+    ' VALIDAÇÃO DE ITEM DUPLICADO
+    ' Tipo 1 = Habilidade
+    ' Tipo 2 = Objeto de conhecimento / Conteúdo
+    '=========================================================
+    if codTipo = "1" or codTipo = "2" then
+
+        if itemPlanejamentoJaCadastrado(codPlanejamentoProfessor, codItemPlanejamentoGeral, codTipo) then
+
+            cnn.RollbackTrans
+
+            if codTipo = "1" then
+                response.write "DUPLICADO|HABILIDADE"
+            else
+                response.write "DUPLICADO|CONTEUDO"
+            end if
+
+            response.end
+
+        end if
+
+    end if
+
 
     select case codTipo
+
         case 1, 2
-            response.write incluiItemPlanejamento()
+
+            novoCodigoItem = incluiItemPlanejamento()
+
         case 3, 4
-            alteraMetodologiaAvaliacao (codTipo)
-            response.write "0"
-    end select 
-    
+
+            alteraMetodologiaAvaliacao codTipo
+            novoCodigoItem = "0"
+		case 5
+
+            alteraRegistroReflexivo codTipo
+            novoCodigoItem = "0"
+
+    end select
+
+
     if err.number <> 0 then
-        cnn.RollbackTrans  
+
+        cnn.RollbackTrans
+        response.write "ERRO|" & err.description
+
     else
-        cnn.CommitTrans 
+
+        cnn.CommitTrans
+        response.write codPlanejamentoProfessor & "," & novoCodigoItem
+
     end if
     
 
@@ -523,6 +810,66 @@ elseif acao = "CancelarValidacaoPlanejamentoProfessor" then
         cnn.CommitTrans 
     end if         
 	
+elseif acao = "incluirArquivoPlanejamento" then
+
+    if strPeriodoValido <> "S" then
+        response.write "ERRO|Período não autorizado para edição."
+    elseif planejamentoRecursoBloqueado() then
+        response.write "ERRO|Este planejamento está bloqueado para edição."
+    elseif nomeArquivo = "" or arquivoBase64 = "" then
+        response.write "ERRO|Arquivo não informado."
+    else
+        cnn.beginTrans
+        codPlanejamentoProfessor = garantePlanejamentoProfessorRecurso()
+        codigoNovoRecurso = incluirArquivoPlanejamento()
+
+        if err.number <> 0 or codigoNovoRecurso <= 0 then
+            cnn.RollbackTrans
+            if codigoNovoRecurso = -2 then
+                response.write "ERRO|O arquivo deve possuir no máximo 10 MB."
+            else
+                response.write "ERRO|Não foi possível gravar o arquivo."
+            end if
+        else
+            cnn.CommitTrans
+            response.write "OK|" & codPlanejamentoProfessor & "|" & codigoNovoRecurso
+        end if
+    end if
+
+elseif acao = "incluirLinkPlanejamento" then
+
+    if strPeriodoValido <> "S" then
+        response.write "ERRO|Período não autorizado para edição."
+    elseif planejamentoRecursoBloqueado() then
+        response.write "ERRO|Este planejamento está bloqueado para edição."
+    elseif not urlHttpValida(urlRecurso) then
+        response.write "ERRO|Informe um link iniciado por http:// ou https://."
+    else
+        cnn.beginTrans
+        codPlanejamentoProfessor = garantePlanejamentoProfessorRecurso()
+        codigoNovoRecurso = incluirLinkPlanejamento()
+
+        if err.number <> 0 or codigoNovoRecurso <= 0 then
+            cnn.RollbackTrans
+            if codigoNovoRecurso = -2 then
+                response.write "ERRO|O link excede o tamanho máximo permitido."
+            else
+                response.write "ERRO|Não foi possível gravar o link."
+            end if
+        else
+            cnn.CommitTrans
+            response.write "OK|" & codPlanejamentoProfessor & "|" & codigoNovoRecurso
+        end if
+    end if
+
+elseif acao = "listarRecursosPlanejamento" then
+
+    listarRecursosPlanejamento
+
+elseif acao = "excluirRecursoPlanejamento" then
+
+    excluirRecursoPlanejamento
+
 elseif acao = "ExcluirPlanejamentoProfessor" then
     
     cnn.beginTrans

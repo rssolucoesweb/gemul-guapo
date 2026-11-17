@@ -29,7 +29,7 @@ Contato: sergio@rssolucoesweb.com.br
 				
 				.estilo_aula{
 					width: 55px;
-					height: 40px;
+					height: 54px;
 					margin-left: auto;
 					margin-right: auto; 
 					//display: flex;
@@ -56,9 +56,16 @@ Contato: sergio@rssolucoesweb.com.br
 				.tamanho_data_aula{
 					text-align: center;
 					font-size: 10px;
+					line-height: 12px;
+				}
+				.dia_semana_aula{
+					display: block;
+					font-size: 9px;
+					font-weight: normal;
+					line-height: 11px;
 				}
 				.estilo_legenda{
-					max-width: 100%;
+					max-width: 105%;
 					width: 300px !important;
 					height: 30px;
 					margin-left: auto;
@@ -164,6 +171,112 @@ Contato: sergio@rssolucoesweb.com.br
 		<script src="js/notifications/toastr/toastr.js"></script>
 		<script src="js_app/sca_planejamento_acompanhamento_professor.js?v=<%=now%>"></script>
         <script type="text/javascript">
+			function abrirUploadArquivo(anoLetivo, mes, codDisciplina, codTurma){
+
+				$("#upAnoLetivo").val(anoLetivo);
+				$("#upMes").val(mes);
+				$("#upCodDisciplina").val(codDisciplina);
+				$("#upCodTurma").val(codTurma);
+
+				carregarArquivos();
+
+				$("#modalArquivo").modal("show");
+
+			}
+			
+			function enviarArquivo() {
+
+				var file = document.getElementById("arquivoUpload").files[0];
+
+				if (!file) {
+					alert("Selecione um arquivo.");
+					return;
+				}
+
+				// limite exemplo: 5 MB
+				if (file.size > 5 * 1024 * 1024) {
+					alert("O arquivo não pode ser maior que 5 MB.");
+					return;
+				}
+				
+				$("#btnEnviarArquivo")
+					.prop("disabled", true)
+					.removeClass("btn-success")
+					.addClass("btn-secondary")
+					.html('<i class="fal fa-spinner fa-spin"></i> Enviando...');
+					
+				var reader = new FileReader();
+
+				reader.onload = function(e) {
+
+					var base64 = e.target.result.split(",")[1];
+
+					$.ajax({
+						url: "sca_planejamento_arquivo_upload.asp",
+						type: "POST",
+						data: {
+							anoLetivo: $("#upAnoLetivo").val(),
+							mes: $("#upMes").val(),
+							codDisciplina: $("#upCodDisciplina").val(),
+							codTurma: $("#upCodTurma").val(),
+							nomeArquivo: file.name,
+							tipoArquivo: file.type,
+							arquivoBase64: base64
+						},
+						success: function(retorno) {
+							alert("Arquivo enviado com sucesso!");
+							$("#arquivoUpload").val("");
+							carregarArquivos();
+							
+							$("#btnEnviarArquivo")
+							.prop("disabled", false)
+							.removeClass("btn-secondary")
+							.addClass("btn-success")
+							.html('<i class="fal fa-upload"></i> Enviar ');
+							
+						},
+						error: function(xhr) {
+							alert("Erro ao enviar arquivo: " + xhr.responseText);
+						}
+					});
+				};
+
+				reader.readAsDataURL(file);
+			}
+			
+			function carregarArquivos() {
+
+				$("#listaArquivos").load(
+					"sca_planejamento_arquivo_lista.asp?" +
+					"anoLetivo=" + $("#upAnoLetivo").val() +
+					"&mes=" + $("#upMes").val() +
+					"&codTurma=" + $("#upCodTurma").val() +
+					"&codDisciplina=" + $("#upCodDisciplina").val()
+				);
+
+			}
+			
+			function removerArquivo(codigo) {
+
+				if (!confirm("Deseja realmente remover este arquivo?")) {
+					return;
+				}
+
+				$.ajax({
+					url: "sca_planejamento_arquivo_remover.asp",
+					type: "POST",
+					data: {
+						codigo: codigo
+					},
+					success: function(retorno) {
+						carregarArquivos();
+					},
+					error: function(xhr) {
+						alert("Erro ao remover arquivo: " + xhr.responseText);
+					}
+				});
+
+			}
         </script>
 		
     </body>

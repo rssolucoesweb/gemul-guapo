@@ -33,6 +33,7 @@
 	strTurma	            = Trim(Request.Form("txtTurma"))
 	
 	intCodProfessor	        = Trim(Request.Form("txtCodProfessor"))
+	'response.write intCodProfessor
 	strProfessor	        = Trim(Request.Form("txtProfessor"))
 
     intCodAula 				= Trim(Request("aula")) 
@@ -63,10 +64,14 @@
 	'PERFIL COORDENADORES - 17
 	'PERFIL PROFESSORES   - 11
 	'PERFIL ADMINISTRADOR - 2	
-	strCodPefilAcesso = "17,2,11"
+	strCodPefilAcesso = "81,17,79,2,11"	'Guapó: 79 = COORDENADORES (TURNO)
+	
+	intCodProfessorAux = intCodProfessor
 %>
 <!--#include file="includes/inc_VerificaAcessoPerfilAdmProfessor.asp"-->
 <%
+	intCodProfessor = intCodProfessorAux
+'RESPONSE.WRITE "strAcessoPerfil>" & strAcessoPerfil
 	'if (strAcessoPerfil="") then
 		%>
 		<!--script>
@@ -431,7 +436,7 @@
 
 							<div class="col-sm-8">
 								<div class="form-group">
-									<label class="form-label">Unidade Temática/Linguagem/Práticas de Linguagens</label>
+									<label class="form-label">Unidade Temática/Linguagem/Práticas de Linguagens/Eixos</label>
 										<select name="cmbUnidadeTematica" id="cmbUnidadeTematica" class="form-control" onChange="return carregaPlanejamento(<%=intCodigoPlanejamento%>)">
 											<option value="0" selected>Selecione...</option>
 											<%
@@ -463,11 +468,7 @@
 									<label class="form-label"><%=strLabel%></label>
 									<select name="cmbBimestre" id="cmbBimestre" class="form-control" onChange="atualizaBimestreTela()">
 										<%if SESSION("controlePeriodoDeTempo") = 1 then%>
-										<option value="5">Unico</option>
-										<!--option value="1">1° Bimestre</option>
-										<option value="2">2° Bimestre</option>
-										<option value="3">3° Bimestre</option>
-										<option value="4">4° Bimestre</option-->
+										<option value="5">Unico</option>	<!-- Guapó: planejamento sempre Único no bimestral -->
 										<%elseif SESSION("controlePeriodoDeTempo") = 2 then%>
 										<option value="1">1° Trimestre</option>
 										<option value="2">2° Trimestre</option>
@@ -559,6 +560,78 @@
 									<button id="btnAvaliacao" <%if strValidado = "S" then response.Write("disabled") %> type="button" class="btn btn-success btn-pills btn-sm btn-block waves-effect waves-themed salvar">Salvar alterações</button>
 								</div>
 							</div>
+						</div>
+						
+						<div class="panel">
+							<div class="panel-hdr color-warning-800">
+								<h2>
+									Registro Reflexivo
+								</h2>
+								<div class="panel-toolbar">
+									<button class="btn btn-panel waves-effect waves-themed" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+								</div>
+							</div>
+							<div class="panel-container show">
+								<div class="panel-content">
+									<textarea class="textArea" <%if strValidado = "S" then response.Write("disabled") %> rows="10" id="txtRegistroReflexivo" name="txtRegistroReflexivo"></textarea>
+									<button id="btnRegistroReflexivo" <%if strValidado = "S" then response.Write("disabled") %> type="button" class="btn btn-success btn-pills btn-sm btn-block waves-effect waves-themed salvar">Salvar alterações</button>
+								</div>
+							</div>
+						</div>
+
+						<!-- Materiais de apoio: arquivos e links -->
+						<div class="panel" id="panelMateriaisApoio">
+							<div class="panel-hdr color-warning-800">
+								<h2>
+									Materiais de apoio
+								</h2>
+								<div class="panel-toolbar">
+									<button class="btn btn-panel waves-effect waves-themed" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+								</div>
+							</div>
+							<div class="panel-container show">
+								<div class="panel-content">
+
+									<div class="mb-4 recurso-edicao">
+										<h5 class="mb-3"><i class="fal fa-paperclip mr-1"></i> Arquivos</h5>
+										<div class="form-group">
+											<label class="form-label" for="txtDescricaoArquivo">Descrição <span class="text-muted">(opcional)</span></label>
+											<input type="text" id="txtDescricaoArquivo" class="form-control" maxlength="500" placeholder="Ex.: Atividade complementar">
+										</div>
+										<div class="form-group">
+											<label class="form-label" for="arquivoPlanejamento">Arquivo</label>
+											<input type="file" id="arquivoPlanejamento" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.zip">
+											<small class="form-text text-muted">Tamanho máximo: 10 MB.</small>
+										</div>
+										<button type="button" id="btnEnviarArquivoPlanejamento" class="btn btn-primary btn-sm" onclick="enviarArquivoPlanejamento();">
+											<i class="fal fa-upload mr-1"></i> Enviar arquivo
+										</button>
+									</div>
+
+									<hr class="recurso-edicao">
+
+									<div class="mb-4 recurso-edicao">
+										<h5 class="mb-3"><i class="fal fa-link mr-1"></i> Links</h5>
+										<div class="form-group">
+											<label class="form-label" for="txtDescricaoLink">Descrição <span class="text-muted">(opcional)</span></label>
+											<input type="text" id="txtDescricaoLink" class="form-control" maxlength="500" placeholder="Ex.: Vídeo complementar">
+										</div>
+										<div class="form-group">
+											<label class="form-label" for="txtUrlPlanejamento">Link</label>
+											<input type="url" id="txtUrlPlanejamento" class="form-control" maxlength="2000" placeholder="https://...">
+										</div>
+										<button type="button" id="btnAdicionarLinkPlanejamento" class="btn btn-primary btn-sm" onclick="adicionarLinkPlanejamento();">
+											<i class="fal fa-plus mr-1"></i> Adicionar link
+										</button>
+									</div>
+
+									<hr>
+									<div id="divRecursosPlanejamento">
+										<div class="text-muted">Nenhum material de apoio incluído.</div>
+									</div>
+
+								</div>
+							</div>
 						</div>																
 
 
@@ -586,6 +659,9 @@
 					</h2>
 					<div class="panel-toolbar">
 						<button class="btn btn-panel waves-effect waves-themed" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+
+
+
 					</div>
 				</div>
 				<div class="panel-container show">
@@ -608,7 +684,7 @@
 								<div class="panel-container show">
 								
 									<div class="panel-content">
-										<label class="form-label">Observação</label>
+										<label class="form-label">Observação/Visto Orientado</label>
 										<textarea <%=bloqueiaComboAlteracao%> class="textArea" rows="10" id="txtObservacao" name="txtObservacao"><%=strObservacao%></textarea>
 									</div>
 								</div>
@@ -630,25 +706,13 @@
 								</div>
 							</div>
 							
-							<%
-										'if ucase(trim(session("usuarioWeb"))) = "03210691100" then
-										''Session("NivelPermissao") = "A"
-										'	response.write "Session(NivelPermissao)=" & Session("NivelPermissao") & "<br>"
-										'	response.write "bloqueiaComboAlteracao=" & bloqueiaComboAlteracao & "<br>"
-										'	response.write "intCodigoPlanejamentoProfessor=" & intCodigoPlanejamentoProfessor & "<br>"
-										'	response.write "strAcessoPerfil=" & strAcessoPerfil
-										'end if		
-										
-							if Session("NivelPermissao") = "A" then%>
+							<%if strAcessoPerfil <> "PROFESSOR" then%>
 							
 							<div class="col-sm-4">
 								<div class="panel-container show">
 									<div class="panel-content">
 									
-										<%
-																			
-
-										if bloqueiaComboAlteracao<>"" then%>
+										<%if (bloqueiaComboAlteracao<>"" or strValidado = "S") then%>
 
 										<%
 										if intCodigoPlanejamentoProfessor = "" then intCodigoPlanejamentoProfessor = 0
@@ -658,9 +722,11 @@
 											rs.open sql, cnn
 											if rs.eof then
 												if strAcessoPerfil<> "PROFESSOR" then
+													IF strValidado = "S" THEN
 												%>
 													<button id="btnCancelaraValidacao" type="button" onClick="cancelar('<%=intCodigoPlanejamentoProfessor%>')"  class="btn btn-info btn-pills btn-sm btn-block waves-effect waves-themed">Cancelar Validação</button>											
 												<%
+													end if
 												end if
 											else 
 												%>

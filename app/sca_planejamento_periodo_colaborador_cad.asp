@@ -2,7 +2,7 @@
 	acao = ""
 	strAnoLetivo		= Trim(Request.Form("txtAnoLetivo"))
 	strAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
-	if strAnoLetivo="" then strAnoLetivo = year(date)
+	if strAnoLetivo="" then strAnoLetivo = session("strAnoLetivo")	'ano letivo da sessão (Trocar Ano Letivo)
 	intCodEmp			= Session("CodEmpresa")
 %>
 

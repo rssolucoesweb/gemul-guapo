@@ -1,4 +1,4 @@
-<%
+﻿<%
 	intCodTurnoRH			= Trim(Request("cmbTurnoRH"))
 	intCodProfessorRetorno	= Trim(Request("cmbProfessor"))
 
@@ -6,6 +6,7 @@
 
 	strAnoLetivo			= Trim(Request("txtAnoLetivo"))
 	if strAnoLetivo="" then strAnoLetivo = Trim(Request.Form("txtHiddenAnoLetivo"))
+	if strAnoLetivo = "" then strAnoLetivo = session("strAnoLetivo")	'ano letivo da sessão (Trocar Ano Letivo)
 
 	strSemestre             = Trim(Request("txtSemestre"))
 
@@ -33,7 +34,7 @@
 		SQL = "SELECT ACES_PERF_CODG" 'ADM OU COORDENADOR
 		SQL = SQL & " FROM SEG_ACESSOS_USUARIO"
 		SQL = SQL & " WHERE ACES_USUA_CODG = '" & session("usuarioWeb") & "'"
-		SQL = SQL & " AND ACES_PERF_CODG in (2,17)"
+		SQL = SQL & " AND ACES_PERF_CODG in (81,2,17,79)"	'Guapó: 79 = COORDENADORES (TURNO)
 		rs.open sql, cnn
 		if not rs.EOF then	
 			'perfil professor não terá acesso a validação
@@ -45,6 +46,21 @@
 	set rsAux2 = server.createObject("adodb.recordset")
 
 	strNumAulaTurma = ""
+
+	Function nomeDiaSemanaAbrev(dataAula)
+		Dim numeroDia
+		numeroDia = Weekday(dataAula, 2) ' 2 = segunda-feira como primeiro dia
+
+		Select Case numeroDia
+			Case 1: nomeDiaSemanaAbrev = "Segunda"
+			Case 2: nomeDiaSemanaAbrev = "Terça"
+			Case 3: nomeDiaSemanaAbrev = "Quarta"
+			Case 4: nomeDiaSemanaAbrev = "Quinta"
+			Case 5: nomeDiaSemanaAbrev = "Sexta"
+			Case 6: nomeDiaSemanaAbrev = "Sábado"
+			Case 7: nomeDiaSemanaAbrev = "Domingo"
+		End Select
+	End Function
 	function buscaAulasExtrasTurma(cod_disciplina, Cod_Turma, strAnoLetivo, intCodTurno, codCursoAux, cursoAux, codPeriodoAux, periodoAux, codDisciplinaAux, disciplinaAux, turmaAux, semestre)
 
 		existeAulaExtra= false
@@ -326,7 +342,9 @@
 										sqlPlanejamento = sqlPlanejamento & " p.cod_turno,"
 										sqlPlanejamento = sqlPlanejamento & " p.validado,"
 										sqlPlanejamento = sqlPlanejamento & " p.observacao"
-
+										'if ucase(trim(session("usuarioWeb"))) = "SERGIO" then
+										'	response.write "<BR>sqlPlanejamento:" & sqlPlanejamento
+										'end if
 										set rsPlan = server.createobject("adodb.recordset")
 										rsPlan.open sqlPlanejamento, cnn
 
@@ -351,26 +369,30 @@
 												'dadosPlan(0,i) -> cod_planejamento_professor
 												'dadosPlan(6,i) -> validado
 												'dadosPlan(7,i) -> observacao
-												'dadosPlan(8,i) ->qtde_conteudo													
+												'dadosPlan(8,i) ->qtde_conteudo	
+
+												'dictPlan -> 0 - cod_planejamento_professor									
+												'dictPlan -> 1 - validado									
+												'dictPlan -> 2 - observacao									
+												'dictPlan -> 3 - qtde_conteudo									
 												
 											next
 										end if
 
-									numero_aula = 1
-									ja_imprimiu_turma = "N"
-									%>
-									
-
-											<%
+											numero_aula = 1
+											ja_imprimiu_turma = "N"
+											
 											controle = 0
 											controleTurma = 0
 											dataHoraInicio = now
 											
 											while not rs.eof
 												mostra_valida_turma = "N"
+												
 												strSemestre = rs("semestre")
 												strDataAula = formataDataAp(rs("dia_mes") & "/" & rs("mes") & "/" & rs("ano"))
 												strDataAulaTela = mid(strDataAula,1,5)
+												strDiaSemanaTela = nomeDiaSemanaAbrev(DateSerial(rs("ano"), rs("mes"), rs("dia_mes")))
 												liberadoClick = rs("liberadoClick")
 												'estilo_cor = rs("cor")
 												'codigoPlanejamentoProf = rs("cod_planejamento_professor")
@@ -415,7 +437,7 @@
 												'end if
 												'liberadoClick = "N"
 												if trim(rs("mes")) = trim(strMes) then
-													
+													qtde_arquivo	= trim(rs("qtde_arquivo"))
 													if liberadoClick = "S" then
 
 														chave = numero_aula & "|" & rs("cod_disciplina") & "|" & rs("cod_turma")
@@ -427,20 +449,40 @@
 														if dictPlan.exists(chave) then
 
 															dados = dictPlan(chave)
-
+															
+															'dictPlan -> 0 - cod_planejamento_professor									
+															'dictPlan -> 1 - validado									
+															'dictPlan -> 2 - observacao									
+															'dictPlan -> 3 - qtde_conteudo	
+															
 															codigoPlanejamentoProf = dados(0)
 															validado = dados(1)
 															observacao = dados(2)
 															qtde = dados(3)
-
+															
+															'if ucase(trim(session("usuarioWeb"))) = "SERGIO" AND numero_aula=68 and rs("cod_disciplina")=522 then
+															'	response.write "<BR>codigoPlanejamentoProf:" & codigoPlanejamentoProf
+															'	response.write "<BR>qtde:" & qtde
+															'	response.write "<BR>chave:" & chave
+															'end if
+															
 															if qtde = 0 then
 																if trim(validado) = "N" then
 																	estilo_cor = "vermelho"
+																	
+																	
+																	
 																elseif trim(validado) = "S" then
 																	estilo_cor = "verde"
 																	if not isnull(observacao) then
 																		estilo_cor = "azul"
 																	end if
+																	
+																	'if ucase(trim(session("usuarioWeb"))) = "SERGIO" then
+																	'	response.write "<BR>codigoPlanejamentoProf:" & codigoPlanejamentoProf
+																	'	response.write "<BR>validado:" & validado
+																	'	response.write "<BR>observacao:" & observacao
+																	'end if
 																end if
 															else
 																estilo_cor = "laranja"
@@ -454,6 +496,7 @@
 														estilo_cor = "cinza"
 														mostraMensagemNaoliberado = "S"
 													end if
+													if qtde_arquivo>0 then estilo_cor = "laranja"
 													
 													
 													if strDataAula<> "" and numero_aula<>"" and estilo_cor = "laranja" then
@@ -493,7 +536,7 @@
 														<td>
 																<div class="estilo_aula <%=estilo_cor%>" style="cursor: pointer" onClick="return abreModal('<%=numero_aula%>','<%=rs("cod_curso")%>','<%=rs("curso")%>','<%=rs("cod_periodo")%>','<%=rs("periodo")%>','<%=rs("cod_disciplina")%>','<%=rs("disciplina")%>','<%=intCodTurno%>','<%=rs("cod_turma")%>','<%=rs("turma")%>','<%=codigoPlanejamentoProf%>',false,'','<%=strDataAula%>','<%=strSemestre%>')">
 																	<strong><%=numero_aula%></strong><br>
-																	<div class="tamanho_data_aula"><%=strDataAulaTela%>
+																	<div class="tamanho_data_aula"><%=strDataAulaTela%><span class="dia_semana_aula"><%=strDiaSemanaTela%></span>
 																	
 																		
 																		<%if ucase(trim(session("usuarioWeb"))) = "ROBERTO.JUNIOR" then
@@ -526,7 +569,7 @@
 														<td>
 																<div class="estilo_aula <%=estilo_cor%>"  <%if liberadoClick = "S" then%> style="cursor: pointer" onClick="return abreModal('<%=numero_aula%>','<%=rs("cod_curso")%>','<%=rs("curso")%>','<%=rs("cod_periodo")%>','<%=rs("periodo")%>','<%=rs("cod_disciplina")%>','<%=rs("disciplina")%>','<%=intCodTurno%>','<%=rs("cod_turma")%>','<%=rs("turma")%>','<%=codigoPlanejamentoProf%>',false,'','<%=strDataAula%>','<%=strSemestre%>')" <%end if%>>
 																	<strong><%=numero_aula%></strong><br>
-																	<div class="tamanho_data_aula"><%=strDataAulaTela%>
+																	<div class="tamanho_data_aula"><%=strDataAulaTela%><span class="dia_semana_aula"><%=strDiaSemanaTela%></span>
 																	
 																		<%if ucase(trim(session("usuarioWeb"))) = "ROBERTO.JUNIOR" then
 																			response.write " [" & qtde_aux_verifica_erro & "]"
@@ -593,7 +636,7 @@
 
 
 													if liberadoClick = "S" and ((mesAula = 6 and (strSemestre = 1 or strSemestre = 3) and (strMes = 1 or strMes = 2 or strMes = 3 or strMes = 4 or strMes = 5 or strMes = 6)) or (mesAula = 12 and (strSemestre = 2 or strSemestre = 3) and (strMes = 8 or strMes = 9 or strMes = 10 or strMes = 11 or strMes = 12)) or (mesAula = 12 and strSemestre = 3 and (strMes = 1 or strMes = 2 or strMes = 3 or strMes = 4 or strMes = 5 or strMes = 6))) then%>
-															<%if estilo_cor_aula <> "laranja" then%>
+															<%if (estilo_cor_aula <> "laranja" or qtde_arquivo>0) then%>
 																<%if strTemAcessoValidacao = "" then%>
 																	<td>
 																		<button style="margin-left: 20px;" onclick="validarTurma(<%=cod_disciplina%>,<%=Cod_Turma%>,'<%=strNumAulaTurma%>')" type="button" class="btn btn-outline-success waves-effect waves-themed">Validar</button>
@@ -601,6 +644,21 @@
 																	<td>
 																		<button style="margin-left: 20px;" onclick="desvalidarTurma(<%=cod_disciplina%>,<%=Cod_Turma%>,'<%=strNumAulaTurma%>')" type="button" class="btn btn-outline-danger waves-effect waves-themed">Desvalidar</button>
 																	</td>
+																	<%if CInt(strMes) >= 1 and CInt(strMes) <= 6 then%>
+																	<td>
+																	  <button
+																		style="margin-left:20px;"
+																		type="button"
+																		<%if qtde_arquivo>0 then%>
+																		class="btn btn-success waves-effect waves-themed"
+																		<%else%>
+																		class="btn btn-outline-primary waves-effect waves-themed"
+																		<%end if%>
+																		onclick="abrirUploadArquivo('<%=strAnoLetivo%>','<%=strMes%>','<%=cod_disciplina%>','<%=Cod_Turma%>')">
+																		<i class="fal fa-paperclip"></i> Arquivo
+																	</button>
+																	</td>
+																	<%end if%>
 																<%end if%>
 															<%end if%>
 														<%
@@ -717,7 +775,7 @@
 
 	<div class="modal fade" id="modalReplicarAula" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">		
 
-		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		<div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 1250px; width: 95%;">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title">A aula <span class="spanAulaExtra"></span><b><span class="numAula"></span></b> já possui planejamento cadastrado. O que você deseja fazer?</h5>
@@ -726,23 +784,46 @@
 					</button>
 				</div>
 				<div class="modal-body">
-					<div class="row"  style='margin-top: 5px ;'>
-						<div class="col-sm-6" style="background-color: #f7f7f7; border: 2px solid #fff;">
-							<div style="text-align: center ;padding-top: 10px;"><b>Replicar a aula <span class="spanAulaExtra"></span><span class="numAula"></span> para:<br>(selecione a(s) turma(s))</b></div>
-							<div id="divListaTurmas"></div>	
+					<div class="row" style="margin-top: 5px;">
+						<div class="col-sm-3" style="background-color: #f7f7f7; border: 2px solid #fff; min-height: 155px;">
+							<div style="text-align: center; padding-top: 10px;"><b>Replicar a aula <span class="spanAulaExtra"></span><span class="numAula"></span> para:<br>(selecione a(s) turma(s))</b></div>
+							<div id="divListaTurmas"></div>
 						</div>
-						<div class="col-sm-6" style="background-color: #f7f7f7; border: 2px solid #fff;">
-							<div style="text-align: center ;padding-top: 10px;"><b>Visualizar Planejamento da Aula <span class="spanAulaExtra"></span><span class="numAula"></span></b></div>
+
+						<div class="col-sm-3" style="background-color: #f7f7f7; border: 2px solid #fff; min-height: 155px;">
+							<div style="text-align: center; padding-top: 10px;">
+								<b>Replicar aula para a semana</b><br><br>
+								<small id="textoReplicarSemana">O planejamento será replicado para as próximas aulas desta disciplina e turma, até sexta-feira.</small>
+							</div>
+						</div>
+
+						<div class="col-sm-3" style="background-color: #f7f7f7; border: 2px solid #fff; min-height: 155px;">
+							<div style="text-align: center; padding: 10px 8px 0;">
+								<b>Replicar aula para um dia</b><br>
+								<small id="textoReplicarDia">Escolha uma data posterior para replicar o planejamento somente para aquela aula.</small>
+								<input type="date" id="dataReplicarDia" class="form-control mt-2" aria-label="Data de destino da replicação">
+							</div>
+						</div>
+
+						<div class="col-sm-3" style="background-color: #f7f7f7; border: 2px solid #fff; min-height: 155px;">
+							<div style="text-align: center; padding-top: 10px;"><b>Visualizar Planejamento da Aula <span class="spanAulaExtra"></span><span class="numAula"></span></b></div>
 						</div>
 					</div>
+
 					<div class="row">
-						<div class="col-sm-6">
+						<div class="col-sm-3">
 							<input type="hidden" id="codigoPlanejamentoProf">
-							<button id="btnReplicar" class='btn btn-outline-success btn-lg btn-block waves-effect waves-themed'>Replicar</button>
+							<button id="btnReplicar" class="btn btn-outline-success btn-lg btn-block waves-effect waves-themed">Replicar</button>
 						</div>
-						<div class="col-sm-6">
-							<button id="btnVisualizarPlanejamento" class='btn btn-outline-primary btn-lg btn-block waves-effect waves-themed'>Visualizar Planejamento</button>
-						</div>						
+						<div class="col-sm-3">
+							<button id="btnReplicarSemana" class="btn btn-outline-warning btn-lg btn-block waves-effect waves-themed">Replicar aula para a semana</button>
+						</div>
+						<div class="col-sm-3">
+							<button id="btnReplicarDia" class="btn btn-outline-info btn-lg btn-block waves-effect waves-themed">Replicar para o dia</button>
+						</div>
+						<div class="col-sm-3">
+							<button id="btnVisualizarPlanejamento" class="btn btn-outline-primary btn-lg btn-block waves-effect waves-themed">Visualizar Planejamento</button>
+						</div>
 					</div>
 				</div>	
 				<div class="modal-footer">
@@ -752,6 +833,100 @@
 		</div>
 
 	</div>	
+	
+	
+	<div class="modal fade" id="modalArquivo" tabindex="-1" role="dialog" aria-hidden="true">
+
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+
+			<div class="modal-content">
+
+				<div class="modal-header">
+					<h5 class="modal-title">
+						<i class="fal fa-paperclip"></i>
+						Anexos do Planejamento
+					</h5>
+
+					<button type="button" class="close" data-dismiss="modal">
+						<span><i class="fal fa-times"></i></span>
+					</button>
+				</div>
+
+				<div class="modal-body">
+
+					<!-- Campos ocultos -->
+					<input type="hidden" id="upAnoLetivo">
+					<input type="hidden" id="upMes">
+					<input type="hidden" id="upCodDisciplina">
+					<input type="hidden" id="upCodTurma">
+
+					<div class="row">
+
+						<div class="col-md-9">
+
+							<label>Arquivo</label>
+
+							<input
+								type="file"
+								id="arquivoUpload"
+								class="form-control">
+
+						</div>
+
+						<div class="col-md-3">
+
+							<label>&nbsp;</label>
+
+							<button
+								id="btnEnviarArquivo"
+								type="button"
+								class="btn btn-success btn-block"
+								onclick="enviarArquivo();">
+
+								<i class="fal fa-upload"></i>
+								Enviar
+
+							</button>
+
+						</div>
+
+					</div>
+
+					<hr>
+
+					<h5>
+						<i class="fal fa-folder-open"></i>
+						Arquivos enviados
+					</h5>
+
+					<div id="listaArquivos">
+
+						<div class="alert alert-info mb-0">
+							Nenhum arquivo encontrado.
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="modal-footer">
+
+					<button
+						type="button"
+						class="btn btn-secondary"
+						data-dismiss="modal">
+
+						Fechar
+
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
 </form>
 </main>
 <!-- this overlay is activated only when mobile menu is triggered -->
