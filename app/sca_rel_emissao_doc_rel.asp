@@ -55,18 +55,35 @@ Server.ScriptTimeout = 1200
 	for r=0 to ubound(vetCodAluno)
 		sql = "Select a.Codigo, a.NomeAluno, a.matricula, a.dataNascimento, a.CIDADENASCIMENTO, UF.SIGLA as UF, a.CIDADERESIDENCIA, UFR.SIGLA as UFR, a.DATACOLACAO, a.DATACERTIFICADO, A.EMAIL, 'Fone(s) - Residencial: '+isnull(A.FONERESIDENCIAL,'(00)0000-0000')+' - Celular: '+ isnull(A.FONECELULAR,'(00)0000-0000') as FONE, "
 		sql = sql & " 	a.TITULOELEITOR, a.TITULOZONA, a.TITULOSECAO,	a.NACIONALIDADE, a.DATAMATRICULA, a.CPFALUNO, "
-		sql = sql & " 	a.pai, a.mae, a.ANOCONCLUSAO, a.CPFALUNO, sa.Desc_SituacaoAluno as SITUACAOALUNO, a.dataINGRESSO,"
-		sql = sql & " 	ufRG.sigla, a.RESPONSAVEL, CONVERT(VARCHAR,A.IDENTIDADE) + '-' + RTRIM(CONVERT(VARCHAR,IdentidadeOrgao)) + '/' + ufRG.sigla AS IDENTIDADE, ec.Desc_EstadoCivil as ESTADOCIVIL , a.LOGRADOURO, a.NUMERO_ENDERECO, a.COMP_ENDERECO, a.BAIRROALUNO"
+		sql = sql & " 	a.pai, a.mae, a.ANOCONCLUSAO, a.CPFALUNO, a.dataINGRESSO,"
+		sql = sql & " 	ufRG.sigla, a.RESPONSAVEL, CONVERT(VARCHAR,A.IDENTIDADE) + '-' + RTRIM(CONVERT(VARCHAR,IdentidadeOrgao)) + '/' + ufRG.sigla AS IDENTIDADE, ec.Desc_EstadoCivil as ESTADOCIVIL , a.LOGRADOURO, a.NUMERO_ENDERECO, a.COMP_ENDERECO, a.BAIRROALUNO, isnull(sit.Cod_SituacaoAluno,1) as Cod_SituacaoAluno, isnull(sit.Desc_SituacaoAluno,'ATIVO') as SITUACAOALUNO"	'Guapó: sem controle de situação no ano = ATIVO
 		sql = sql & " 	from sca_aluno a"
 		sql = sql & " 	left join scf_uf uf on uf.codigo = a.ufnascimento"
 		sql = sql & " 	left join scf_uf ufR on ufr.codigo = a.ufresidencia"
 		sql = sql & " 	left join scf_uf ufRG on ufRG.codigo = a.IdentidadeUF "
-		sql = sql & " 	left join sca_situacaoaluno sa on sa.Cod_SituacaoAluno = a.Cod_SituacaoAluno "
 		sql = sql & " 	left join sca_estadocivil ec on ec.Cod_EstadoCivil = a.Cod_EstadoCivil"
+		'--------------------------------------------------------
+		'-- Recupera apenas a última situação do aluno
+		'--------------------------------------------------------
+		sql = sql & " OUTER APPLY"
+		sql = sql & " ("
+		sql = sql & " 	SELECT TOP 1"
+		sql = sql & " 		SS.Cod_SituacaoAluno, SS.Desc_SituacaoAluno"
+		sql = sql & " 	FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
+		sql = sql & " 	INNER JOIN SCA_SITUACAOALUNO SS"
+		sql = sql & " 		ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
+		sql = sql & " 	WHERE CS.COD_EMPRESA = " & session("codEmpresa")
+		sql = sql & " 		AND CS.COD_ALUNO   = A.codigo"
+		sql = sql & " 		AND CS.ANO_LETIVO  = " & strAnoLetivo
+		sql = sql & " 	ORDER BY CS.CODIGO DESC"
+		sql = sql & " ) SIT"
+		
 		sql = sql & " where a.codigo in (" & vetCodAluno(r) & ")"
 		rs.open sql, cnn
 		if rs.eof = false then
 			intCodSCAAluno		= Trim(rs("codigo"))
+			intCodSituacaoAtualAluno	= Trim(rs("Cod_SituacaoAluno"))
+			strDescSituacaoAtualAluno	= Trim(rs("SITUACAOALUNO"))
 			
 			strEndereco 			= ucase(Trim(rs("LOGRADOURO")))
 			IF isnull(rs("LOGRADOURO")) then
@@ -185,13 +202,21 @@ Server.ScriptTimeout = 1200
 			sql = sql & " c.habilitacao, c.reconhecimento, ISNULL(c.autorizacao,'XXXXXXXXXXXXXXX')AS autorizacao, c.dataReconhecimento, c.DataAutorizacao, c.CH_Exigida "
 			sql = sql & " from sca_aluno a"
 			sql = sql & " left join scf_uf uf on uf.codigo = a.ufnascimento"
-			sql = sql & " left join SCA_TURMA t ON t.cod_turma = (SELECT TOP 1 COD_TURMA FROM SCA_ALUNO_TURMA WHERE COD_ALUNO = a.CODIGO AND t.AnoLetivo = " & strAnoLetivo & " AND t.cod_empresa = " & codEmpresa & " and SCA_ALUNO_TURMA.Semestre in (" & intSemestre & ") ORDER BY CODIGO DESC) "
+			'Turma do aluno NO ANO LETIVO do documento (antes a subconsulta não filtrava o ano e, depois da
+			'renovação, a declaração de 2026 saía com a turma de 2027)
+			sql = sql & " left join SCA_TURMA t ON t.cod_turma = (SELECT TOP 1 AT.COD_TURMA FROM SCA_ALUNO_TURMA AT INNER JOIN SCA_TURMA TT ON TT.Cod_Turma = AT.COD_TURMA"
+			sql = sql & " 	WHERE AT.COD_ALUNO = a.CODIGO AND TT.AnoLetivo = " & strAnoLetivo & " AND AT.cod_empresa = " & codEmpresa & " and AT.Semestre in (" & intSemestre & ") ORDER BY AT.CODIGO DESC) "
 			sql = sql & " left join sca_turno tur on tur.Cod_turno = t.Cod_turno"
 			sql = sql & " left join sca_GradeCurricular g on g.Cod_GradeCurricular = t.Cod_GradeCurricular"
 			sql = sql & " left join sca_periodo p on p.Cod_periodo = g.Cod_periodo"
 			sql = sql & " left join sca_curso c on c.cod_curso = p.cod_curso"
 			sql = sql & " where t.anoLetivo = " & strAnoLetivo
 			sql = sql & " and a.codigo = " & intCodSCAAluno
+			
+	'if ucase(session("usuarioWeb")) = "ROBERTO" then
+	'	response.write sql 
+	'end if			
+			
 			rsaux.open sql, cnn
 			if rsaux.eof = false then
 				intCodTurma			= ucase(Trim(rsaux("cod_turma")))
@@ -220,7 +245,9 @@ Server.ScriptTimeout = 1200
 				sql = sql & " c.habilitacao, c.reconhecimento, ISNULL(c.autorizacao,'XXXXXXXXXXXXXXX')AS autorizacao, c.dataReconhecimento, c.DataAutorizacao, c.CH_Exigida "
 				sql = sql & " from sca_aluno a"
 				sql = sql & " left join scf_uf uf on uf.codigo = a.ufnascimento"
-				sql = sql & " left join SCA_TURMA t ON t.cod_turma = (SELECT TOP 1 COD_TURMA FROM SCA_ALUNO_TURMA WHERE COD_ALUNO = a.CODIGO AND cod_empresa = " & codEmpresa & " ORDER BY CODIGO DESC) "
+				'sem turma no ano/semestre: última turma do aluno na unidade ATÉ o ano letivo do documento (nunca de ano posterior)
+				sql = sql & " left join SCA_TURMA t ON t.cod_turma = (SELECT TOP 1 AT.COD_TURMA FROM SCA_ALUNO_TURMA AT INNER JOIN SCA_TURMA TT ON TT.Cod_Turma = AT.COD_TURMA"
+				sql = sql & " 	WHERE AT.COD_ALUNO = a.CODIGO AND AT.cod_empresa = " & codEmpresa & " AND TT.AnoLetivo <= " & strAnoLetivo & " ORDER BY TT.AnoLetivo DESC, AT.CODIGO DESC) "
 				sql = sql & " left join sca_turno tur on  tur.Cod_turno = t.Cod_turno"
 				sql = sql & " left join sca_GradeCurricular g on  g.Cod_GradeCurricular = t.Cod_GradeCurricular"
 				sql = sql & " left join sca_periodo p on  p.Cod_periodo = g.Cod_periodo"
@@ -266,14 +293,16 @@ Server.ScriptTimeout = 1200
 		if TRIM(strDataReconhecimento)="" then strDataReconhecimento = "XX/XX/XXXX"
 		
 		strTodosOsCampos = ""
-		sql = "SELECT codigo, titulo, documento, campos, posicaoFinanceira, situacaoAluno"
-		sql = sql & " FROM SCA_DOCUMENTO"
-		SQL = SQL & " WHERE codigo = " & intCodModeloDocumento
-		sql = sql & " Order by titulo"
+		sql = "SELECT d.codigo, d.titulo, d.documento, d.campos, d.posicaoFinanceira, d.situacaoAluno, s.Desc_SituacaoAluno"
+		sql = sql & " FROM SCA_DOCUMENTO d"
+		sql = sql & " left join SCA_SITUACAOALUNO s on s.Cod_SituacaoAluno = d.situacaoAluno"
+		SQL = SQL & " WHERE d.codigo = " & intCodModeloDocumento
+		sql = sql & " Order by d.titulo"
 		RS.OPEN SQL, CNN
 		IF RS.EOF = FALSE THEN
 			strChecarPosicaoFinanceira = trim(rs("posicaoFinanceira"))
 			strSituacaoAluno = trim(rs("situacaoAluno"))
+			strDescSituacaoAluno = trim(rs("Desc_SituacaoAluno"))
 			strTodosOsCampos = trim(rs("campos"))
 	
 			strTituloRelatorio = trim(rs("titulo"))
@@ -340,6 +369,19 @@ Server.ScriptTimeout = 1200
 		END IF
 		rs.close
 		
+		'valida situação do aluno
+		if strSituacaoAluno<>"" then
+			if trim(strSituacaoAluno) <> trim(intCodSituacaoAtualAluno) then
+			%>
+				<script>
+					alert("Atenção: O aluno selecionado está com a situção <%=strDescSituacaoAtualAluno%> e para gerar esse documento ele deve estar com a situção <%=strDescSituacaoAluno%>. Na funcionalidade Controle de situação do aluno individual você deverá alterar a situação do aluno!");
+					window.history.back();
+				</script>
+			<%
+			response.end
+			end if
+		end if
+		
 		'percentual frequencia
 		
 		strPercentualFrequencia = "XX"
@@ -352,7 +394,9 @@ Server.ScriptTimeout = 1200
 			'intCodPeriodo
 			'intCodCurso
 			mostraTabelaChFaltas = "N"
+			
 			%>
+			
 			<!--#include file="includes/inc_resultado_ch_frequencia_faltas.asp"-->	
 			<%
 			strPercentualFrequencia = perc_frequencia
