@@ -38,8 +38,25 @@ Contato: sergio@rssolucoesweb.com.br
 		descricao_pagina = "Gerencie toda vida acadêmica do aluno."
 		mensagem_alerta_pagina = ""
 		Session("MatriculaInformatizada")=""
-		'strPerfil =  validaPermissao(session("usuarioweb"), "SCA")
-		'response.write strPerfil
+		
+		'**************************************
+		'verifica perfil para mostrar alerta
+		'**************************************
+		'PERFIL COORDENADORES - 17
+		'PERFIL ADMINISTRADOR - 2
+		'PERFIL SECREATARIO GERAL - 15	
+		'PERFIL COORDENADORES (TURNO) - 79
+		strTemAcessoAlerta = "N"
+		strCodPefilAcesso = "17,79,2,15"	'Guapó: 79 = COORDENADORES (TURNO); não tem o 38
+		SQL = "SELECT ACES_PERF_CODG"
+		SQL = SQL & " FROM SEG_ACESSOS_USUARIO"
+		SQL = SQL & " WHERE ACES_USUA_CODG = '" & session("usuarioWeb") & "'"
+		SQL = SQL & " AND ACES_PERF_CODG in (" & strCodPefilAcesso & ")"
+		rs.open sql, cnn
+		if not rs.EOF then	
+			strTemAcessoAlerta = "S"
+		end if
+		rs.close
 		
 		%>
         <!-- INICIO pagina -->
@@ -51,11 +68,19 @@ Contato: sergio@rssolucoesweb.com.br
                 <div class="page-content-wrapper">
 				
 					<!--#include file=inc_cabecalho.asp-->
-					
                     <!-- INICIO conteudo -->
+					<%
+					if strTemAcessoAlerta = "S" then
+					%>
+					<!--#include file=academico_cad_ajax.asp-->
+					<%
+					else
+					%>
 					<!--#include file=academico_cad.asp-->
+					<%
+					end if
+					%>
 					<!-- FIM conteudo -->
-					
 					<!--#include file=inc_rodape.asp-->
 					
 					<!--#include file=inc_modal_atalho.asp-->
