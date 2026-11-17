@@ -30,7 +30,6 @@ Server.ScriptTimeout = 1200
 <%
 	dim intPagina
 	dim strInfoTurma
-
 	strAnoLetivo 			= request.form("txtAnoLetivo")
 	intSemestre 			= Trim(Request.Form("cmbSemestre"))
 	strTipo	 				= Trim(Request.Form("cmbTipo"))
@@ -42,8 +41,7 @@ Server.ScriptTimeout = 1200
 	intCodTurma 			= Trim(Request.Form("cmbTurma"))
 	intCodTurno		 		= Trim(Request.Form("cmbTurno"))
 	strSituacaoDisciplina   = Trim(Request.Form("cmbSituacaoDisciplina"))
-
-
+	
 	sql="select frequencia_minima_percentual, media_aprovacao, num_disciplina_prog_parcial  from SCA_CRITERIO_AVALIACAO"
 	sql=sql & " where	cod_curso	= "&intCodCurso
 	sql=sql & " and ano_letivo = " & strAnoLetivo
@@ -71,22 +69,22 @@ Server.ScriptTimeout = 1200
 	end if 
 	
 	if strBimestre<>"" then
-		strTituloRelatorio  	= "ATA DE RESULTADO FINAIS - " & strBimestre & msgTitulo
+		strTituloRelatorio  	= "MAPA DE NOTAS - " & strBimestre & msgTitulo
 	else
 		strTituloRelatorio  	= "ATA DE RESULTADO FINAIS " & msgTitulo
 	end if
-
+	
 	sub mostraCabecalho(cod_grade)
 	%>
 	<!--#include file="includes/inc_cabecalhoRelatorio.asp"-->
 	<br>
-
+<% if strBimestre="" then%>
     <table width="100%" border="0" cellspacing="0" cellpadding="0" class="tabela">
         <tr>
           <td colspan="7" align="left" class="celula"><div align="center"><br>AOS <%=day(date)%> DIAS DO MÊS DE <%=UCASE(monthname(month(date)))%> DE<%=year(date)%>, TERMINOU-SE O PROCESSO DE APURAÇÃO DAS NOTAS FINAIS DOS ALUNOS RELACIONADOS ABAIXO:</div><br></td>
        </tr>
     </table>
-
+<% end if%>
 	<table width="100%" border="0" cellspacing="0" cellpadding="0" class="tabela">
 
         <% 
@@ -94,7 +92,9 @@ Server.ScriptTimeout = 1200
 		sql = sql & " FROM SCA_GRADECURRICULARDISCIPLINA GCD "
 		sql = sql & " INNER JOIN SCA_DISCIPLINA D ON GCD.Cod_Disciplina = D.COD_Disciplina "
 		SQL = SQL & " WHERE GCD.COD_GRADECURRICULAR = " & cod_grade
+		'Guapó: sem filtro documento_oficial (campo não usado em Guapó)
 		sql = sql & " Order by D.Cod_Disciplina "
+		'response.write sql
 		rsAux1.open sql, cnn, 3, 3
 		if not rsAux1.eof then
 			vetAux1 = rsAux1.getRows
@@ -140,6 +140,7 @@ Server.ScriptTimeout = 1200
                    <%
                 next	
 				if strBimestre="" then
+				
                 %>
                 <!--td width="4%" align="center" class="celula"><strong>FALTAS</strong></td-->
                 <td width="4%" align="center" class="celula"><strong>RESULTADO</strong></td>
@@ -159,9 +160,9 @@ Server.ScriptTimeout = 1200
 	IntOrd = 1
 
 	sql = sqlAlunoTurma(intCodTurma, "")
-	IF ucase(SESSION("USUARIOWEB")) = "SERGIO" THEN
-		'response.write sql
-	END IF
+	'IF ucase(SESSION("USUARIOWEB")) = "SERGIO" THEN
+	'	response.write sql
+	'END IF
 	rs.open sql, cnn
 	if not rs.eof then 
 		'
@@ -172,6 +173,7 @@ Server.ScriptTimeout = 1200
 		sql = sql & " FROM SCA_GRADECURRICULARDISCIPLINA GCD "
 		sql = sql & " INNER JOIN SCA_DISCIPLINA D ON GCD.Cod_Disciplina = D.COD_Disciplina "
 		SQL = SQL & " WHERE GCD.COD_GRADECURRICULAR = " & TRIM(rs("Cod_GradeCurricular"))
+		'Guapó: sem filtro documento_oficial (campo não usado em Guapó)
 		sql = sql & " Order by D.Cod_Disciplina "
 
 		rsAux1.open sql, cnn, 3, 3
@@ -223,6 +225,7 @@ Server.ScriptTimeout = 1200
 				sql = sql & " INNER JOIN SCA_DISCIPLINA D ON D.Cod_Disciplina = hd.COD_Disciplina "
 				sql = sql & " where h.cod_aluno = " & TRIM(rs("CODIGO"))
 				sql = sql & " and h.ano_letivo=" & strAnoLetivo
+				'Guapó: sem filtro documento_oficial (campo não usado em Guapó)
 				sql = sql & " Order by D.DESC_Disciplina "
 			else
 				sql = " SELECT "
@@ -242,11 +245,11 @@ Server.ScriptTimeout = 1200
 				'sql = sql & " 			and ano_letivo = " & strAnoLetivo
 				'sql = sql & " 			) AS FALTAS, "
 				sql = sql & " 			NF.Cod_Disciplina, D.DESC_Disciplina, NF.Situacao, ("
-				sql = sql & " select sum(d.Ch_Anual) "
+				sql = sql & " select sum(d.Ch_Anual) "	'Guapó: soma a CH da disciplina
 				sql = sql & " from SCA_GRADECURRICULARDISCIPLINA d"
 				sql = sql & " inner join SCA_GRADECURRICULAR g on g.Cod_GradeCurricular = d.Cod_GradeCurricular"
 				sql = sql & " inner join SCA_ALUNO_DISCIPLINA ad on ad.COD_GRADECURRICULARDISCIPLINA = d.COD_GRADECURRICULARDISCIPLINA "
-				sql = sql & " where ad.cod_aluno =  " & TRIM(rs("CODIGO"))
+				sql = sql & " where ad.cod_empresa = " & session("CodEmpresa") & " and ad.cod_aluno =  " & TRIM(rs("CODIGO"))
 				sql = sql & " and d.cod_disciplina = NF.Cod_Disciplina" 
 				sql = sql & " ) as Ch_Anual  "  
 				
@@ -255,13 +258,16 @@ Server.ScriptTimeout = 1200
 				sql = sql & " WHERE NF.COD_ALUNO = " & TRIM(rs("CODIGO"))
 				sql = sql & " AND NF.ANO_LETIVO = " & strAnoLetivo
 				sql = sql & " AND NF.SEMESTRE = " & intSemestre
-				
+				'Guapó: sem filtro documento_oficial (campo não usado em Guapó)
 				sql = sql & " Order by D.Cod_Disciplina "
 			end if
 			'if TRIM(rs("CODIGO")) = "267" then
 			'response.write sql & "<hr>"
 			'end if
-			
+			'IF ucase(SESSION("USUARIOWEB")) = "SERGIO" THEN
+			'	response.write sql & "<hr>"
+			'END IF
+	
 			rsAux1.open sql, cnn, 3, 3
 			
 			if not rsAux1.eof then
@@ -517,35 +523,42 @@ Server.ScriptTimeout = 1200
 				mostraCabecalho cod_grade
 			end if
 		wend
+		
 		%>
         <table width="100%" border="0" cellspacing="0" cellpadding="0" class="tabela">
-             <tr>
+             <% if strBimestre="" then%>
+			 <tr>
               <td height="44" colspan="9" align="left" class="celula"><div align="center"></div>
                   <div align="center"><strong>E, PARA CONSTAR, EU <%=session("NomeSecretariaEmpresaWeb")%>, SECRETÁRIO(A), LAVREI A PRESENTE ATA QUE VAI ASSINADA POR MIM E
 PELO(A) GESTOR(A) DESTA INSTITUIÇÃO DE ENSINO.
                 </div></td>
             </tr>
+			<% end if%>
+			<% if strBimestre="" then percentualColuna = 33 else percentualColuna = 50 %>
            <tr>
-              <td height="44" colspan="7" align="left" class="celula"><div align="center">
+              <td height="44" colspan="7" align="left" class="celula" width="<%=percentualColuna%>%">
+			  <div align="center">
                 <p>&nbsp;</p>
                 <p>&nbsp;</p>
                 <p>____________________________________________<BR>
                 <%=session("NomeSecretariaEmpresaWeb")%><BR>
                 SECRET&Aacute;RIO(A)</p>
               </div></td>
-              <td width="35%" align="left" class="celula"><div align="center">
+              <td width="<%=percentualColuna%>%" align="left" class="celula"><div align="center">
                 <p>&nbsp;</p>
                 <p>&nbsp;</p>
                 <p>____________________________________________<BR>
                 <%=session("NomeDiretorEmpresaWeb")%><BR>
                 DIRETOR(A)</p>
               </div></td>
-              <td width="35%" align="left" class="celula"><div align="center">
+			  <% if strBimestre="" then%>
+              <td width="<%=percentualColuna%>%" align="left" class="celula"><div align="center">
                 <p>&nbsp;</p>
                 <p>&nbsp;</p>
                 <p>____________________________________________<BR>
                 INSPE&Ccedil;&Atilde;O ESCOLAR</p>
               </div></td>
+			  <%end if%>
             </tr>
             <tr>
               <td height="44" colspan="9" align="left" class="celula"><div align="center"></div>
@@ -554,6 +567,7 @@ PELO(A) GESTOR(A) DESTA INSTITUIÇÃO DE ENSINO.
             </tr>
         </table>
         <%
+		
 	else
 	    mostraCabecalho 0
 		%>
