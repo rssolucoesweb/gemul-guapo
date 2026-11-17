@@ -27,8 +27,25 @@ Contato: sergio@rssolucoesweb.com.br
 		<!--#include file=inc_ico.asp-->
 		<!--#include file="../includes/inc_formatadata.asp"-->
 		<!--#include file="includes/inc_aguarde.asp"-->
-		<!--include file=includes/inc_videoTutorial.asp-->
+		<!--#include file=includes/inc_videoTutorial.asp-->
 		
+
+        <style>
+          /* A tabela conserva a largura do nome e rola horizontalmente em telas menores. */
+          .avaliacao-tabela-scroll { overflow-x: auto; width: 100%; }
+          .avaliacao-tabela { width: 100%; min-width: 1200px; table-layout: fixed; }
+          .avaliacao-tabela th, .avaliacao-tabela td { vertical-align: middle; }
+          .avaliacao-tabela .col-ordem { width: 65px; }
+          .avaliacao-tabela .col-matricula { width: 110px; }
+          .avaliacao-tabela .col-nome { width: 300px; min-width: 300px; overflow-wrap: normal; word-break: normal; }
+          .avaliacao-tabela .col-manual { width: 112px; text-align: center; }
+          .avaliacao-tabela .col-nota { width: 125px; text-align: center; }
+          .avaliacao-tabela .col-foto { width: 70px; text-align: center; }
+          .avaliacao-tabela td.col-nome { line-height: 1.5; }
+          /* Centraliza o indicador de aguarde em relação à janela, sem depender do menu. */
+          #aguarde { position: fixed !important; top: 50% !important; left: 50% !important;
+                     transform: translate(-50%, -50%) !important; z-index: 10050 !important; }
+        </style>
     </head>
 	<!-- class para trocar o menu para top ou lateral  <body class="mod-bg-1 "> -->
 	<body class="nav-function-top header-function-fixed" style="">
@@ -191,6 +208,65 @@ Contato: sergio@rssolucoesweb.com.br
 				);
 			}
 			
+
+            // Alterna o modo manual apenas para o aluno selecionado.
+            function alternarNotaParcialManual(linha, marcado) {
+                var campos = document.querySelectorAll('[data-nota-linha="' + linha + '"]');
+                for (var i=0; i<campos.length; i++) {
+                    var campo=campos[i];
+                    var parcial=campo.getAttribute('data-nota-parcial')==='S';
+                    if (parcial) {
+                        campo.readOnly=!marcado;
+                        if (!marcado) campo.value='';
+                    } else {
+                        if (marcado) campo.value='';
+                        campo.readOnly=marcado || campo.getAttribute('data-original-readonly')==='1';
+                    }
+                }
+            }
+            function validarParciaisManuais() {
+                var checks=document.querySelectorAll('input[name^="chkParcialManual_"]:checked');
+                for(var i=0;i<checks.length;i++) {
+                    var linha=checks[i].name.split('_').pop();
+                    var campo=document.querySelector('[data-nota-linha="'+linha+'"][data-nota-parcial="S"]');
+                    if(!campo || !/^\d+(?:[,.]\d{1,2})?$/.test(campo.value.trim()) || Number(campo.value.replace(',','.'))>10) {
+                        alert('Informe uma Nota Parcial válida de 0 a 10 para o aluno da linha '+linha+'.');
+                        if(campo) campo.focus();
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            async function atualizarNotasTransferencia(codAluno, botao) {
+                if (!confirm('Deseja aproveitar as notas da escola de origem para este aluno?')) return false;
+                botao.disabled = true;
+                var textoAnterior = botao.textContent;
+                botao.textContent = 'Atualizando...';
+                try {
+                    var dados = new URLSearchParams();
+                    dados.append('codAluno', String(codAluno));
+                    dados.append('anoLetivo', String(document.querySelector('[name="txtAnoLetivo"]').value));
+                    var resposta = await fetch('sca_avaliacao_atualizar_transferencia.asp', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+                        body: dados.toString(),
+                        credentials: 'same-origin'
+                    });
+                    var resultado = (await resposta.text()).trim();
+                    if (!resposta.ok || resultado !== 'OK') throw new Error(resultado || 'Falha na atualização.');
+                    alert('Notas atualizadas com sucesso.');
+                    var frm = document.getElementById('frm');
+                    frm.action = 'sca_avaliacao.asp';
+                    frm.submit(); // mantém os filtros selecionados
+                } catch (erro) {
+                    alert('Não foi possível atualizar as notas: ' + erro.message);
+                    botao.disabled = false;
+                    botao.textContent = textoAnterior;
+                }
+                return false;
+            }
+
 			function cadastrarNotas(){
 			
 				var frm = document.getElementById("frm");
@@ -209,6 +285,7 @@ Contato: sergio@rssolucoesweb.com.br
 					return false;
 				}
 				
+				if (!validarParciaisManuais()) return false;
 				document.getElementById("btnIncluir").disabled = true;
 				
 				frm.action = "sca_avaliacao_cod.asp";
@@ -234,6 +311,7 @@ Contato: sergio@rssolucoesweb.com.br
 					return false;
 				}
 
+				if (!validarParciaisManuais()) return false;
 				document.getElementById("btnAlterar").disabled = true;
 
 				frm.action = "sca_avaliacao_cod.asp?media=S";

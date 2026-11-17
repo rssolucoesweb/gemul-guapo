@@ -7,6 +7,7 @@
 	strAcessoPerfil = ""
 	'VERIFICA SE O USUARIO TEM ACESSO AO PERFIL DE PROFESSOR
 	strTemAcessoFuncionalidade = "N"
+	if trim(strCodPefilAcesso)="" then strCodPefilAcesso = "81,11,17,79,2,15"	'Guapó: 79 = COORDENADORES (TURNO)
 	SQL = "SELECT ACES_PERF_CODG"
 	SQL = SQL & " FROM SEG_ACESSOS_USUARIO"
 	SQL = SQL & " WHERE ACES_USUA_CODG = '" & session("usuarioWeb") & "'"
@@ -16,8 +17,15 @@
 	if not rs.EOF then	
 		strTemAcessoFuncionalidade = "S"
 		while not rs.eof 
-			if trim(rs("ACES_PERF_CODG")) = "17" OR trim(rs("ACES_PERF_CODG")) = "2" OR trim(rs("ACES_PERF_CODG")) = "15" then
+			if trim(rs("ACES_PERF_CODG")) = "81" OR trim(rs("ACES_PERF_CODG")) = "17" OR trim(rs("ACES_PERF_CODG")) = "79" OR trim(rs("ACES_PERF_CODG")) = "2" OR trim(rs("ACES_PERF_CODG")) = "15" then
 				strAcessoPerfil = "COORDENADOR"
+				strAcessoPerfilTurmas = "Coordenador"
+				strTipoAcessoCadastroNotas = "ADM"
+			elseif trim(rs("ACES_PERF_CODG")) = "11" then
+				strAcessoPerfil = "PROFESSOR"
+				strAcessoPerfilTurmas = "Professor"
+				strTipoAcessoCadastroNotas = "PROF"
+				strExecutarSubmitDisciplinaDoProfessor = "S"
 			end if
 			rs.movenext
 		wend
@@ -39,7 +47,7 @@
 	'verifica acesso professor ou coordenador
 	
 	'response.write "<br>strAcessoPerfil: " & strAcessoPerfil
-	'response.write "<br>intCodProfessor: " & session("intCodProfessor")
+	'response.write "<hr>intCodProfessor: " & session("intCodProfessor")
 	'response.write "<br>Seg_CodCategoria: " & session("Seg_CodCategoria")
 	'response.write "<br>CodColaboradorContrato: " & session("CodColaboradorContrato")
 	
@@ -117,6 +125,24 @@
 				rs.close
 			end if
 		end if
+	end if
+	
+	if strAcessoPerfil="PROFESSOR" and intCodProfessor="" and trim(session("intCodProfessor")) = "" then
+		sql = "select c.codigo "
+		sql = sql & " from SRH_COLABORADOR c"
+		sql = sql & " inner join SRH_FUNCAOCOLABORADOR f on f.Cod_Funcao = c.codFuncao"
+		sql = sql & " where c.codigo_SEG_USUARIOS_SISTEMA = '" & trim(session("usuarioWeb")) & "'"
+		sql = sql & " and (c.CodCategoria = 1 or c.CodCategoria = 8)"'professor  
+		sql = sql & " and c.Situacao = 'A'" 'Ativo
+		sql = sql & " and f.Desc_Funcao like 'PROFESSOR%'"
+		rs.open sql, cnn
+		if rs.EOF = false then	
+			intCodProfessor 	      	= rs("codigo")
+			strAcessoPerfil = "PROFESSOR"
+		end if
+		rs.close
+	else
+		if trim(session("intCodProfessor"))<>"" then intCodProfessor = trim(session("intCodProfessor"))
 	end if
 	'response.write "<br>intCodProfessor: " & intCodProfessor
 	'response.write "<br>strAcessoPerfil: " & strAcessoPerfil

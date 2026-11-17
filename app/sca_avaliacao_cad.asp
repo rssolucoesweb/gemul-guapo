@@ -128,8 +128,6 @@
 		rs.close
 		
 		
-		
-		
 		'cria registro de notas para a turma caso não exista
 	
 		sql=" INSERT INTO SCA_NOTAS_PLANILHA ("
@@ -166,6 +164,91 @@
 	strSemestre = intSemestre
 	
 	if intCodCurso<>"" then
+
+		intAnoAnterior = clng(strAnoLetivo) - 1
+		' Busca critérios do ano anterior
+		sql = " INSERT INTO SCA_CRITERIO_AVALIACAO ("
+		sql = sql & " ano_letivo"
+		sql = sql & " ,cod_curso"
+		sql = sql & " ,cod_tipo_calculo"
+		sql = sql & " ,media_aprovacao"
+		sql = sql & " ,media_aprovacao_final"
+		sql = sql & " ,qtd_aula"
+		sql = sql & " ,frequencia_minima_percentual"
+		sql = sql & " ,num_disciplina_recuperacao"
+		sql = sql & " ,num_disciplina_prog_parcial"
+		sql = sql & " ,tipoFormulaFinal"
+		sql = sql & " ,condicaoEF_notaInicial"
+		sql = sql & " ,condicaoEF_notaFinal"
+		sql = sql & " )"
+
+		sql = sql & " SELECT"
+		sql = sql & " " & strAnoLetivo & " AS ano_letivo"
+		sql = sql & " ,A.cod_curso"
+		sql = sql & " ,A.cod_tipo_calculo"
+		sql = sql & " ,A.media_aprovacao"
+		sql = sql & " ,A.media_aprovacao_final"
+		sql = sql & " ,A.qtd_aula"
+		sql = sql & " ,A.frequencia_minima_percentual"
+		sql = sql & " ,A.num_disciplina_recuperacao"
+		sql = sql & " ,A.num_disciplina_prog_parcial"
+		sql = sql & " ,A.tipoFormulaFinal"
+		sql = sql & " ,A.condicaoEF_notaInicial"
+		sql = sql & " ,A.condicaoEF_notaFinal"
+		sql = sql & " FROM SCA_CRITERIO_AVALIACAO A"
+		sql = sql & " WHERE A.ano_letivo = " & intAnoAnterior
+		sql = sql & " AND NOT EXISTS ("
+		sql = sql & "     SELECT 1"
+		sql = sql & "     FROM SCA_CRITERIO_AVALIACAO B"
+		sql = sql & "     WHERE B.ano_letivo = " & strAnoLetivo
+		sql = sql & "       AND B.cod_curso = A.cod_curso"
+		sql = sql & " )"
+
+		cnn.Execute sql
+
+		' Busca cálculos do ano anterior para os critérios do ano atual que estão sem cálculo
+		sql = " INSERT INTO SCA_CALCULO_AVALIACAO ("
+		sql = sql & " cod_criterio_avaliacao"
+		sql = sql & " ,descricao"
+		sql = sql & " ,sigla"
+		sql = sql & " ,cod_calculo"
+		sql = sql & " ,cod_tipo_lancamento"
+		sql = sql & " ,posicao"
+		sql = sql & " ,formula"
+		sql = sql & " ,digitar"
+		sql = sql & " ,usuario_incl"
+		sql = sql & " ,data_hora_incl"
+		sql = sql & " )"
+		sql = sql & " SELECT"
+		sql = sql & " N.codigo AS cod_criterio_avaliacao"
+		sql = sql & " ,C.descricao"
+		sql = sql & " ,C.sigla"
+		sql = sql & " ,C.cod_calculo"
+		sql = sql & " ,C.cod_tipo_lancamento"
+		sql = sql & " ,C.posicao"
+		sql = sql & " ,C.formula"
+		sql = sql & " ,C.digitar"
+		sql = sql & " ,'" & replace(session("usuarioWeb"), "'", "''") & "'"
+		sql = sql & " ,GETDATE()"
+		sql = sql & " FROM SCA_CRITERIO_AVALIACAO N"
+		sql = sql & " INNER JOIN SCA_CRITERIO_AVALIACAO A"
+		sql = sql & "     ON A.cod_curso = N.cod_curso"
+		sql = sql & "    AND A.ano_letivo = " & intAnoAnterior
+		sql = sql & "    AND A.codigo = (SELECT MAX(X.codigo) FROM SCA_CRITERIO_AVALIACAO X"
+		sql = sql & "                    WHERE X.ano_letivo = " & intAnoAnterior & " AND X.cod_curso = N.cod_curso)"
+		sql = sql & " INNER JOIN SCA_CALCULO_AVALIACAO C"
+		sql = sql & "     ON C.cod_criterio_avaliacao = A.codigo"
+		sql = sql & " WHERE N.ano_letivo = " & clng(strAnoLetivo)
+		sql = sql & " AND NOT EXISTS ("
+		sql = sql & "     SELECT 1"
+		sql = sql & "     FROM SCA_CALCULO_AVALIACAO B"
+		sql = sql & "     WHERE B.cod_criterio_avaliacao = N.codigo"
+		sql = sql & " )"
+		sql = sql & " ORDER BY N.codigo, C.posicao"
+
+		cnn.Execute sql
+
+
 		'carrega campos
 		sql="select ca.codigo, c.posicao, c.descricao, c.formula, c.digitar, c.codigo as cod_calculo, c.cod_tipo_lancamento as tipo, tc.DESCRICAO AS TIPO_CALCULO, ca.* "
 		sql=sql & " from SCA_CRITERIO_AVALIACAO ca"
@@ -209,6 +292,24 @@
 		'sql=sql & " AND digitar='S'"
 		sql=sql & " order by posicao"
 
+		'Posicao de destino do bimestre na tabela SCA_NOTAS_FALTAS.
+		'Esta posicao NAO e a mesma da Nota Parcial em SCA_NOTAS_PLANILHA.
+		intPosicaoMediaFaltas = 0
+		sqlPosicao = "SELECT POSICAO FROM SCA_CALCULO WHERE CODIGO=" & CLng(intCodCalculo)
+		rsAux.open sqlPosicao, cnn
+		if not rsAux.eof then
+			if not isNull(rsAux("POSICAO")) then
+				if isNumeric(rsAux("POSICAO")) then intPosicaoMediaFaltas = CLng(rsAux("POSICAO"))
+			end if
+		end if
+		rsAux.close
+		if intPosicaoMediaFaltas < 1 or intPosicaoMediaFaltas > 30 then
+			Response.Write "Posicao do bimestre invalida em SCA_CALCULO."
+			Response.End
+		end if
+
+		'Identifica a coluna da Nota Parcial na configuracao vigente.
+		intIndiceNotaParcial = -1
 		vetCampo = null
 		rs.open sql, cnn
 		if not rs.eof then
@@ -223,6 +324,9 @@
 			<%
 			response.end
 		end if
+		for idxParcial = 0 to ubound(vetCampo,2)
+			if CStr(vetCampo(4,idxParcial)) = "9" then intIndiceNotaParcial = idxParcial
+		next
 		rs.close
 	end if
 	
@@ -246,12 +350,12 @@
 					<%=descricao_pagina%>
 				</small>
 				
-				<!--div align="right">
+				<div align="right">
 					<ul class="list-table m-0">
 						<li class="pl-3"><a href="#" onclick="abreVideo('tutorial/SCA/sca_avaliacao.mp4')" class="text-secondary fw-700"><font color="blue">Tutorial</font></a></li>
 						<li class="pl-1 fs-xl"><a href="#" onclick="abreVideo('tutorial/SCA/sca_avaliacao.mp4')" class="text-secondary"><font color="blue"><i class="fal fa-question-circle" aria-hidden="true"></i></font></a></li>
 					</ul>
-				</div-->					
+				</div>					
 				
 			</h1>
 		</div>
@@ -327,7 +431,7 @@
 							<br>
 							<div class="frame-wrap">
 								<button onClick="return cadastrarNotas()" id="btnIncluir" type="button" class="btn btn-outline-success">Salvar Notas</button>
-								<button onClick="return enviarMedia()" id="btnAlterar" type="button" class="btn btn-outline-info">Enviar Média</button>
+								<button onClick="return enviarMedia()" id="btnAlterar" type="button" class="btn btn-outline-info">Salvar Notas e Enviar Média</button>
 								<button onClick="window.location='sca_avaliacao.asp'"  type="button" class="btn btn-outline-warning">Limpar tela</button>
 							</div>
 						</div>
@@ -358,21 +462,22 @@
 					<div class="panel-container show">
 						<div class="panel-content">		
 							
-							<div class="table-responsive-lg">
-								<table class="table table-bordered table-hover m-0">
+							<div class="table-responsive-lg avaliacao-tabela-scroll">
+								<table class="table table-bordered table-hover m-0 avaliacao-tabela">
 									<thead class="thead-themed">
 									  <tr>
-										<th width="30px"><strong>Ordem</strong></th>
-										<th width="80px"><strong>Matr&iacute;cula</strong></th>
-										<th><strong>Nome</strong></th>
+										<th class="col-ordem"><strong>Ordem</strong></th>
+										<th class="col-matricula"><strong>Matr&iacute;cula</strong></th>
+										<th class="col-nome"><strong>Nome</strong></th>
+										<th class="col-manual" align="center"><strong>NOTA PARCIAL MANUAL</strong></th>
 										<%
 											for i=0 to ubound(vetCampo,2)
 											%>
-												<th align="center" width="13%"><strong><%=ucase(vetCampo(1,i))%></strong></th>
+												<th class="col-nota" align="center"><strong><%=ucase(vetCampo(1,i))%></strong></th>
 											<%
 											next
 											%>
-										<th align="center" width="80px"><strong>FOTO</strong></th>
+										<th class="col-foto" align="center"><strong>FOTO</strong></th>
 										
 									  </tr>
 									</thead>
@@ -382,111 +487,123 @@
 										Cont=0
 										buscaHistorico = "N" 
 									   
-									    sql = " SET NOCOUNT ON IF OBJECT_ID('tempdb..#SCA_ALU_TURMA') IS NOT NULL DROP TABLE #SCA_ALU_TURMA"
-										sql = sql & " Select max(codigo) as codigo_SCA_ALUNO_TURMA, ANO_LETIVO, COD_ALUNO, COD_EMPRESA"
-										sql = sql & " into #SCA_ALU_TURMA"
-										sql = sql & " from SCA_ALUNO_TURMA"
-										sql = sql & " where COD_EMPRESA = " & Session("CodEmpresa") 
-										sql = sql & " and COD_TURMA = " & intCodTurma
-										sql = sql & " and ANO_LETIVO = " & strAnoLetivo
-										sql = sql & " and SEMESTRE = " & intCodSemestre
-										sql = sql & " group by ANO_LETIVO, COD_ALUNO, COD_EMPRESA"
-										sql = sql & " IF OBJECT_ID('tempdb..#SCA_ALUNO_TURMA') IS NOT NULL DROP TABLE #SCA_ALUNO_TURMA"
-										sql = sql & " Select at.CODIGO, at.COD_EMPRESA, at.COD_ALUNO, at.COD_TURMA, at.SEQUENCIA, at.ANO_LETIVO, at.SEMESTRE, at.SITUACAO, at.DATA_SITUACAO"
-										sql = sql & " into #SCA_ALUNO_TURMA"
-										sql = sql & " from SCA_ALUNO_TURMA at "
-										sql = sql & " inner join #SCA_ALU_TURMA aa on aa.codigo_SCA_ALUNO_TURMA = at.codigo "
+									    sql = "SET NOCOUNT ON "
+
+										sql = sql & ";WITH ALUNO_TURMA AS ("
+										sql = sql & "    SELECT "
+										sql = sql & "        AT.CODIGO,"
+										sql = sql & "        AT.COD_EMPRESA,"
+										sql = sql & "        AT.COD_ALUNO,"
+										sql = sql & "        AT.COD_TURMA,"
+										sql = sql & "        AT.SEQUENCIA,"
+										sql = sql & "        AT.ANO_LETIVO,"
+										sql = sql & "        AT.SEMESTRE,"
+										sql = sql & "        AT.SITUACAO,"
+										sql = sql & "        AT.DATA_SITUACAO,"
+										sql = sql & "        ROW_NUMBER() OVER ("
+										sql = sql & "            PARTITION BY AT.ANO_LETIVO, AT.COD_ALUNO, AT.COD_EMPRESA"
+										sql = sql & "            ORDER BY AT.CODIGO DESC"
+										sql = sql & "        ) AS RN"
+										sql = sql & "    FROM SCA_ALUNO_TURMA AT"
+										sql = sql & "    WHERE AT.COD_EMPRESA = " & Session("CodEmpresa")
+										sql = sql & "      AND AT.COD_TURMA = " & intCodTurma
+										sql = sql & "      AND AT.ANO_LETIVO = " & strAnoLetivo
+										sql = sql & "      AND AT.SEMESTRE = " & intCodSemestre
+										sql = sql & ")"
+
 										sql = sql & " SELECT DISTINCT"
-										sql = sql & " 	A.CODIGO AS COD_ALUNO,"
-										sql = sql & " 	A.DATANASCIMENTO,"
-										sql = sql & " 	A.MATRICULA,"
-										sql = sql & " 	A.NOMEALUNO,"
-										sql = sql & " 	AT.COD_TURMA,"
-										sql = sql & " 	GC.Cod_Periodo,"
-										sql = sql & " 	T.NomeTurma,"
-										sql = sql & " 	T.TURMAALUNO,"
-										sql = sql & " 	ISNULL("
-										sql = sql & " 		("
-										sql = sql & " 			SELECT TOP 1 SS.Desc_SituacaoAluno"
-										sql = sql & " 			FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
-										sql = sql & " 			INNER JOIN SCA_SITUACAOALUNO SS "
-										sql = sql & " 				ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
-										sql = sql & " 			WHERE CS.COD_EMPRESA = AT.COD_EMPRESA"
-										sql = sql & " 			  AND CS.COD_ALUNO   = AT.COD_ALUNO"
-										sql = sql & " 			  AND CS.ANO_LETIVO  = AT.ANO_LETIVO"
-										sql = sql & " 			ORDER BY CS.CODIGO DESC"
-										sql = sql & " 		),"
-										sql = sql & " 		'ATIVO'"
-										sql = sql & " 	) AS Desc_SituacaoAluno,"
-										sql = sql & " 	ISNULL("
-										sql = sql & " 		("
-										sql = sql & " 			SELECT TOP 1 SS.Cod_SituacaoAluno"
-										sql = sql & " 			FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
-										sql = sql & " 			INNER JOIN SCA_SITUACAOALUNO SS "
-										sql = sql & " 				ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
-										sql = sql & " 			WHERE CS.COD_EMPRESA = AT.COD_EMPRESA"
-										sql = sql & " 			  AND CS.COD_ALUNO   = AT.COD_ALUNO"
-										sql = sql & " 			  AND CS.ANO_LETIVO  = AT.ANO_LETIVO"
-										sql = sql & " 			ORDER BY CS.CODIGO DESC"
-										sql = sql & " 		),"
-										sql = sql & " 		1"
-										sql = sql & " 	) AS COD_SITUACAOALUNOATUAL,"
-										sql = sql & " 	TC.DESCRICAO AS TIPO_CRITERIO,"
-										sql = sql & " 	P.Cod_Curso,"
-										sql = sql & " 	T.Cod_GradeCurricular,"
-										sql = sql & " 	T.DesvincularCriterioAvaliacao,"
-										for n=1 to 30
-											strComplemento = "0"	
-											if cInt(n)>9 then strComplemento = ""
-											sql = sql & " NF.nota" & strComplemento & n & ", "
-										next
-										sql = sql & " NF.CODIGO, AD.CODIGO AS COD_ALUNO_DISCIPLINA," 										
-										sql = sql & " 	C.DESCRICAO  AS CURSO"
+										sql = sql & "     A.CODIGO AS COD_ALUNO,"
+										sql = sql & "     A.DATANASCIMENTO,"
+										sql = sql & "     A.MATRICULA,"
+										sql = sql & "     A.NOMEALUNO,"
+										sql = sql & "     AT.COD_TURMA,"
+										sql = sql & "     GC.Cod_Periodo,"
+										sql = sql & "     T.NomeTurma,"
+										sql = sql & "     T.TURMAALUNO,"
+
+										' Situação atual do aluno NA EMPRESA
+										sql = sql & "     ISNULL(ST.Desc_SituacaoAluno, 'ATIVO') AS Desc_SituacaoAluno,"
+										sql = sql & "     ISNULL(ST.Cod_SituacaoAluno, 1) AS COD_SITUACAOALUNOATUAL,"
+										sql = sql & "     ST.DATA_SITUACAO AS DATA_SITUACAOALUNO,"
+
+										sql = sql & "     TC.DESCRICAO AS TIPO_CRITERIO,"
+										sql = sql & "     P.Cod_Curso,"
+										sql = sql & "     T.Cod_GradeCurricular,"
+										sql = sql & "     T.DesvincularCriterioAvaliacao,"
+
+										' Notas
+										For n = 1 To 30
+											strComplemento = "0"
+											If CInt(n) > 9 Then strComplemento = ""
+											sql = sql & " NF.nota" & strComplemento & n & ","
+										Next
+
+										sql = sql & " NF.CODIGO,"
+										sql = sql & " AD.CODIGO AS COD_ALUNO_DISCIPLINA,"
+										sql = sql & " C.DESCRICAO AS CURSO"
+
 										sql = sql & " FROM SCA_ALUNO A"
-										sql = sql & " INNER JOIN #SCA_ALUNO_TURMA AT"
-										sql = sql & " 	ON AT.COD_ALUNO = A.CODIGO"
+
+										sql = sql & " INNER JOIN ALUNO_TURMA AT"
+										sql = sql & "     ON AT.COD_ALUNO = A.CODIGO"
+										sql = sql & "    AND AT.RN = 1"
+
 										sql = sql & " LEFT JOIN SCA_TURMA T"
-										sql = sql & " 	ON AT.COD_TURMA  = T.Cod_Turma"
+										sql = sql & "     ON AT.COD_TURMA = T.Cod_Turma"
 										sql = sql & "    AND AT.ANO_LETIVO = T.AnoLetivo"
-										sql = sql & "    AND AT.SEMESTRE  = T.Cod_Semestre"
+										sql = sql & "    AND AT.SEMESTRE = T.Cod_Semestre"
 										sql = sql & "    AND AT.COD_EMPRESA = T.COD_EMPRESA"
-									    sql = sql & " INNER JOIN SCA_ALUNO_DISCIPLINA AD ON A.CODIGO = AD.COD_ALUNO and ad.cod_turma  = AT.cod_turma  "
-									    sql = sql & " LEFT JOIN SCA_NOTAS_PLANILHA NF ON NF.cod_aluno_disciplina = AD.CODIGO "
+
+										sql = sql & " INNER JOIN SCA_ALUNO_DISCIPLINA AD"
+										sql = sql & "     ON A.CODIGO = AD.COD_ALUNO"
+										sql = sql & "    AND AD.COD_TURMA = AT.COD_TURMA"
+
+										sql = sql & " LEFT JOIN SCA_NOTAS_PLANILHA NF"
+										sql = sql & "     ON NF.COD_ALUNO_DISCIPLINA = AD.CODIGO"
+
 										sql = sql & " INNER JOIN SCA_GRADECURRICULAR GC"
-										sql = sql & " 	ON T.Cod_GradeCurricular = GC.Cod_GradeCurricular"
-										sql = sql & " LEFT JOIN SCA_GRADECURRICULAR G"
-										sql = sql & " 	ON T.Cod_GradeCurricular = G.Cod_GradeCurricular"
+										sql = sql & "     ON T.Cod_GradeCurricular = GC.Cod_GradeCurricular"
+
 										sql = sql & " LEFT JOIN SCA_PERIODO P"
-										sql = sql & " 	ON P.Cod_Periodo = G.Cod_Periodo"
+										sql = sql & "     ON P.Cod_Periodo = GC.Cod_Periodo"
+
 										sql = sql & " LEFT JOIN SCA_CURSO C"
-										sql = sql & " 	ON C.Cod_Curso = P.Cod_Curso"
+										sql = sql & "     ON C.Cod_Curso = P.Cod_Curso"
+
 										sql = sql & " LEFT JOIN SCA_TIPO_AVALIACAO_INDIVIDUAL_ALUNO TAI"
-										sql = sql & " 	ON TAI.COD_ALUNO  = AT.COD_ALUNO"
-										sql = sql & "    AND TAI.ANO_LETIVO = T.ANOLETIVO"
+										sql = sql & "     ON TAI.COD_ALUNO = AT.COD_ALUNO"
+										sql = sql & "    AND TAI.ANO_LETIVO = AT.ANO_LETIVO"
+
 										sql = sql & " LEFT JOIN SCA_TIPO_CALCULO TC"
-										sql = sql & " 	ON TC.CODIGO = TAI.COD_TIPO_CALCULO"
-										sql = sql & " WHERE AT.COD_EMPRESA = " & Session("CodEmpresa") 
-										sql = sql & "   AND AT.COD_TURMA   = " & intCodTurma
-										sql = sql & "   AND AT.ANO_LETIVO  = " & strAnoLetivo
+										sql = sql & "     ON TC.CODIGO = TAI.COD_TIPO_CALCULO"
+
+										' Busca a última situação do aluno na EMPRESA DA TURMA
+										sql = sql & " OUTER APPLY ("
+										sql = sql & "     SELECT TOP 1"
+										sql = sql & "         SS.Cod_SituacaoAluno,"
+										sql = sql & "         SS.Desc_SituacaoAluno,"
+										sql = sql & "         CS.DATA_SITUACAO"
+										sql = sql & "     FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
+										sql = sql & "     INNER JOIN SCA_SITUACAOALUNO SS"
+										sql = sql & "         ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
+										sql = sql & "     WHERE CS.COD_EMPRESA = AT.COD_EMPRESA"
+										sql = sql & "       AND CS.COD_ALUNO = AT.COD_ALUNO"
+										sql = sql & "       AND CS.ANO_LETIVO = AT.ANO_LETIVO"
+										sql = sql & "     ORDER BY CS.CODIGO DESC"
+										sql = sql & " ) ST"
+
+										sql = sql & " WHERE AT.COD_EMPRESA = " & Session("CodEmpresa")
+										sql = sql & "   AND AT.COD_TURMA = " & intCodTurma
+										sql = sql & "   AND AT.ANO_LETIVO = " & strAnoLetivo
 										sql = sql & "   AND AT.SITUACAO IN ('A','T','D','C')"
 										sql = sql & "   AND T.SITUACAO = 'A'"
-										sql = sql & " AND AD.COD_DISCIPLINA= " & intCodDisciplinaTurma
-										if strAtivos = "A" then	
-											sql = sql & " AND	ISNULL("
-											sql = sql & " 		("
-											sql = sql & " 			SELECT TOP 1 SS.Desc_SituacaoAluno"
-											sql = sql & " 			FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
-											sql = sql & " 			INNER JOIN SCA_SITUACAOALUNO SS "
-											sql = sql & " 				ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
-											sql = sql & " 			WHERE CS.COD_EMPRESA = AT.COD_EMPRESA"
-											sql = sql & " 			  AND CS.COD_ALUNO   = AT.COD_ALUNO"
-											sql = sql & " 			  AND CS.ANO_LETIVO  = AT.ANO_LETIVO"
-											sql = sql & " 			ORDER BY CS.CODIGO DESC"
-											sql = sql & " 		),"
-											sql = sql & " 		'ATIVO'"
-											sql = sql & " 	) = 'ATIVO'"
-											
-									    end if	
+										sql = sql & "   AND AD.COD_DISCIPLINA = " & intCodDisciplinaTurma
+
+										' Somente alunos ATIVOS
+										If strAtivos = "A" Then
+											sql = sql & "   AND ISNULL(ST.Cod_SituacaoAluno, 1) = 1"
+										End If
+
 										sql = sql & " ORDER BY A.NOMEALUNO"
 										'if session("usuarioWeb")="SERGIO" then
 										'		response.write sql
@@ -499,43 +616,6 @@
 											intCodEmp               = Session("CodEmpresa") 
 											strDesabilitaAluno 	  	= ""
 											strCriaNotas 			= "N"
-											
-											'ATUALIZA GRADE DO ALUNO
-											SQL = " INSERT INTO SCA_ALUNO_DISCIPLINA"
-											SQL = SQL & " ("
-											SQL = SQL & " 	COD_EMPRESA,"
-											SQL = SQL & " 	COD_ALUNO,"
-											SQL = SQL & " 	COD_TURMA,"
-											SQL = SQL & " 	COD_TURMA_REMANEJAMENTO,"
-											SQL = SQL & " 	COD_GRADECURRICULARDISCIPLINA_REMANEJAMENTO,"
-											SQL = SQL & " 	COD_GRADECURRICULARDISCIPLINA,"
-											SQL = SQL & " 	COD_DISCIPLINA,"
-											SQL = SQL & " 	SITUACAO,"
-											SQL = SQL & " 	COD_SITUACAO_ACADEMICA"
-											SQL = SQL & " )"
-											SQL = SQL & " SELECT"
-											SQL = SQL & " 	T.COD_EMPRESA,"
-											SQL = SQL & " 	" & strCodAluno & ","
-											SQL = SQL & " 	T.COD_TURMA,"
-											SQL = SQL & " 	T.COD_TURMA,"
-											SQL = SQL & " 	GD.COD_GRADECURRICULARDISCIPLINA,"
-											SQL = SQL & " 	GD.COD_GRADECURRICULARDISCIPLINA,"
-											SQL = SQL & " 	GD.COD_DISCIPLINA,"
-											SQL = SQL & " 	'CR',"
-											SQL = SQL & " 	NULL"
-											SQL = SQL & " FROM SCA_TURMA T"
-											SQL = SQL & " INNER JOIN SCA_GRADECURRICULARDISCIPLINA GD"
-											SQL = SQL & " 	ON GD.COD_GRADECURRICULAR = T.COD_GRADECURRICULAR"
-											SQL = SQL & " WHERE T.COD_TURMA = " & intCodTurma
-											SQL = SQL & " AND NOT EXISTS ("
-											SQL = SQL & " 	SELECT 1"
-											SQL = SQL & " 	FROM SCA_ALUNO_DISCIPLINA AD"
-											SQL = SQL & " 	WHERE AD.COD_ALUNO = " & strCodAluno
-											SQL = SQL & " 	  AND AD.COD_DISCIPLINA = GD.COD_DISCIPLINA"
-											SQL = SQL & " 	  AND AD.COD_TURMA = T.COD_TURMA"
-											SQL = SQL & " );"
-											'RESPONSE.WRITE SQL
-											cnn.execute sql	
 											
 											if isnull(rs("CODIGO")) or trim(rs("CODIGO"))="" then
 												strCriaNotas = "S"
@@ -582,8 +662,29 @@
 											strCodAluno 			= RS("COD_ALUNO")
 											strCodAlunoZeros 		= ZeroLeft(RS("COD_ALUNO"),10)  
 											intCodEmp             = Session("CodEmpresa") 
-											strSituacaoAluno 		= ""
+											strSituacaoAluno 	= rs("DESC_SITUACAOALUNO")
+											if rs("DESC_SITUACAOALUNO")="ATIVO" then
+												strSituacaoAluno 	= ""
+											else
+												strSituacaoAluno 	= "<br><font color=red>" & rs("DESC_SITUACAOALUNO") & "</font>"
+											end if
+											' Disponibilidade de aproveitamento de notas por transferencia.
+											' Verificar disponibilidade de atualização de notas
+											bolAtualizarNotasTransferencia = False
 
+											If IsNumeric(strCodAluno) And IsNumeric(strAnoLetivo) And IsNumeric(Session("CodEmpresa")) and strCodAluno=25686 Then
+
+												sqlVerificaTransf = "EXEC dbo.SP_SCA_Verificar_Notas_Transferencia " & strCodAluno & "," & strAnoLetivo & "," & Session("CodEmpresa")
+												Set rsVerificaTransf = cnn.Execute(sqlVerificaTransf)
+
+												If Not rsVerificaTransf.EOF Then
+													bolAtualizarNotasTransferencia = rsVerificaTransf("LiberarAtualizacao")
+												End If
+
+												rsVerificaTransf.Close
+												Set rsVerificaTransf = Nothing
+
+											End If
 											strCodAlunoDisciplina  	= rs("COD_ALUNO_DISCIPLINA")
 											'if strCodAlunoDisciplina <> "0" then
 											'	'VERIFICA SE EXISTE REGISTRO DE NOTAS PARA O ALUNO 
@@ -607,8 +708,54 @@
 												msnRegistroNaoCriado = "<br>Registro de notas criado."
 											 end if
 											 
-											 %>
-											 <tr style="cursor: pointer">
+											'Valor identificado em SCA_NOTAS_FALTAS (somente leitura).
+										bolParcialInferida = false
+										valorParcialInferida = Null
+										 bolParcialManual = false
+										 if intIndiceNotaParcial >= 0 and isNumeric(strCodAlunoDisciplina) then
+											 sqlManual = "SELECT CODIGO FROM SCA_NOTA_PARCIAL_MANUAL WHERE COD_ALUNO_DISCIPLINA=" & CLng(strCodAlunoDisciplina) & " AND COD_CALCULO=" & CLng(intCodCalculo) & " AND COD_CRITERIO_AVALIACAO=" & CLng(intCodCriterioAvaliacao)
+											 rsAux.open sqlManual, cnn
+											 bolParcialManual = not rsAux.eof
+											 rsAux.close
+										 end if
+
+										 'So identifica automaticamente se nao existe controle manual.
+										 if not bolParcialManual and intIndiceNotaParcial >= 0 and isNumeric(strCodAlunoDisciplina) then
+											bolAvaliacoesVazias = true
+											for idxVerifica = 0 to ubound(vetCampo,2)
+												'Ignora apenas a propria Nota Parcial (tipo 9).
+												'Os demais campos do calculo (avaliacoes e recuperacao) devem estar vazios.
+												if idxVerifica <> intIndiceNotaParcial then
+													posAvaliacao = Right("0" & CStr(vetCampo(0,idxVerifica)), 2)
+													valorAvaliacao = rs("NOTA" & posAvaliacao)
+													if not isNull(valorAvaliacao) then
+														if Trim(CStr(valorAvaliacao)) <> "" then bolAvaliacoesVazias = false
+													end if
+												end if
+											next
+
+											if bolAvaliacoesVazias then
+												posMediaFaltas = Right("0" & CStr(intPosicaoMediaFaltas), 2)
+												sqlManual = "SELECT TOP 1 nota" & posMediaFaltas & " AS NOTA_BIMESTRE FROM SCA_NOTAS_FALTAS"
+												sqlManual = sqlManual & " WHERE COD_ALUNO_DISCIPLINA=" & CLng(strCodAlunoDisciplina)
+												sqlManual = sqlManual & " AND COD_EMPRESA=" & CLng(Session("CodEmpresa"))
+												sqlManual = sqlManual & " AND ANO_LETIVO=" & CLng(strAnoLetivo)
+												sqlManual = sqlManual & " AND SEMESTRE=" & CLng(intSemestre)
+												sqlManual = sqlManual & " AND COD_PERIODO=" & CLng(intCodPeriodo)
+												sqlManual = sqlManual & " AND COD_DISCIPLINA=" & CLng(intCodDisciplinaTurma)
+												rsAux.open sqlManual, cnn
+											if not rsAux.eof then
+												if not isNull(rsAux("NOTA_BIMESTRE")) then
+													valorParcialInferida = rsAux("NOTA_BIMESTRE")
+													bolParcialInferida = true
+													bolParcialManual = true
+											end if
+											end if
+											rsAux.close
+											end if
+										 end if
+										 %>
+										 <tr style="cursor: pointer">
 												 <td><%=zeroleft(cont,2)%></td>
 												 <td><%=strMatricula%>
 													<%
@@ -624,12 +771,25 @@
 													 <input type="hidden" name="txtCodAlunoNota_<%=contLanc%>" value="<%=rs("CODIGO")%>">
 													 <input type="hidden" name="txtCodAluno_<%=contLanc%>" value="<%=strCodAluno%>">
 												 </td>
-												<td><%=rs("NOMEALUNO") & " " & strSituacaoAluno%><%=strSituacaoNotas%><%=msnRegistroNaoCriado%></td>
+												<td class="col-nome"><%=rs("NOMEALUNO") & " " & strSituacaoAluno%><%=strSituacaoNotas%><%=msnRegistroNaoCriado%>
+                                                 <% If bolAtualizarNotasTransferencia Then %>
+                                                 <div style="margin-top:5px;">
+                                                     <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        onclick="return atualizarNotasTransferencia(<%=CLng(strCodAluno)%>, this);">
+                                                        Atualizar Notas
+                                                     </button>
+                                                 </div>
+                                                 <% End If %>
+                                             </td>
+											 <td align="center"><%if intIndiceNotaParcial >= 0 then%><input type="checkbox" name="chkParcialManual_<%=contLanc%>" id="chkParcialManual_<%=contLanc%>" value="S" <%if bolParcialManual then response.write "checked" end if%> onchange="alternarNotaParcialManual(<%=contLanc%>, this.checked)" <%if isnull(rs("CODIGO")) then response.write "disabled" end if%>><%end if%></td>
 											 <%
 											 for i=0 to ubound(vetCampo,2)
 												strComplementoNota = "0"	
 												if cInt(vetCampo(0,i))>9 then strComplementoNota = ""
 												strNota = RS("NOTA" &strComplementoNota& vetCampo(0,i))
+												if bolParcialInferida and i = intIndiceNotaParcial then
+													strNota = valorParcialInferida
+												end if
 												strCampoEdicao = ""
 												strStyleCampo = "form-control"
 												strStyleFundoCelulaTabela = "" 
@@ -672,13 +832,13 @@
 												%>
 												<td align="center">
 													<%
-													if vetCampo(3,i) = "N" then 
+													if vetCampo(3,i) = "N" and i <> intIndiceNotaParcial then 
 														%>
 														<%=strNota%>&nbsp;
 														<%
 													else
 														%>
-														<input <%=strPodeFazerAlteracao%> <%=strCampoEdicao%>  onBlur="return validaNota(this.value,'<%=strComplemento%><%=i%>','<%=contLanc%>')" type="text" class="<%=strStyleCampo%>" name="txtNota_<%=contLanc%>_<%=strComplemento%><%=i%>" id="txtNota_<%=contLanc%>_<%=strComplemento%><%=i%>" value="<%=strNota%>" size="4" maxlength="4" onKeyUp="maskIt(this,event,'###,#',true)"  <%if vetCampo(4,i)="8" then response.Write strStyle%>>
+														<input data-original-readonly="<%if strPodeFazerAlteracao="readonly" or (strCampoEdicao="readonly" and i<>intIndiceNotaParcial) then response.write "1" end if%>" data-nota-linha="<%=contLanc%>" data-nota-indice="<%=i%>" data-nota-parcial="<%if i=intIndiceNotaParcial then response.write "S" else response.write "N" end if%>" <%if bolParcialManual and i<>intIndiceNotaParcial then response.write "readonly" end if%> <%if i=intIndiceNotaParcial then%><%if not bolParcialManual then response.write "readonly" end if%><%else%><%=strPodeFazerAlteracao%> <%=strCampoEdicao%><%end if%> onBlur="return validaNota(this.value,'<%=strComplemento%><%=i%>','<%=contLanc%>')" type="text" class="<%=strStyleCampo%>" style="width:65px;min-width:65px;max-width:65px;text-align:center;padding-left:4px;padding-right:4px;box-sizing:border-box;display:inline-block;" name="txtNota_<%=contLanc%>_<%=strComplemento%><%=i%>" id="txtNota_<%=contLanc%>_<%=strComplemento%><%=i%>" value="<%=strNota%>" size="4" maxlength="4" onKeyUp="maskIt(this,event,'###,#',true)"  <%if vetCampo(4,i)="8" then response.Write strStyle%>>
 														<%
 													end if
 													%>
@@ -687,6 +847,8 @@
 												   
 											 next	
 											 %>
+											 
+											 
 											 <td align="center" onClick="AlunoFoto('<%=strCodAluno%>')"><a href="#"><img src="../images/logo_camera.gif" width="22" height="22"></a></td>
 											 </tr>
 											 <%
@@ -717,7 +879,7 @@
 										<div class="col-sm-12">
 											<div class="frame-wrap">
 												<button  onClick="return cadastrarNotas()" id="btnIncluir" type="button" class="btn btn-outline-success">Salvar Notas</button>
-												<button  onClick="return enviarMedia()" id="btnAlterar" type="button" class="btn btn-outline-info">Enviar Média</button>
+												<button onClick="return enviarMedia()" id="btnAlterar" type="button" class="btn btn-outline-info">Salvar Notas e Enviar Média</button>
 												<button onClick="window.location='sca_avaliacao.asp'"  type="button" class="btn btn-outline-warning">Limpar tela</button>
 											</div>
 										</div>

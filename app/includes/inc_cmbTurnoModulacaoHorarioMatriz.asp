@@ -13,17 +13,13 @@ else
 	end if
 
 
-		SQL = " select DISTINCT tu.Cod_Turno, tu.Desc_Turno as turno"
-		SQL = SQL & " from [dbo].[SRH_DIRETRIZES] d"
-		SQL = SQL & " inner join SCA_TURMA t on t.Cod_Turno = d.Cod_turno_turma and t.AnoLetivo = d.Ano_Letivo and t.Cod_periodo = d.Cod_Periodo and t.Cod_Empresa = d.Cod_Empresa"
-		SQL = SQL & " inner join SCA_TURNO tu on tu.Cod_Turno = d.Cod_turno"
-		SQL = SQL & " where t.cod_turma=" & intCodTurma
-		SQL = SQL & " order by turno"
-
-if UCASE(session("usuarioWeb")) = "SERGIO" then
-'response.Write(sql)
-end if
-	
+	SQL = " select distinct tu.Cod_Turno, tu.Desc_Turno as turno"
+	SQL = SQL & " from [dbo].[SRH_DIRETRIZES] d"
+	SQL = SQL & " inner join SCA_TURMA t on t.Cod_Turno = d.Cod_turno_turma and t.AnoLetivo = d.Ano_Letivo and t.Cod_periodo = d.Cod_Periodo and t.Cod_Empresa = d.Cod_Empresa"
+	SQL = SQL & " inner join SCA_TURNO tu on tu.Cod_Turno = d.Cod_turno"
+	SQL = SQL & " where t.cod_turma=" & intCodTurma
+	SQL = SQL & " and d.ano_letivo = " & strAnoLetivo
+	SQL = SQL & " order by turno"
 	RS.OPEN SQL, CNN
 	%>
 	<select name="cmbTurnoHorario" id="cmbTurnoHorario" class="form-control" <%=strFuncao%>>

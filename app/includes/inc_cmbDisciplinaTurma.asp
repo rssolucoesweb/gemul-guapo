@@ -17,12 +17,15 @@ if strReloadDisciplinaQuadro = "N" then 'Verifica se é para dar o reload na pági
 	else
 		strOnChangeDisciplinaQuadro="onChange='ConsultaDisciplina(this.value)'"
 	end if
+	
 else
 	strOnChangeDisciplinaQuadro = "onChange='return reload()'"
 end if
+
 if submitDisciplinaTurma = "S" then
 	strOnChangeDisciplinaQuadro = "onChange='submit()'"
 end if
+
 if intCodTurma = "" then intCodTurma = "0"
 
 	SQL = "SELECT     SCA_DISCIPLINA.Cod_Disciplina, SCA_DISCIPLINA.Desc_Disciplina, SCA_GRADECURRICULARDISCIPLINA.Cod_GradeCurricularDisciplina"
@@ -31,7 +34,7 @@ if intCodTurma = "" then intCodTurma = "0"
 	SQL = SQL & "                       SCA_GRADECURRICULARDISCIPLINA ON "
 	SQL = SQL & "                       SCA_GRADECURRICULAR.Cod_GradeCurricular = SCA_GRADECURRICULARDISCIPLINA.Cod_GradeCurricular INNER JOIN"
 	SQL = SQL & "                       SCA_DISCIPLINA ON SCA_GRADECURRICULARDISCIPLINA.Cod_Disciplina = SCA_DISCIPLINA.Cod_Disciplina"
-	SQL = SQL & " WHERE 1=1"
+	SQL = SQL & " WHERE SCA_GRADECURRICULARDISCIPLINA.Omitir_Documentacao='N'"
 	SQL = SQL & " AND (SCA_TURMA.Cod_Turma = " & intCodTurma & ") order by SCA_DISCIPLINA.DESC_Disciplina"
 	
 	RS.OPEN SQL, CNN

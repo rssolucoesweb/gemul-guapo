@@ -24,32 +24,16 @@
 	if intSemestre = "" then intSemestre = "0"
 	if intCodTurno = "" then intCodTurno = "0"
 	
-	if Session("Seg_CodColaborador")="" then
-		' Consulta a Categoria	
-		sql = "select codigo "
-		sql = sql & " from SRH_COLABORADOR"
-		sql = sql & " where codigo_SEG_USUARIOS_SISTEMA = '" & trim(session("usuarioWeb")) & "'"
-		sql = sql & " AND (CodCategoria = 1 or CodCategoria = 8)"'professor  
-		sql = sql & " and Situacao = 'A'" 'Ativo
-		rs.open sql, cnn
-		if rs.EOF = false then	
-			strVerificaTurmaProfessor	= "Professor"
-		else
-			strVerificaTurmaProfessor = ""
-		end if
-		rs.close
+	'esse campo strAcessoPerfil vem da include D:\sistemas\gemul\anapolis\app\includes\inc_VerificaAcessoPerfilAdmProfessor.asp
+	'nela e verificado o perfil se é de uma coordenador para que seja lierada todas as turmas
+	if strAcessoPerfil = "COORDENADOR" then
+		strVerificaTurmaProfessor = ""
 	else
-		' Consulta a Categoria
-		if Session("Seg_CodCategoria")	<>"" then
-			if Session("Seg_CodCategoria")="1" or Session("Seg_CodCategoria")="8" then	
-				strVerificaTurmaProfessor	= "Professor"
-			else
-				strVerificaTurmaProfessor = ""
-			end if
-		else
+		if Session("Seg_CodColaborador")="" then
+			' Consulta a Categoria	
 			sql = "select codigo "
 			sql = sql & " from SRH_COLABORADOR"
-			sql = sql & " where codigo = " & Session("Seg_CodColaborador")
+			sql = sql & " where codigo_SEG_USUARIOS_SISTEMA = '" & trim(session("usuarioWeb")) & "'"
 			sql = sql & " AND (CodCategoria = 1 or CodCategoria = 8)"'professor  
 			sql = sql & " and Situacao = 'A'" 'Ativo
 			rs.open sql, cnn
@@ -59,6 +43,28 @@
 				strVerificaTurmaProfessor = ""
 			end if
 			rs.close
+		else
+			' Consulta a Categoria
+			if Session("Seg_CodCategoria")	<>"" then
+				if Session("Seg_CodCategoria")="1" or Session("Seg_CodCategoria")="8" then	
+					strVerificaTurmaProfessor	= "Professor"
+				else
+					strVerificaTurmaProfessor = ""
+				end if
+			else
+				sql = "select codigo "
+				sql = sql & " from SRH_COLABORADOR"
+				sql = sql & " where codigo = " & Session("Seg_CodColaborador")
+				sql = sql & " AND (CodCategoria = 1 or CodCategoria = 8)"'professor  
+				sql = sql & " and Situacao = 'A'" 'Ativo
+				rs.open sql, cnn
+				if rs.EOF = false then	
+					strVerificaTurmaProfessor	= "Professor"
+				else
+					strVerificaTurmaProfessor = ""
+				end if
+				rs.close
+			end if
 		end if
 	end if
 	if intCodTurnoFicha="" then intCodTurnoFicha="0"
@@ -73,8 +79,10 @@
 		strCpfTurmaProfessor = TRIM(rs1("CPF"))
 	end if
 	rs1.close
+	
+	
 	intCodColaboradorProfessor = intCodAnterior
-	sql = "SELECT distinct SCA_TURMA.cod_turma, SCA_TURMA.cod_Semestre , SCA_PERIODO.Cod_Curso, SCA_PERIODO.Cod_Periodo, SCA_curso.descricao as curso, SCA_PERIODO.descricao as periodo, SCA_TURMA.cod_turno, SCA_TURMA.Sala, SCA_TURMA.NomeTurma , SCA_TURMA.Cod_empresa, SCA_PERIODO.tipo, SCA_TURMA.TurmaAluno, SCA_CURSO.sigla "
+	sql = "SELECT distinct SCA_TURMA.cod_turma, SCA_TURMA.cod_empresa_extensao, SCA_TURMA.cod_Semestre , SCA_PERIODO.Cod_Curso, SCA_PERIODO.descricao as periodo, SCA_PERIODO.Cod_Periodo, SCA_curso.descricao as curso, SCA_TURMA.cod_turno, SCA_TURMA.Sala, SCA_TURMA.NomeTurma , SCA_TURMA.Cod_empresa, SCA_PERIODO.tipo, SCA_TURMA.TurmaAluno, SCA_CURSO.sigla "
 	sql = sql & " FROM SCA_TURMA "
 	sql = sql & " INNER JOIN SCA_GRADECURRICULAR ON SCA_TURMA.Cod_GradeCurricular = SCA_GRADECURRICULAR.Cod_GradeCurricular "
 	sql = sql & " INNER JOIN SCA_PERIODO ON SCA_GRADECURRICULAR.Cod_Periodo = SCA_PERIODO.Cod_Periodo "
@@ -84,10 +92,17 @@
 		sql = sql & " and SCA_HORARIO_AULA.semestre = SCA_TURMA.cod_Semestre and SCA_HORARIO_AULA.anoLetivo = SCA_TURMA.AnoLetivo"
 		sql = sql & " inner JOIN SRH_COLABORADOR on SRH_COLABORADOR.codigo = SCA_HORARIO_AULA.cod_colaborador"
 	end if	
+	if strAcessoPerfil = "COORDENADOR" and intCodColaboradorProfessor<>"0" and intCodColaboradorProfessor<>"" then
+		sql = sql & " left JOIN SCA_HORARIO_AULA ON SCA_HORARIO_AULA.cod_turma = SCA_TURMA.cod_turma "
+		sql = sql & " and SCA_HORARIO_AULA.semestre = SCA_TURMA.cod_Semestre and SCA_HORARIO_AULA.anoLetivo = SCA_TURMA.AnoLetivo"
+	end if
 	sql = sql & " where 1=1 "
     if 	strVerificaTurmaProfessor = "Professor" then
 		sql = sql & " and SCA_HORARIO_AULA.cod_colaborador in (select codigo From SRH_COLABORADOR WHERE cpf = '" & strCpfTurmaProfessor &"')" 
 	end if	
+	if strAcessoPerfil = "COORDENADOR" and intCodColaboradorProfessor<>"0" and intCodColaboradorProfessor<>"" then
+		sql = sql & " and SCA_HORARIO_AULA.cod_colaborador in (select codigo From SRH_COLABORADOR WHERE cpf = '" & strCpfTurmaProfessor &"')" 
+	end if
 	sql = sql & " AND SCA_TURMA.Situacao = 'A' " 
 	sql = sql & " and SCA_TURMA.cod_empresa = " & Session("CodEmpresa")
 	sql = sql & " and SCA_TURMA.anoletivo = " & strAnoLetivo
@@ -99,7 +114,7 @@
 	if strDataHorarioAulaExtra <> "" then
 		sql = sql & " UNION "
 		'
-		sql = sql & " SELECT distinct SCA_TURMA.cod_turma, SCA_TURMA.cod_Semestre , SCA_PERIODO.Cod_Curso, SCA_PERIODO.Cod_Periodo, SCA_curso.descricao as curso, SCA_PERIODO.descricao as periodo, SCA_TURMA.cod_turno, SCA_TURMA.Sala, SCA_TURMA.NomeTurma , SCA_TURMA.Cod_empresa, SCA_PERIODO.tipo, SCA_TURMA.TurmaAluno, SCA_CURSO.sigla "
+		sql = sql & " SELECT distinct SCA_TURMA.cod_turma, SCA_TURMA.cod_empresa_extensao,  SCA_TURMA.cod_Semestre , SCA_PERIODO.Cod_Curso, SCA_PERIODO.descricao as periodo, SCA_PERIODO.Cod_Periodo, SCA_curso.descricao as curso, SCA_TURMA.cod_turno, SCA_TURMA.Sala, SCA_TURMA.NomeTurma , SCA_TURMA.Cod_empresa, SCA_PERIODO.tipo, SCA_TURMA.TurmaAluno, SCA_CURSO.sigla "
 		sql = sql & " FROM SCA_TURMA "
 		sql = sql & " INNER JOIN SCA_GRADECURRICULAR ON SCA_TURMA.Cod_GradeCurricular = SCA_GRADECURRICULAR.Cod_GradeCurricular "
 		sql = sql & " INNER JOIN SCA_PERIODO ON SCA_GRADECURRICULAR.Cod_Periodo = SCA_PERIODO.Cod_Periodo "
@@ -123,15 +138,17 @@
 		if intCodTurnoFicha<>"0" then
 			sql = sql & " and SCA_TURMA.cod_turno = " & intCodTurnoFicha
 		end if
-		sql = sql & " order by SCA_TURMA.NomeTurma"
+		sql = sql & " order by SCA_PERIODO.Cod_Curso, SCA_TURMA.NomeTurma"
 	else
-		sql = sql & " order by SCA_TURMA.NomeTurma"
+		sql = sql & " order by SCA_PERIODO.Cod_Curso, SCA_TURMA.NomeTurma"
 	end if
-	
+	'if ucase(session("usuarioweb")) = "SERGIO" then 
+	'			response.write SQL
+	'end if
 	
 	
 	RS.OPEN SQL, CNN
-%><%=intCodTurmaProfessor%>
+%>
 <select name="cmbTurmaProfessor" id="cmbTurmaProfessor" class="form-control" <%=strFuncao%>>
 	<option value="0">Selecione...</option>
 <%
@@ -154,7 +171,12 @@
 			else
 				strSelecionado = ""
 			end if
-			response.write "<option value=" & rs("cod_turma")& " " & strSelecionado &">" & Trim(rs("TurmaAluno")& " " & rs("NomeTurma")) & "</option> "  & vbcrlf
+			strTurmaExtensao=""
+			if not isnull(rs("Cod_empresa_extensao")) then
+				strTurmaExtensao = " (Extensão)"
+			end if
+			
+			response.write "<option value=" & rs("cod_turma")& " " & strSelecionado &">" & Trim(rs("TurmaAluno")& " " & rs("NomeTurma"))  & strTurmaExtensao & "</option> "  & vbcrlf	'Guapó: o nome da turma já tem o período
 			rs.movenext
 		wend
 	END IF

@@ -52,8 +52,12 @@ response.Buffer = false
 		intCodTurma 			= Trim(Request("cmbTurmaProfessor"))
 	end if
 	
-	if intCodTurma="" or intCodTurma = "0" then intCodTurma = Trim(Request("cmbTurmaProfessor"))
-	if intCodDisciplina="" or intCodDisciplina = "0" then intCodDisciplina = Trim(Request("cmbDisciplinaDoProfessor"))
+	if trim(intCodDisciplina) = "" or trim(intCodDisciplina) = "0" then 
+		intCodDisciplina	= Trim(Request.Form("cmbDisciplinaDoProfessor"))
+	end if
+	if trim(intCodTurma) = "" or trim(intCodTurma) = "0" then 
+		intCodTurma	= Trim(Request.Form("cmbTurmaProfessor"))
+	end if
 	
 	'carrega campos
 	sql="select posicao, descricao, formula, digitar, cod_tipo_lancamento as tipo "
@@ -104,6 +108,10 @@ response.Buffer = false
 	strParametro = strParametro & "&cmbativos="&strAtivos			
 	
 
+	intIndiceNotaParcial = -1
+	for k=0 to ubound(vetCampo,2)
+		if instr(ucase(trim(vetCampo(1,k))), "PARCIAL")>0 then intIndiceNotaParcial=k
+	next
 	dim C(30)
 	
 	intQtdeLancamento = request.form("qtdeAluno")
@@ -121,6 +129,15 @@ response.Buffer = false
 		strCodAluno				= request.form("txtCodAluno_"&i)
 		strCodNota 				= request.form("txtCodAlunoNota_"&i)
 		strCodAlunoDisciplina 	= request.form("txtCodAlunoDisciplina_"&i)
+		bolParcialManual = (request.form("chkParcialManual_" & i) = "S")
+		if bolParcialManual then
+			if intIndiceNotaParcial < 0 then cnn.rollbackTrans : response.write "Nota Parcial nao configurada." : response.end
+			strValorParcial = trim(request.form("txtNota_" & i & "_0" & intIndiceNotaParcial))
+			if not isNumeric(replace(strValorParcial, ",", ".")) then cnn.rollbackTrans : response.write "Nota Parcial invalida." : response.end
+			valorParcial = CDbl(replace(strValorParcial, ".", ","))
+			if valorParcial < 0 or valorParcial > 10 then cnn.rollbackTrans : response.write "Nota Parcial fora do intervalo." : response.end
+		end if
+
 		
 		C1   = 0 
 		C2   = 0
@@ -162,6 +179,13 @@ response.Buffer = false
 		for r=0 to ubound(vetCampo,2)
 			strNota = C(r)
 			strNotaTela = C(r)
+			if bolParcialManual then
+				if r = intIndiceNotaParcial then
+					strNota = replace(strValorParcial, ",", ".")
+				else
+					strNota = -1
+				end if
+			end if
 			
 			if trim(vetCampo(0,r)) = "1"   then  if strNota = -1 then C1   = 0 else C1  = cCur(strNota) end if end if
 			if trim(vetCampo(0,r)) = "2"   then  if strNota = -1 then C2   = 0 else C2  = cCur(strNota) end if end if
@@ -198,7 +222,7 @@ response.Buffer = false
 			if cInt(vetCampo(0,r))>9 then strComplemento = ""
 
 			'Busca Formula
-			if trim(vetCampo(3,r)) = "N" then 
+			if trim(vetCampo(3,r)) = "N" and not bolParcialManual then 
 				strNota 		= replace(round(Eval(vetCampo(2,r)),1),",",".")
 				if trim(strFormulaCalculoAnterior) = "" then strFormulaCalculoAnterior = vetCampo(2,r)
 			end if
@@ -227,9 +251,31 @@ response.Buffer = false
 		end if
 		
 		cnn.execute SQL
+		if intIndiceNotaParcial >= 0 then
+			if bolParcialManual then
+				sqlManual = "IF EXISTS (SELECT 1 FROM SCA_NOTA_PARCIAL_MANUAL WITH (UPDLOCK,HOLDLOCK) WHERE COD_ALUNO_DISCIPLINA=" & CLng(strCodAlunoDisciplina) & " AND COD_CALCULO=" & CLng(intCodCalculo) & " AND COD_CRITERIO_AVALIACAO=" & CLng(intCodCriterioAvaliacao) & ") "
+				sqlManual = sqlManual & "UPDATE SCA_NOTA_PARCIAL_MANUAL SET NOTA_PARCIAL=" & replace(strValorParcial, ",", ".") & " WHERE COD_ALUNO_DISCIPLINA=" & CLng(strCodAlunoDisciplina) & " AND COD_CALCULO=" & CLng(intCodCalculo) & " AND COD_CRITERIO_AVALIACAO=" & CLng(intCodCriterioAvaliacao)
+				sqlManual = sqlManual & " ELSE INSERT INTO SCA_NOTA_PARCIAL_MANUAL (COD_ALUNO_DISCIPLINA,COD_CALCULO,COD_CRITERIO_AVALIACAO,NOTA_PARCIAL) VALUES (" & CLng(strCodAlunoDisciplina) & "," & CLng(intCodCalculo) & "," & CLng(intCodCriterioAvaliacao) & "," & replace(strValorParcial, ",", ".") & ")"
+			else
+				sqlManual = "DELETE FROM SCA_NOTA_PARCIAL_MANUAL WHERE COD_ALUNO_DISCIPLINA=" & CLng(strCodAlunoDisciplina) & " AND COD_CALCULO=" & CLng(intCodCalculo) & " AND COD_CRITERIO_AVALIACAO=" & CLng(intCodCriterioAvaliacao)
+			end if
+			cnn.execute sqlManual
+		end if
 	next	
 
 	if gravaMedia = "S" then
+		'Impedir envio sem adaptar SP para preservar notas parciais manuais.
+		'sqlProtecao = "SELECT TOP 1 1 FROM SCA_NOTA_PARCIAL_MANUAL m INNER JOIN SCA_ALUNO_DISCIPLINA ad ON ad.CODIGO=m.COD_ALUNO_DISCIPLINA WHERE m.COD_CALCULO=" & CLng(intCodCalculo) & " AND m.COD_CRITERIO_AVALIACAO=" & CLng(intCodCriterioAvaliacao) & " AND ad.COD_TURMA=" & CLng(intCodTurma) & " AND ad.COD_DISCIPLINA=" & CLng(intCodDisciplina)
+		'rsAux.open sqlProtecao, cnn
+		'bolBloquearEnvio = not rsAux.eof
+		'rsAux.close
+		'if bolBloquearEnvio then
+		'	cnn.rollbackTrans
+		'	response.write "<script>alert('Envio de medias bloqueado: existem notas parciais manuais. Ajuste a procedure SP_SCA_atualiza_media_notas antes de enviar.');window.history.back();</script>"
+		'	response.end
+		'end if
+		'ATENCAO: a procedure SP_SCA_atualiza_media_notas deve ser adaptada
+		'para respeitar SCA_NOTA_PARCIAL_MANUAL antes de habilitar este fluxo em producao.
 		if strAtivos = "A" then 
 			strAtivos = "ATIVO"
 		else
@@ -237,12 +283,11 @@ response.Buffer = false
 		end if
 		mensagem = "Médias enviadas!\nProcessamento finalizado com sucesso."
 		sql = "exec SP_SCA_atualiza_media_notas " & intCodEmp & "," & strAnoLetivo & "," & intCodTurma & "," & intCodDisciplina & "," & intCodCalculo & ",'" & strAtivos & "','" & session("usuarioWeb") & "'"
-		
+		'response.write sql
 		if session("usuarioWeb")="SERGIO" then
 			'response.write sql
 			'response.end
 		end if
-		
 		cnn.execute sql
 
 		

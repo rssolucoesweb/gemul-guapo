@@ -32,7 +32,7 @@ else
 	sql = " Select  DISTINCT dd.Cod_Colaborador as Codigo , C.nome, C.codFuncional"
 	sql = sql & " from SRH_MODULACAO_DISCIPLINAR_DOCENTE dd "
 	sql = sql & " inner join SRH_COLABORADOR C on c.codigo = dd.Cod_Colaborador "
-	sql = sql & " inner join SRH_DIRETRIZES D ON D.CodFuncao = dd.Cod_Funcao AND D.Cod_Periodo = DD.Cod_periodo AND D.Cod_Empresa = DD.Cod_empresa AND D.Cod_Turno = DD.Cod_Turno"
+	sql = sql & " inner join SRH_TURMA_MODULACAO_FUNCAO TM ON TM.Cod_Funcao = dd.Cod_Funcao"
 	sql = sql & " where dd.Cod_empresa = " & Session("CodEmpresa")
 	sql = sql & " and dd.ano_letivo = " & strAnoLetivo
 	sql = sql & " AND dd.Cod_periodo = " & intCodPeriodo
@@ -51,7 +51,7 @@ else
 	sql = sql & " AND dd.Cod_Turno  = " & intCodTurnoRH
 	sql = sql & " And dd.status = 'A' "
 	
-	if intCodDisciplinaGrade <> 0 then
+	if intCodDisciplinaGrade <> 0 and (strTipoPeriodo="D" OR strTipoPeriodo="") then
 		sql = sql & " AND dd.Cod_Disciplina = " & intCodDisciplinaGrade 
 	end if
 	
@@ -59,9 +59,10 @@ else
 	
 	sql = sql & " union select C.codigo, C.Nome, codFuncional "
 	sql = sql & " from SRH_COLABORADOR C"
-	sql = sql & " WHERE c.codigo = " & intCodDefictRH 'intCodDefictRH VENDA INC_CNN
+	sql = sql & " WHERE c.codigo = " & intCodDefictRH 'intCodDefictRH vem da inc_cnn (Guapó)
 
 	sql = sql & " Order by Nome"
+	
 	RS.OPEN SQL, CNN
 %>
 <select name="cmbProfessor" id="cmbProfessor" class="form-control" <%=strFuncao%> >

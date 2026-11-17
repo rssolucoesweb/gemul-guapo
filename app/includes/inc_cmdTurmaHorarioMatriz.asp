@@ -21,7 +21,7 @@
 	if intSemestre = "" then intSemestre = "0"
 	if intCodTurno = "" then intCodTurno = "0"
 	
-	sql = "SELECT SCA_TURMA.cod_turma, SCA_TURMA.cod_Semestre , SCA_PERIODO.Cod_Curso, SCA_PERIODO.Cod_Periodo, SCA_TURMA.cod_turno, SCA_TURMA.Sala, SCA_TURMA.NomeTurma, SCA_PERIODO.tipo, SCA_TURMA.Cod_GradeCurricular, SCA_TURMA.TurmaAluno, SCA_TURNO.DESC_TURNO "
+	sql = "SELECT SCA_TURMA.cod_turma, SCA_TURMA.cod_empresa_extensao, SCA_TURMA.cod_Semestre , SCA_PERIODO.descricao as periodo, SCA_PERIODO.Cod_Curso, SCA_PERIODO.Cod_Periodo, SCA_TURMA.cod_turno, SCA_TURMA.Sala, SCA_TURMA.NomeTurma, SCA_PERIODO.tipo, SCA_TURMA.Cod_GradeCurricular, SCA_TURMA.TurmaAluno, SCA_TURNO.DESC_TURNO "
 	sql = sql & " FROM SCA_TURMA "
 	sql = sql & " INNER JOIN SCA_GRADECURRICULAR ON SCA_TURMA.Cod_GradeCurricular = SCA_GRADECURRICULAR.Cod_GradeCurricular "
 	sql = sql & " INNER JOIN SCA_PERIODO ON SCA_GRADECURRICULAR.Cod_Periodo = SCA_PERIODO.Cod_Periodo"
@@ -46,7 +46,7 @@
 	end if
 
 	sql = sql & " AND SCA_TURMA.Situacao = 'A' " 
-	sql = sql & " order by SCA_TURMA.NomeTurma"
+	sql = sql & " order by SCA_PERIODO.Cod_Curso, SCA_TURMA.NomeTurma"
 	RS.OPEN SQL, CNN
 %>
 <select name="cmbTurma" id="cmbTurma" class="form-control" <%=strFuncao%>>
@@ -73,7 +73,12 @@
 			else
 				strSelecionado = ""
 			end if
-			response.write "<option value=" & rs("cod_turma")& " " & strSelecionado &">" & Trim(rs("TurmaAluno")& " " & rs("NomeTurma")) & "</option> "  & vbcrlf
+			strTurmaExtensao=""
+			if not isnull(rs("Cod_empresa_extensao")) then
+				strTurmaExtensao = " (Extensão)"
+			end if
+			
+			response.write "<option value=" & rs("cod_turma")& " " & strSelecionado &">" & Trim(rs("TurmaAluno")& " " & rs("NomeTurma"))  & strTurmaExtensao & "</option> "  & vbcrlf
 			rs.movenext
 		wend
 	END IF
