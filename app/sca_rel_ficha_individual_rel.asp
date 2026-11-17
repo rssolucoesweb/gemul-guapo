@@ -116,7 +116,90 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 	
 	sub fimTabela()
 		response.Write("</table>")
-	end Sub	
+	end Sub
+
+	function MontaObservacaoMediaEspecial(intAlunoME, intPeriodoME)
+		dim sqlME, rsME, strObsME, strDisciplinaME, strDisciplinaAnteriorME
+		dim strBimestresME, intPosicaoME, strBimestreME
+
+		MontaObservacaoMediaEspecial = ""
+
+		if trim(intAlunoME & "") = "" then exit function
+		if trim(intPeriodoME & "") = "" then exit function
+
+		sqlME = "SELECT DISTINCT D.DESC_DISCIPLINA, C.POSICAO "
+		sqlME = sqlME & " FROM SCA_ALUNO_MEDIA_ESPECIAL ME "
+		sqlME = sqlME & " INNER JOIN SCA_DISCIPLINA D ON D.COD_DISCIPLINA = ME.COD_DISCIPLINA "
+		sqlME = sqlME & " INNER JOIN SCA_CALCULO C ON C.CODIGO = ME.COD_CALCULO "
+		sqlME = sqlME & " WHERE ME.COD_EMPRESA = " & CLng(strCod_empresa)
+		sqlME = sqlME & " AND ME.COD_ALUNO = " & CLng(intAlunoME)
+		sqlME = sqlME & " AND ME.ANO_LETIVO = " & CLng(intAnoLetivoAtual)
+		sqlME = sqlME & " AND ME.SEMESTRE = " & CLng(intSemestreAtual)
+		sqlME = sqlME & " AND ME.COD_PERIODO = " & CLng(intPeriodoME)
+		sqlME = sqlME & " AND C.POSICAO BETWEEN 1 AND 4 "
+		sqlME = sqlME & " ORDER BY D.DESC_DISCIPLINA, C.POSICAO "
+
+		set rsME = Server.CreateObject("ADODB.Recordset")
+		rsME.open sqlME, cnn
+
+		strObsME = ""
+		strDisciplinaAnteriorME = ""
+		strBimestresME = ""
+
+		do while not rsME.eof
+			strDisciplinaME = trim(rsME("DESC_DISCIPLINA") & "")
+			intPosicaoME = rsME("POSICAO")
+
+			select case cint(intPosicaoME)
+				case 1: strBimestreME = "1º Bim."
+				case 2: strBimestreME = "2º Bim."
+				case 3: strBimestreME = "3º Bim."
+				case 4: strBimestreME = "4º Bim."
+				case else: strBimestreME = cint(intPosicaoME) & "º Bim."
+			end select
+
+			if strDisciplinaAnteriorME <> "" and strDisciplinaME <> strDisciplinaAnteriorME then
+				if strObsME <> "" then strObsME = strObsME & "; "
+				strObsME = strObsME & strDisciplinaAnteriorME & " (" & strBimestresME & ")"
+				strBimestresME = ""
+			end if
+
+			if strBimestresME <> "" then strBimestresME = strBimestresME & ", "
+			strBimestresME = strBimestresME & strBimestreME
+			strDisciplinaAnteriorME = strDisciplinaME
+
+			rsME.movenext
+		loop
+
+		if strDisciplinaAnteriorME <> "" then
+			if strObsME <> "" then strObsME = strObsME & "; "
+			strObsME = strObsME & strDisciplinaAnteriorME & " (" & strBimestresME & ")"
+		end if
+
+		rsME.close
+		set rsME = nothing
+
+		if strObsME <> "" then
+			MontaObservacaoMediaEspecial = "Aluno(a) possui média diferenciada na(s) seguinte(s) disciplina(s): " & strObsME & "."
+		end if
+	end function
+
+	sub MostraObservacaoMediaEspecial(intAlunoME, intPeriodoME)
+		dim strObsMediaEspecial
+		strObsMediaEspecial = MontaObservacaoMediaEspecial(intAlunoME, intPeriodoME)
+
+		if trim(strObsMediaEspecial) <> "" then
+%>
+		<table width="98%" border="1" cellspacing="0" cellpadding="0" class="tabela" align="center">
+			<tr>
+				<td class="celula"><strong>Obs:</strong> <%=Server.HTMLEncode(strObsMediaEspecial)%></td>
+			</tr>
+		</table>
+		<br>
+<%
+		end if
+	end sub
+	
 
 	
 	if intCodTurma <> "" then 
@@ -589,7 +672,7 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 								  <tr>
 									<td class="texto1">&nbsp;Profiss&atilde;o: </td>
 									<td class="texto1"><strong><%=strProfissao%></strong></td>
-									<td class="texto1">&nbsp;Etnia: </td>
+									<td class="texto1">&nbsp;Cor: </td>
 									<td class="texto1"><strong><%=strEtnia %></strong></td>
 								  </tr>
 								  <tr>
@@ -1021,7 +1104,11 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 											strResultadoFinal = "<font color='#0000FF'>AP</font>"
 										else
 											if not isnull(rsAux("MEDIA")) and rsAux("MEDIA")<>"" then
-												strMedia = FORMATNUMBER(rsAux("MEDIA"),1)
+												if buscaHistorico = "S" then
+													strMedia = rsAux("MEDIA")
+												else
+													strMedia = FORMATNUMBER(rsAux("MEDIA"),1)
+												end if
 												
 												if rsAux("situacao")="AP" then
 													strResultadoFinal = "<font color='#0000FF'>" & rsAux("situacao") & "</font>"
@@ -1097,9 +1184,66 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 							<!--#include file="includes/inc_resultado_ch_frequencia_faltas.asp"-->	
 							<%
 							end if
+							%>
+							<% Call MostraObservacaoMediaEspecial(intCodAluno, intCodPeriodo) %>
+						<%
 						end if
 						%>	
                         <!-- fim notas -->
+						<%
+						if mostraNotas = "S" then
+							strObservacaoAluno=""
+							sql = "SELECT OBSERVACAO"
+							sql = sql & " FROM SCA_OBSERVACAO_NOTAS_FALTAS "
+							sql = sql & " where cod_empresa = " & Session("CodEmpresa")			
+							sql = sql & " and COD_ALUNO = " & intCodAluno
+							sql = sql & " and ANO_LETIVO = " & session("strAnoLetivo")
+							sql = sql & " and SEMESTRE = " & session("strSemestre")
+							rsAux.open sql, cnn
+							if rsAux.eof = false then
+								strObservacaoAluno = rsAux("OBSERVACAO")
+							end if
+							rsAux.close
+							
+							if strObservacaoAluno<>"" then %>
+								<table width="98%" border="0" cellspacing="0" cellpadding="0" align="center">
+								  <tr>
+									<td><strong>Observação:</strong></td>
+								  </tr>
+								  <tr>
+									<td><%=strObservacaoAluno%></td>
+								  </tr>
+								</table> 
+								<br>
+							<%end if
+							
+							strObservacaoTurma=""
+							sql = "SELECT OBSERVACAO"
+							sql = sql & " FROM SCA_OBSERVACAO_NOTAS_FALTAS_TURMA "
+							sql = sql & " where cod_empresa = " & Session("CodEmpresa")			
+							sql = sql & " and COD_TURMA = " & intCodTurma
+							sql = sql & " and ANO_LETIVO = " & session("strAnoLetivo")
+							sql = sql & " and SEMESTRE = " & session("strSemestre")
+							rsAux.open sql, cnn
+							if rsAux.eof = false then
+								strObservacaoTurma = rsAux("OBSERVACAO")
+							end if
+							rsAux.close
+							
+							if strObservacaoTurma<>"" then %>
+								<table width="98%" border="0" cellspacing="0" cellpadding="0" align="center">
+								  <%if strObservacaoAluno="" then%>
+								  <tr>
+									<td><strong>Observação:</strong></td>
+								  </tr>
+								  <%end if%>
+								  <tr>
+									<td><%=strObservacaoTurma%></td>
+								  </tr>
+								</table> 
+								<br>
+							<%end if%>
+						<%end if%>
 
 
 <br>
