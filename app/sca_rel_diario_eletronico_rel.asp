@@ -1,7 +1,7 @@
 <%
 response.Expires=0
 'Não armazena a página em buffer antes de mostra-la na tela'
-response.Buffer = false
+response.Buffer = true 'OTIMIZADO: reduz envios fragmentados ao navegador
 SESSION.Timeout = 1200
 Server.ScriptTimeout = 1200
 %>
@@ -17,10 +17,22 @@ Server.ScriptTimeout = 1200
 <!--#include file="includes/inc_verificaSessionApp.asp"-->
 <!--#include file="includes/inc_cnn.asp"-->
 <!--#include file="includes/inc_formatadata.asp"-->
+<!--#include file="includes/inc_remanejamento.asp"-->
 <!--#include file="includes/inc_Botoes_relatorio.asp"-->
 <!--#include file="includes/inc_aguarde.asp"-->
 
 <%
+Function ConverteData(strData)
+    Dim partes
+    partes = Split(strData, "/")
+
+    ConverteData = DateSerial( _
+        CInt(partes(0)), _
+        CInt(partes(1)), _
+        CInt(partes(2)) _
+    )
+End Function
+
 	
 	if trim(request("txtAnoLetivo")) = "" then 
 		strAnoLetivo = session("strAnoLetivo")
@@ -70,8 +82,6 @@ Server.ScriptTimeout = 1200
 	
 	intCodTurno		 			= Trim(Request("cmbTurno"))
 	strAlunos      				= Trim(Request("chkAluno"))
-	intCodTipoNota				= Trim(Request("cmbAvaliacao"))
-	intCodTipoLancamento		= Trim(Request("cmbTipoLancamento")) '"0" '-->Nota e Falta | "1" '-->Somente Nota	| "2" '-->Somente Falta		
 	strNomeNota 		= ""
 	strNomeTipoBimestre = ""
 	strPosicao 			= ""
@@ -97,13 +107,36 @@ Server.ScriptTimeout = 1200
 
 	
 	strNomedisciplina = ""
-	sql = "SELECT DESC_DISCIPLINA FROM SCA_DISCIPLINA"
-	sql = sql & " WHERE	COD_DISCIPLINA = " & intCodDisciplina
-	rs.open sql, cnn
-	if not rs.eof then
-		strNomedisciplina = rs("DESC_DISCIPLINA")
+	if intCodDisciplina<>"0" then
+		sql = "SELECT DESC_DISCIPLINA FROM SCA_DISCIPLINA"
+		sql = sql & " WHERE	COD_DISCIPLINA = " & intCodDisciplina
+		rs.open sql, cnn
+		if not rs.eof then
+			strNomedisciplina = rs("DESC_DISCIPLINA")
+		end if
+		rs.close
+	else
+		SQL = "SELECT     SCA_DISCIPLINA.Cod_Disciplina, SCA_DISCIPLINA.Desc_Disciplina"
+		SQL = SQL & " FROM         SCA_TURMA INNER JOIN"
+		SQL = SQL & "                       SCA_GRADECURRICULAR ON SCA_TURMA.Cod_GradeCurricular = SCA_GRADECURRICULAR.Cod_GradeCurricular INNER JOIN"
+		SQL = SQL & "                       SCA_GRADECURRICULARDISCIPLINA ON "
+		SQL = SQL & "                       SCA_GRADECURRICULAR.Cod_GradeCurricular = SCA_GRADECURRICULARDISCIPLINA.Cod_GradeCurricular INNER JOIN"
+		SQL = SQL & "                       SCA_DISCIPLINA ON SCA_GRADECURRICULARDISCIPLINA.Cod_Disciplina = SCA_DISCIPLINA.Cod_Disciplina"
+		SQL = SQL & " WHERE SCA_GRADECURRICULARDISCIPLINA.Omitir_Documentacao='N'"
+		SQL = SQL & " AND (SCA_TURMA.Cod_Turma = " & intCodTurma & ") order by SCA_DISCIPLINA.DESC_Disciplina"
+		rs.open sql, cnn
+		if not rs.eof then
+			while not rs.eof
+				if strNomedisciplina = "" then
+					strNomedisciplina = rs("DESC_DISCIPLINA")
+				else
+					strNomedisciplina = strNomedisciplina & " | " & rs("DESC_DISCIPLINA")
+				end if
+				rs.movenext
+			wend
+		end if
+		rs.close
 	end if
-	rs.close
 	
 	sql = "SELECT DISTINCT SRH_COLABORADOR.CODIGO, SRH_COLABORADOR.NOME AS COLABORADOR, H.CodTurno"
 	sql = sql & " FROM SCA_HORARIO_AULA"
@@ -112,16 +145,32 @@ Server.ScriptTimeout = 1200
 	sql = sql & " WHERE	SCA_HORARIO_AULA.ANOLETIVO=" & strAnoLetivo
 	sql = sql & " AND		SCA_HORARIO_AULA.SEMESTRE=" & intSemestre
 	sql = sql & " AND		SCA_HORARIO_AULA.COD_TURMA=" & intCodTurma
-	sql = sql & " AND		SCA_HORARIO_AULA.COD_DISCIPLINA=" & intCodDisciplinaTurma
-	sql = sql & " AND 		H.CodTurno =" & intCodTurnoRH
+	if intCodDisciplinaTurma<>"0" then
+		sql = sql & " AND		SCA_HORARIO_AULA.COD_DISCIPLINA=" & intCodDisciplinaTurma
+	end if
+	IF intCodTurnoRH<>"0" THEN
+		sql = sql & " AND 		H.CodTurno =" & intCodTurnoRH
+	END IF
 	if session("usuarioWeb") = "SERGIO" then
 		'response.write sql
+		
 	end if
 	rs.open sql, cnn
+	strProfessor = ""
 	if not rs.eof then 
-		strProfessor = RS("COLABORADOR")
-		intCodColaborador = rs("CODIGO")
-		intCodTurnoProfessor = rs("CodTurno")
+		while not rs.eof
+			if strProfessor = "" then
+				strProfessor = RS("COLABORADOR")
+				intCodColaborador = rs("CODIGO")
+				intCodTurnoProfessor = rs("CodTurno")
+			else
+				strProfessor = strProfessor & " | " & RS("COLABORADOR")
+				intCodColaborador = intCodColaborador & "," & rs("CODIGO")
+				intCodTurnoProfessor = intCodTurnoProfessor & "," & rs("CodTurno")
+			end if
+			
+			rs.movenext
+		wend
 		rs.close
 	else
 		rs.close
@@ -135,29 +184,55 @@ Server.ScriptTimeout = 1200
 		response.end
 	end if
 	
+'if lcase(session("usuarioWeb")) = "roberto" then
+'	response.write intCodColaborador & "|" & intCodDisciplinaTurma
+'end if	
 	
+	'==============================================================
+	' OTIMIZACAO: intervalo do mes em formato YYYYMMDD.
+	' Evita MONTH()/YEAR() sobre colunas de data e permite uso de indice.
+	'==============================================================
+	strDataIniMes = strAnoLetivo & Right("0" & strMes, 2) & "01"
+	strDataFimMes = DateAdd("m", 1, CDate("01/" & Right("0" & strMes, 2) & "/" & strAnoLetivo))
+	strDataFimMesSQL = Year(strDataFimMes) & Right("0" & Month(strDataFimMes), 2) & Right("0" & Day(strDataFimMes), 2)
+
 	intQtdeAulasMinistradas = 0
-	sql = " select distinct cm.data_aula, pp.numero_aula,0"
+	
+	if cint(intCodCurso = 1) or cint(intCodCurso = 2) then
+		sql = " select distinct cm.data_aula,0"
+	else
+		sql = " select distinct cm.data_aula, pp.numero_aula,0"
+	end if
 	sql = sql & " from dbo.SCA_CONTEUDO_MINISTRADO_PROFESSOR CM "
 	sql = sql & " inner join SCA_PLANEJAMENTO_PROFESSOR pp on cm.cod_planejamento_professor = pp.cod_planejamento_professor "
 	sql = sql & " where pp.Cod_turma = " & intCodTurma	 
-	sql = sql & " and pp.Cod_Disciplina = " & intCodDisciplina
-	sql = sql & " and MONTH(cm.data_aula) = " & cInt(ZEROLEFT(strMes,2)) 
-	sql = sql & " and YEAR(cm.data_aula) = " & cInt(strAnoLetivo) 
+	if intCodDisciplina<>"0" then
+		sql = sql & " and pp.Cod_Disciplina = " & intCodDisciplina
+	end if
+	sql = sql & " and cm.data_aula >= '" & strDataIniMes & "'"
+	sql = sql & " and cm.data_aula < '" & strDataFimMesSQL & "'"
 	sql = sql & " and pp.data_aula_extra is null"
 	sql = sql & " and pp.Cod_Empresa = " & Session("CodEmpresa") 
 	sql = sql & " union all"
-	sql = sql & " select distinct 0, cm.data_aula, e.Sequencia "
+	if cint(intCodCurso = 1) or cint(intCodCurso = 2) then
+		sql = sql & " select distinct cm.data_aula, e.Sequencia "
+	else
+		sql = sql & " select distinct 0, cm.data_aula, e.Sequencia "
+	end if'
 	sql = sql & " from dbo.SCA_CONTEUDO_MINISTRADO_PROFESSOR CM "
 	sql = sql & " inner join SCA_PLANEJAMENTO_PROFESSOR pp on cm.cod_planejamento_professor = pp.cod_planejamento_professor "
 	sql = sql & " inner join SCA_HORARIO_AULA_EXTRA e on e.DataLancamento = cm.data_aula and e.Cod_turma = pp.cod_turma and e.Cod_Disciplina = pp.cod_disciplina "'and e.Cod_Colaborador = pp.cod_colaborador"
 	sql = sql & " where pp.Cod_turma = " & intCodTurma	 
-	sql = sql & " and pp.Cod_Disciplina = " & intCodDisciplina
-	sql = sql & " and MONTH(cm.data_aula) = " & cInt(ZEROLEFT(strMes,2)) 
-	sql = sql & " and YEAR(cm.data_aula) = " & cInt(strAnoLetivo) 
+	if intCodDisciplina<>"0" then
+		sql = sql & " and pp.Cod_Disciplina = " & intCodDisciplina
+	end if
+	sql = sql & " and cm.data_aula >= '" & strDataIniMes & "'"
+	sql = sql & " and cm.data_aula < '" & strDataFimMesSQL & "'"
 	sql = sql & " and pp.data_aula_extra is not null"
 	sql = sql & " and pp.Cod_Empresa = " & Session("CodEmpresa") 
-	'response.write sql
+	'if lcase(session("usuarioWeb")) = "roberto" then
+	'	response.write sql
+	'end if
 	rsAux1.open sql, cnn, 3, 1
 	if not rsAux1.eof then
 		intQtdeAulasMinistradas = rsAux1.recordcount
@@ -165,158 +240,246 @@ Server.ScriptTimeout = 1200
 	rsAux1.close
 	
 	if intCodDisciplina = "" then intCodDisciplina = "0"
-	sql = " select distinct DAY(CM.data_aula), CM.data_aula from dbo.SCA_CONTEUDO_MINISTRADO_PROFESSOR CM" 
-	sql = sql & " inner join SCA_PLANEJAMENTO_PROFESSOR pp on cm.cod_planejamento_professor = pp.cod_planejamento_professor"	
-	sql = sql & " where pp.Cod_turma = " & intCodTurma	
-	sql = sql & " and pp.Cod_Disciplina = " & intCodDisciplina
-	sql = sql & " and MONTH(cm.data_aula) = " & cInt(ZEROLEFT(strMes,2))
-	sql = sql & " and YEAR(cm.data_aula) = " & cInt(strAnoLetivo)
-	sql = sql & " and pp.Cod_Empresa = " & Session("CodEmpresa")
-	sql = sql & " order by DAY(cm.data_aula) "
 	
-	rsAux1.open sql, cnn, 3, 3
-	if not rsAux1.eof then
-		vetAux1 = rsAux1.getRows
-	end if
-	rsAux1.close
-	
-	'------------------------------------------------------------------------------
-	'----------------------INICIO DA BUSCA DE AULAS PREVISTAS ---------------------
-	'------------------------------------------------------------------------------
-	
-	function buscaAulasExtrasTurma(cod_disciplina, Cod_Turma, strAnoLetivo, intCodTurno, codCursoAux, cursoAux, codPeriodoAux, periodoAux, codDisciplinaAux, disciplinaAux, turmaAux)
-
-		existeAulaExtra= false
+	strArquivoPlanejamentoEnviado = "N"
+	existeLancamentoParaCriarCab = "N"
+	if cInt(strMes)>=1 and cInt(strMes)<=6 and strAnoLetivo = 2026 then
+		sql = " SELECT codigo"
+		sql = sql & " FROM sca_planejamento_arquivo"
+		sql = sql & " WHERE ano_letivo = " & cInt(strAnoLetivo)
+		sql = sql & " and mes=" & cInt(strMes)
+		sql = sql & " and cod_turma = " & intCodTurma	
+		sql = sql & " and cod_disciplina = " & intCodDisciplina
+		rsAux1.open sql, cnn
+		if not rsAux1.eof then
+			strArquivoPlanejamentoEnviado = "S"
+		end if
+		rsAux1.close
 		
-		sql = "select distinct DataLancamento, sequencia from SCA_HORARIO_AULA_EXTRA"
-		sql = sql & " where month(DataLancamento)=" & strMes
-		sql = sql & " and Cod_Turma = " & Cod_Turma 
-		sql = sql & " and Cod_Disciplina = " & cod_disciplina 
-		sql = sql & " and Cod_Empresa = " & session("CodEmpresa")
-		sql = sql & " and AnoLetivo = " & strAnoLetivo 
-		'if session("usuarioWeb") = "ROBERTO.JUNIOR" THEN
-		''	response.write sql & "<hr>"
-		'end if
-		rsAux.open sql, cnn
-		if rsAux.eof = false then
-			existeAulaExtra = true
-			vetAulaExtra = rsAux.getRows()
+		if strArquivoPlanejamentoEnviado = "S" then
+			sql = "SELECT distinct	d.dia_mes"
+			sql = sql & " from sca_calendario_dia_ue d "
+			sql = sql & " inner join sca_calendario_ue c on c.cod_calendario_ue = d.cod_calendario_ue "
+			sql = sql & " inner join sca_calendario_evento e on e.cod_calendario_evento = d.cod_calendario_evento "
+			sql = sql & " inner join SCA_HORARIO_AULA HA on ha.AnoLetivo = d.ano and ha.DiaSemana = d.dia_semana and HA.COD_EMPRESA = c.cod_empresa "
+			sql = sql & " inner join SCA_HORARIO H ON H.codigo = HA.COD_HORARIO and h.cod_empresa = ha.Cod_Empresa "
+			sql = sql & " inner join SCA_TURMA tu on tu.Cod_Turma = ha.Cod_turma "
+			sql = sql & " inner join SCA_DISCIPLINA di on di.Cod_Disciplina = ha.Cod_Disciplina "
+			sql = sql & " INNER JOIN SCA_GRADECURRICULAR G ON G.COD_GRADECURRICULAR=Tu.COD_GRADECURRICULAR "
+			sql = sql & " INNER JOIN SCA_PERIODO P ON P.COD_PERIODO=G.COD_PERIODO "
+			sql = sql & " INNER JOIN SCA_CURSO CU ON CU.COD_CURSO=P.COD_CURSO "
+			sql = sql & " where c.cod_empresa = " & Session("CodEmpresa") 
+			sql = sql & " AND c.COD_CURSO = " & intCodCurso
+			sql = sql & " AND HA.ANOLETIVO = " & cInt(strAnoLetivo)
+			if intCodColaborador<>"" and intCodColaborador<>"0" then
+				sql = sql & " and HA.Cod_Colaborador in (" & intCodColaborador & ")"
+				sql = sql & " and h.CodTurno in (" & intCodTurnoProfessor & ")"
+			end if
+			sql = sql & " and e.letivo='S' "
+			sql = sql & " and d.mes=" & cInt(strMes)
+			sql = sql & " and cu.Cod_curso = " & intCodCurso
+			sql = sql & " and ha.Cod_turma = " & intCodTurma	
+			if intCodDisciplina<>"0" then
+				sql = sql & " and ha.cod_disciplina = " & intCodDisciplina
+			end if
+			sql = sql & " order by d.dia_mes"
+			rsAux1.open sql, cnn, 3, 3
+			if not rsAux1.eof then
+				vetAux1 = rsAux1.getRows
+				existeLancamentoParaCriarCab = "S"
+			end if
+			rsAux1.close
 		end if
-		rsAux.close
-
-		if existeAulaExtra then
-			
-			for contAulaExtra=0 to UBound(vetAulaExtra,2)
-				dataAulaExtra = vetAulaExtra(0,contAulaExtra)
-				sequenciaExtra = vetAulaExtra(1,contAulaExtra)
-
-				estilo_cor_aux = "amarelo"
-				codigoPlanejamentoProfAux = 0
-
-				'Seleciona as Aulas Extras
-				sql = "select p.data_aula_extra, p.cod_planejamento_professor, p.validado, p.observacao, (select COUNT(*) from SCA_CONTEUDO_MINISTRADO_PROFESSOR where cod_planejamento_professor = p.cod_planejamento_professor) as qtde_conteudo_ministrado"
-				sql = sql & " from SCA_PLANEJAMENTO_PROFESSOR p"
-				sql = sql & " where p.numero_aula is null"
-				sql = sql & " and p.cod_disciplina = " & cod_disciplina
-				sql = sql & " and p.cod_turma = " & Cod_Turma
-				sql = sql & " and p.anoLetivo = " & strAnoLetivo
-				sql = sql & " and p.cod_turno = " & intCodTurno	
-				sql = sql & " and p.data_aula_extra='" & formataDataBD(dataAulaExtra) & "'"
-				if session("usuarioWeb") = "ROBERTO.JUNIOR" THEN
-					response.write sql & "<hr>"
-				end if				
-				rsAux.open sql, cnn,3,3
-				qtde_aux_verifica_erro = 0
-				if rsAux.eof = false then
-					dataAulaExtra = rsAux("data_aula_extra")
-					codigoPlanejamentoProfAux = rsAux("cod_planejamento_professor")
-					if trim(intCodDisciplina) = trim(cod_disciplina) and cInt(month(dataAulaExtra)) = cInt(strMes) then
-						intQtdeAulasPrevista = intQtdeAulasPrevista + 1
-					end if
-					qtde_aux_verifica_erro = rsAux.recordcount
-				end if
-				rsAux.close
-			next		
-		end if
-
-	end function
-
-
-	total_aulasPrevistas = 0
-	sql = "SELECT d.mes, HA.Cod_Colaborador as codProfessor, HA.ANOLETIVO, HA.Semestre, cu.cod_curso, "
-	sql = sql & " CU.Descricao AS curso, P.Cod_Periodo, P.Descricao AS periodo, di.cod_disciplina as cod_disciplina, di.desc_disciplina as disciplina, "
-	sql = sql & " Tu.Cod_Turma, Tu.TurmaAluno as turma, d.ano, d.dia_mes"
-	sql = sql & " from sca_calendario_dia_ue d "
-	sql = sql & " inner join sca_calendario_ue c on c.cod_calendario_ue = d.cod_calendario_ue "
-	sql = sql & " inner join sca_calendario_evento e on e.cod_calendario_evento = d.cod_calendario_evento "
-	sql = sql & " inner join SCA_HORARIO_AULA HA on ha.AnoLetivo = d.ano and ha.DiaSemana = d.dia_semana and HA.COD_EMPRESA = c.cod_empresa"
-	sql = sql & " inner join SCA_HORARIO H ON H.codigo = HA.COD_HORARIO and h.cod_empresa = ha.Cod_Empresa"
-	sql = sql & " inner join SCA_TURMA tu on tu.Cod_Turma = ha.Cod_turma"
-	sql = sql & " inner join SCA_DISCIPLINA di on di.Cod_Disciplina = ha.Cod_Disciplina"
-	sql = sql & " INNER JOIN SCA_GRADECURRICULAR G ON G.COD_GRADECURRICULAR=Tu.COD_GRADECURRICULAR"
-	sql = sql & " INNER JOIN SCA_PERIODO P ON P.COD_PERIODO=G.COD_PERIODO"
-	sql = sql & " INNER JOIN SCA_CURSO CU ON CU.COD_CURSO=P.COD_CURSO"
-	sql = sql & " where c.cod_empresa = " & Session("CodEmpresa")
-	sql = sql & " AND HA.ANOLETIVO = " & strAnoLetivo
-	sql = sql & " AND HA.SEMESTRE in (" & intSemestre & ")"
-	sql = sql & " and d.ano = " & strAnoLetivo
-	sql = sql & " and HA.Cod_Colaborador =  " & intCodColaborador
-	sql = sql & " and h.CodTurno =  " & intCodTurno
-	sql = sql & " and e.letivo='S' " 
-	sql = sql & " order by di.desc_disciplina, ha.Cod_turma, d.ano, d.mes, d.dia_mes"
-	if session("usuarioWeb") = "SERGIO" then
-		'response.write sql
 	end if
-	RS.OPEN SQL, cnn
-	IF NOT RS.EOF THEN
-		numero_aula = 1
-		ja_imprimiu_turma = "N"
-		mostraMensagemNaoliberado = ""
-									
-		controle = 0
-		while not rs.eof
-			strDataAula = formataDataAp(rs("dia_mes") & "/" & rs("mes") & "/" & rs("ano"))
-			strDataAulaTela = mid(strDataAula,1,5)
-			codigoPlanejamentoProf = 0
-			if trim(rs("mes")) = trim(strMes) and trim(rs("cod_disciplina")) = trim(intCodDisciplina) and trim(rs("cod_turma")) = trim(intCodTurmaTela) then
-				intQtdeAulasPrevista = intQtdeAulasPrevista + 1
-			end if
-			controle 		= 1
-			cod_disciplina 	= trim(rs("cod_disciplina"))
-			Cod_Turma 		= trim(rs("Cod_Turma"))
-			numero_aula 	= numero_aula + 1
-
-			codCursoAux = rs("cod_curso")
-			cursoAux = rs("curso")
-			codPeriodoAux = rs("cod_periodo")
-			periodoAux = rs("periodo")
-			codDisciplinaAux = rs("cod_disciplina")
-			disciplinaAux = rs("disciplina")
-			turmaAux = rs("turma")
-
-			mesAula = rs("mes")											
-			
-			rs.movenext
-			if not rs.eof then
-				codigoProximaDisciplina = rs("cod_disciplina")
-				codigoProximaTurma = rs("cod_turma")
-			else
-				codigoProximaTurma = ""
-				codigoProximaDisciplina = ""
-			end if
-			if trim(Cod_Turma) = trim(intCodTurma) then
-				if (trim(codigoProximaTurma) <> trim(Cod_Turma)) or (trim(codigoProximaDisciplina) <> cod_disciplina)  then
-					buscaAulasExtrasTurma cod_disciplina, Cod_Turma, strAnoLetivo, intCodTurno,codCursoAux, cursoAux, codPeriodoAux, periodoAux, codDisciplinaAux, disciplinaAux, turmaAux
-				end if
-			end if
-			
-		wend
-	end if
-	rs.close
 	
-	'------------------------------------------------------------------------------
-	'----------------------FIM DA BUSCA DE AULAS PREVISTAS ------------------------
-	'------------------------------------------------------------------------------
+	if strArquivoPlanejamentoEnviado = "N" then
+		sql = " select distinct DAY(CM.data_aula), CM.data_aula from dbo.SCA_CONTEUDO_MINISTRADO_PROFESSOR CM" 
+		sql = sql & " inner join SCA_PLANEJAMENTO_PROFESSOR pp on cm.cod_planejamento_professor = pp.cod_planejamento_professor"	
+		sql = sql & " where pp.Cod_turma = " & intCodTurma	
+		IF intCodDisciplina<>"0" THEN
+			sql = sql & " and pp.Cod_Disciplina = " & intCodDisciplina
+		end if
+		sql = sql & " and cm.data_aula >= '" & strDataIniMes & "'"
+		sql = sql & " and cm.data_aula < '" & strDataFimMesSQL & "'"
+		sql = sql & " and pp.Cod_Empresa = " & Session("CodEmpresa")
+		sql = sql & " order by DAY(cm.data_aula) "
+		rsAux1.open sql, cnn, 3, 3
+		if not rsAux1.eof then
+			vetAux1 = rsAux1.getRows
+			existeLancamentoParaCriarCab = "S"
+		end if
+		rsAux1.close
+	end if
+	
+	if existeLancamentoParaCriarCab = "N" then
+		sql = "SELECT distinct	d.dia_mes"
+		sql = sql & " from sca_calendario_dia_ue d "
+		sql = sql & " inner join sca_calendario_ue c on c.cod_calendario_ue = d.cod_calendario_ue "
+		sql = sql & " inner join sca_calendario_evento e on e.cod_calendario_evento = d.cod_calendario_evento "
+		sql = sql & " inner join SCA_HORARIO_AULA HA on ha.AnoLetivo = d.ano and ha.DiaSemana = d.dia_semana and HA.COD_EMPRESA = c.cod_empresa "
+		sql = sql & " inner join SCA_HORARIO H ON H.codigo = HA.COD_HORARIO and h.cod_empresa = ha.Cod_Empresa "
+		sql = sql & " inner join SCA_TURMA tu on tu.Cod_Turma = ha.Cod_turma "
+		sql = sql & " inner join SCA_DISCIPLINA di on di.Cod_Disciplina = ha.Cod_Disciplina "
+		sql = sql & " INNER JOIN SCA_GRADECURRICULAR G ON G.COD_GRADECURRICULAR=Tu.COD_GRADECURRICULAR "
+		sql = sql & " INNER JOIN SCA_PERIODO P ON P.COD_PERIODO=G.COD_PERIODO "
+		sql = sql & " INNER JOIN SCA_CURSO CU ON CU.COD_CURSO=P.COD_CURSO "
+		sql = sql & " where c.cod_empresa = " & Session("CodEmpresa") 
+		sql = sql & " AND c.COD_CURSO = " & intCodCurso
+		sql = sql & " AND HA.ANOLETIVO = " & cInt(strAnoLetivo)
+		if intCodColaborador<>"" and intCodColaborador<>"0" then
+			sql = sql & " and HA.Cod_Colaborador in (" & intCodColaborador & ")"
+			sql = sql & " and h.CodTurno in (" & intCodTurnoProfessor & ")"
+		end if
+		sql = sql & " and e.letivo='S' "
+		sql = sql & " and d.mes=" & cInt(strMes)
+		sql = sql & " and cu.Cod_curso = " & intCodCurso
+		sql = sql & " and ha.Cod_turma = " & intCodTurma	
+		IF intCodDisciplina<>"0" THEN
+			sql = sql & " and ha.cod_disciplina = " & intCodDisciplina
+		END IF
+		sql = sql & " order by d.dia_mes"
+		rsAux1.open sql, cnn, 3, 3
+		if not rsAux1.eof then
+			vetAux1 = rsAux1.getRows
+			existeLancamentoParaCriarCab = "S"
+		end if
+		rsAux1.close
+	end if
+	
+	 '------------------------------------------------------------------------------
+	 '----------------------INICIO DA BUSCA DE AULAS PREVISTAS ---------------------
+	 '------------------------------------------------------------------------------
+	
+	 function buscaAulasExtrasTurma(cod_disciplina, Cod_Turma, strAnoLetivo, intCodTurno, codCursoAux, cursoAux, codPeriodoAux, periodoAux, codDisciplinaAux, disciplinaAux, turmaAux)
+
+		 '==============================================================
+		 ' OTIMIZACAO: uma unica consulta para todas as aulas extras.
+		 ' Antes: 1 SELECT para listar extras + 1 SELECT por aula extra.
+		 ' Agora: COUNT sobre as aulas extras que possuem planejamento.
+		 '==============================================================
+		 sql = "SELECT COUNT(*) AS qtde"
+		 sql = sql & " FROM ("
+		 sql = sql & "   SELECT DISTINCT E.DataLancamento, E.Sequencia"
+		 sql = sql & "   FROM SCA_HORARIO_AULA_EXTRA E"
+		 sql = sql & "   WHERE E.DataLancamento >= '" & strDataIniMes & "'"
+		 sql = sql & "     AND E.DataLancamento < '" & strDataFimMesSQL & "'"
+		 sql = sql & "     AND E.Cod_Turma = " & Cod_Turma
+		 if intCodDisciplina <> "0" then
+			 sql = sql & " AND E.Cod_Disciplina = " & cod_disciplina
+		 end if
+		 sql = sql & "     AND E.Cod_Empresa = " & Session("CodEmpresa")
+		 sql = sql & "     AND E.AnoLetivo = " & strAnoLetivo
+		 sql = sql & "     AND EXISTS ("
+		 sql = sql & "       SELECT 1"
+		 sql = sql & "       FROM SCA_PLANEJAMENTO_PROFESSOR P"
+		 sql = sql & "       WHERE P.numero_aula IS NULL"
+		 sql = sql & "         AND P.cod_turma = E.Cod_Turma"
+		 sql = sql & "         AND P.anoLetivo = E.AnoLetivo"
+		 sql = sql & "         AND P.cod_turno = " & intCodTurno
+		 sql = sql & "         AND P.data_aula_extra = E.DataLancamento"
+		 if intCodDisciplina <> "0" then
+			 sql = sql & " AND P.cod_disciplina = E.Cod_Disciplina"
+		 end if
+		 sql = sql & "     )"
+		 sql = sql & " ) X"
+
+		 rsAux.open sql, cnn, 3, 1
+		 if not rsAux.eof then
+			 if not IsNull(rsAux("qtde")) then
+				 intQtdeAulasPrevista = intQtdeAulasPrevista + CLng(rsAux("qtde"))
+			 end if
+		 end if
+		 rsAux.close
+
+	 end function
+
+
+	intQtdeAulasPrevista = 0
+	
+	if cint(intCodCurso)=1 or cint(intCodCurso)=2 then
+		sql="SELECT MES, COUNT(*) AS QTDE"
+		sql=sql & " from sca_calendario_dia_ue d"
+		sql=sql & " inner join sca_calendario_ue c on c.cod_calendario_ue = d.cod_calendario_ue"
+		sql=sql & " inner join sca_calendario_evento e on e.cod_calendario_evento = d.cod_calendario_evento"
+		sql=sql & " where c.cod_empresa =" & Session("CodEmpresa")
+		sql=sql & " and d.ano =" & strAnoLetivo
+		sql=sql & " AND d.mes=" & CInt(strMes)
+		sql=sql & " and e.letivo = 'S'"
+		sql=sql & " and d.cod_calendario_ue IN ("
+		sql=sql & " 	select cod_calendario_ue"
+		sql=sql & " 	from sca_calendario_ue cue"
+		sql=sql & " 	inner join sca_calendario c"
+		sql=sql & " 		on cue.cod_calendario_geral = c.cod_calendario"
+		sql=sql & " 		and cue.ano_letivo = c.ano_letivo"
+		sql=sql & " 	where cue.cod_curso =" & intCodCurso
+		sql=sql & " 	and cue.ano_letivo =" & strAnoLetivo
+		sql=sql & " 	and cue.situacao = 'A'"
+		sql=sql & " 	and cod_empresa =" & Session("CodEmpresa")
+		sql=sql & ")"
+		sql=sql & " GROUP BY MES"
+		rs.open sql, cnn, 3, 1
+		if rs.eof = false Then
+			intQtdeAulasPrevista = rs("QTDE")
+		end if
+		rs.close
+	else
+
+		 '==============================================================
+		 ' OTIMIZACAO: o banco retorna somente a quantidade de aulas
+		 ' previstas para MES + TURMA + DISCIPLINA atuais.
+		 ' Antes o ASP carregava e percorria o calendario de varias turmas,
+		 ' disciplinas e meses apenas para efetuar essa contagem.
+		 '==============================================================
+		 sql = "SELECT COUNT(*) AS qtde_aulas_previstas"
+		 sql = sql & " FROM sca_calendario_dia_ue d"
+		 sql = sql & " INNER JOIN sca_calendario_ue c ON c.cod_calendario_ue = d.cod_calendario_ue"
+		 sql = sql & " INNER JOIN sca_calendario_evento e ON e.cod_calendario_evento = d.cod_calendario_evento"
+		 sql = sql & " INNER JOIN SCA_HORARIO_AULA HA ON ha.AnoLetivo = d.ano AND ha.DiaSemana = d.dia_semana AND HA.COD_EMPRESA = c.cod_empresa"
+		 sql = sql & " INNER JOIN SCA_HORARIO H ON H.codigo = HA.COD_HORARIO AND h.cod_empresa = ha.Cod_Empresa"
+		 sql = sql & " INNER JOIN SCA_TURMA tu ON tu.Cod_Turma = ha.Cod_turma"
+		 sql = sql & " INNER JOIN SCA_GRADECURRICULAR G ON G.COD_GRADECURRICULAR = Tu.COD_GRADECURRICULAR"
+		 sql = sql & " INNER JOIN SCA_PERIODO P ON P.COD_PERIODO = G.COD_PERIODO"
+		 sql = sql & " INNER JOIN SCA_CURSO CU ON CU.COD_CURSO = P.COD_CURSO"
+		 sql = sql & " INNER JOIN SCA_DISCIPLINA DI ON DI.Cod_Disciplina = HA.Cod_Disciplina AND DI.documento_oficial = 'S'"
+		 sql = sql & " WHERE c.cod_empresa = " & Session("CodEmpresa")
+		 sql = sql & " AND c.COD_CURSO = " & intCodCurso
+		 sql = sql & " AND HA.ANOLETIVO = " & strAnoLetivo
+		 sql = sql & " AND HA.SEMESTRE IN (" & intSemestre & ")"
+		 sql = sql & " AND d.ano = " & strAnoLetivo
+		 sql = sql & " AND d.mes = " & CInt(strMes)
+		 sql = sql & " AND HA.Cod_Colaborador IN (" & intCodColaborador & ")"
+		 sql = sql & " AND h.CodTurno = " & intCodTurno
+		 sql = sql & " AND e.letivo = 'S'"
+		 sql = sql & " AND HA.Cod_turma = " & intCodTurma
+		 if intCodDisciplina <> "0" then
+			 sql = sql & " AND HA.Cod_Disciplina = " & intCodDisciplina
+		 end if
+		'response.write sql
+		 rs.open sql, cnn, 3, 1
+		 if not rs.eof then
+			 if not IsNull(rs("qtde_aulas_previstas")) then
+				 intQtdeAulasPrevista = CLng(rs("qtde_aulas_previstas"))
+			 end if
+		 end if
+		 rs.close
+
+		 'Acrescenta as aulas extras da mesma turma/disciplina.
+		 buscaAulasExtrasTurma intCodDisciplina, intCodTurma, strAnoLetivo, intCodTurno, 0, "", 0, "", intCodDisciplina, "", ""
+	end if
+
+	
+
+
+
+	' '------------------------------------------------------------------------------
+	' '----------------------FIM DA BUSCA DE AULAS PREVISTAS ------------------------
+	' '------------------------------------------------------------------------------
+	
+	
+	
+	
+	
+	
 	
 %>
 <table width="98%" align="center" height="355" border="0"  class="CorFundo" cellpadding="0" cellspacing="0">
@@ -332,25 +495,32 @@ Server.ScriptTimeout = 1200
 		<input type="HIDDEN" name="txtData" value="<%=strData%>">
 		           <!--#include file="includes/inc_cabecalhoRelatorio.asp"-->
 		  <%
-			sql = "SELECT TU.NOMETURMA, TU.TURMAALUNO, TU.ANO, TU.ANOLETIVO, T.DESC_TURNO "
+			sql = "SELECT TU.NOMETURMA, TU.TURMAALUNO, TU.ANO, TU.ANOLETIVO, T.DESC_TURNO, P.DESCRICAO AS PERIODO "
 			sql = sql & " FROM SCA_TURMA TU"
+			sql = sql & " INNER JOIN SCA_PERIODO P ON P.COD_PERIODO = TU.COD_PERIODO"
 			sql = sql & " INNER JOIN SCA_TURNO T ON T.COD_TURNO = TU.COD_TURNO "
 			sql = sql & " WHERE	TU.COD_EMPRESA = " & Session("CodEmpresa") 
 			sql = sql & " AND	TU.COD_TURMA = " & intCodTurma
 			rs.open sql, cnn
 			if not rs.eof then
+				strDescTurno = RS("DESC_TURNO")
+				strDescPeriodo = rs("periodo")
+				strDescTurmaAluno = rs("TURMAALUNO")
+				strDescTurma = rs("NOMETURMA")
+				
 		  %>
 		  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="tabela">
             <tr bgcolor="#E5E5E5">
-              <td width="6%" height="24" class="celula">&nbsp;<strong>Turma:</strong></td>
-          		<td width="12%" class="celula"><%=RS("TURMAALUNO")%>&nbsp;&nbsp;<%=RS("NOMETURMA")%></td>
+              <td width="3%" height="24" class="celula">&nbsp;<strong>Turma:</strong></td>
+          	  <td width="13%" class="celula">&nbsp;<strong><%=rs("periodo")%>&nbsp;-&nbsp;<%=rs("TURMAALUNO")%>&nbsp;&nbsp;<%=rs("NOMETURMA")%></strong></td>
               <td width="7%" class="celula">&nbsp;<strong>Disciplina:</strong></td>
-              <td width="23%" class="celula"><%if strNomedisciplina="" then%>Todas do Hor&aacute;rio<%else%><%=strNomedisciplina%><%end if%>&nbsp;</td>
-              <td width="12%" class="celula">&nbsp;<strong>Turno:</strong></td>
-              <td width="12%" class="celula">&nbsp;<%=RS("DESC_TURNO")%></td>
-              	  <td width="7%" class="celula">&nbsp;<strong>Professor(a):</strong></td>
-                  <td width="21%" class="celula">&nbsp;<%=strProfessor%></td>
-               
+              <td width="77%" class="celula">&nbsp;<%if strNomedisciplina="" then%>Todas do Hor&aacute;rio<%else%><%=strNomedisciplina%><%end if%>&nbsp;</td>
+            </tr>
+			<tr bgcolor="#E5E5E5">
+              <td width="3%" height="24"  class="celula">&nbsp;<strong>Turno:</strong></td>
+              <td width="13%" class="celula">&nbsp;<%=RS("DESC_TURNO")%></td>
+              <td width="7%" class="celula">&nbsp;<strong>Professor(a):</strong></td>
+              <td width="77%" class="celula">&nbsp;<%=strProfessor%></td>
             </tr>
           </table>
 		  <%
@@ -374,20 +544,34 @@ Server.ScriptTimeout = 1200
 				sql = sql & " AD.COD_TURMA_REMANEJAMENTO AS COD_TURMA, "
 				sql = sql & " A.NOMEALUNO, "
 				sql = sql & " A.MATRICULA, "
-				sql = sql & " SA.DESC_SITUACAOALUNO "
-				sql = sql & " FROM SCA_ALUNO_DISCIPLINA AD INNER JOIN " 
-				sql = sql & " SCA_ALUNO A ON A.CODIGO = AD.COD_ALUNO  INNER JOIN "
-				sql = sql & " SCA_SITUACAOALUNO SA ON SA.Cod_SituacaoAluno = A.COD_SITUACAOALUNO "
-				
+				sql = sql & " SIT.DESC_SITUACAOALUNO, SIT.DATA_SITUACAO "
+				sql = sql & " FROM SCA_ALUNO_DISCIPLINA AD " 
+				sql = sql & " INNER JOIN SCA_ALUNO A ON A.CODIGO = AD.COD_ALUNO "
+
+				'--------------------------------------------------------
+				'-- Recupera apenas a última situação do aluno
+				'--------------------------------------------------------
+				sql = sql & " OUTER APPLY"
+				sql = sql & " ("
+				sql = sql & " 	SELECT TOP 1"
+				sql = sql & " 		SS.Desc_SituacaoAluno, CS.DATA_SITUACAO"
+				sql = sql & " 	FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
+				sql = sql & " 	INNER JOIN SCA_SITUACAOALUNO SS"
+				sql = sql & " 		ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
+				sql = sql & " 	WHERE CS.COD_EMPRESA = AD.COD_EMPRESA"
+				sql = sql & " 		AND CS.COD_ALUNO   = AD.COD_ALUNO"
+				sql = sql & " 		AND CS.ANO_LETIVO  = " & strAnoLetivo
+				sql = sql & " 	ORDER BY CS.CODIGO DESC"
+				sql = sql & " ) SIT"
 				sql = sql & " WHERE AD.COD_EMPRESA = " & Session("CodEmpresa")
-					
-				sql = sql & " AND AD.COD_TURMA_REMANEJAMENTO = " & intCodTurma	
+				'Inclui os alunos remanejados desta turma (marcação "rem. p/ ...")
+				sql = sql & " AND " & remFiltroTurmaAD("AD", intCodTurma)
 				sql = sql & " AND AD.COD_ALUNO in (" & strAlunos & ") "
 				sql = sql & " ORDER BY A.NOMEALUNO "
 
 			else   
 			   'seleciona os alunos pelo ano e semestres do histórico 			
-			   sql = " select DISTINCT A.CODIGO, AT.COD_TURMA, HED.COD_DISCIPLINA, A.NOMEALUNO, A.MATRICULA,  '' AS SEQUENCIA, SA.DESC_SITUACAOALUNO "
+			   sql = " select DISTINCT A.CODIGO, AT.COD_TURMA, HED.COD_DISCIPLINA, A.NOMEALUNO, A.MATRICULA,  '' AS SEQUENCIA, SA.DESC_SITUACAOALUNO, '' AS DATA_SITUACAO "
 			   sql = sql & " from SCA_HISTORICO_ESCOLAR_DISCIPLINA HED "
 			   sql = sql & " INNER JOIN SCA_HISTORICO_ESCOLAR HE ON HE.CODIGO = HED.COD_HISTORICO_ESCOLAR "
 			   sql = sql & " INNER JOIN SCA_ALUNO A ON A.CODIGO = HE.COD_ALUNO" 'AND A.COD_EMPRESA = HE.COD_EMPRESA "
@@ -401,19 +585,114 @@ Server.ScriptTimeout = 1200
 			   sql = sql & " AND A.CODIGO in (" & strAlunos & ") "
 			   sql = sql & " ORDER BY NOMEALUNO "
 			end if
+			
+			'response.write sql
+			'==============================================================
+			' OTIMIZACAO: carrega todas as faltas do mes em memoria
+			' Evita uma consulta SQL para cada ALUNO x DIA.
+			'==============================================================
+			sqlAlunos = sql
+			Set dicFaltas = Server.CreateObject("Scripting.Dictionary")
+			Set dicFaltasQtd = Server.CreateObject("Scripting.Dictionary")
+
+			strDataIniFaltas = strAnoLetivo & Right("0" & strMes, 2) & "01"
+			sql = " SELECT DISTINCT cod_aluno, data, falta"
+			sql = sql & " FROM SCA_FALTAS_DIARIA"
+			sql = sql & " WHERE cod_empresa = " & Session("CodEmpresa")
+			sql = sql & " AND cod_aluno IN (" & strAlunos & ")"
+			sql = sql & " AND data >= '" & strDataIniFaltas & "'"
+			sql = sql & " AND data < DATEADD(MONTH, 1, '" & strDataIniFaltas & "')"
+			if intCodDisciplina <> "0" then
+				sql = sql & " AND cod_disciplina = " & intCodDisciplina
+			end if
+
+			rsAux.open sql, cnn
+			do while not rsAux.eof
+				chaveFalta = CStr(rsAux("cod_aluno")) & "|" & _
+					Year(rsAux("data")) & Right("0" & Month(rsAux("data")), 2) & Right("0" & Day(rsAux("data")), 2)
+				valorFalta = 0
+				if not isNull(rsAux("falta")) then valorFalta = CDbl(rsAux("falta"))
+				if dicFaltas.Exists(chaveFalta) then
+					dicFaltas(chaveFalta) = dicFaltas(chaveFalta) + valorFalta
+					dicFaltasQtd(chaveFalta) = dicFaltasQtd(chaveFalta) + 1
+				else
+					dicFaltas.Add chaveFalta, valorFalta
+					dicFaltasQtd.Add chaveFalta, 1
+				end if
+				rsAux.movenext
+			loop
+			rsAux.close
+
+			'==============================================================
+			' JUSTIFICATIVAS DE FALTAS - carregadas uma unica vez em memoria
+			' Periodos 6 a 9: ALUNO + DATA + DISCIPLINA
+			' Demais periodos: ALUNO + DATA
+			' Somente considera justificativa quando existe falta real.
+			'==============================================================
+			Set dicFaltasJustificadas = Server.CreateObject("Scripting.Dictionary")
+
+			'Dias com falta real usados para validar a justificativa:
+			'	periodos 6 a 9: os da disciplina (dicFaltas, ja filtrado pela disciplina)
+			'	demais periodos: qualquer falta do aluno no dia (qualquer disciplina)
+			if CInt(intCodPeriodo) >= 6 and CInt(intCodPeriodo) <= 9 then
+				Set dicDiaComFalta = dicFaltas
+			else
+				Set dicDiaComFalta = Server.CreateObject("Scripting.Dictionary")
+				sql = " SELECT DISTINCT cod_aluno, data"
+				sql = sql & " FROM SCA_FALTAS_DIARIA"
+				sql = sql & " WHERE cod_empresa = " & Session("CodEmpresa")
+				sql = sql & " AND cod_aluno IN (" & strAlunos & ")"
+				sql = sql & " AND data >= '" & strDataIniFaltas & "'"
+				sql = sql & " AND data < DATEADD(MONTH, 1, '" & strDataIniFaltas & "')"
+				rsAux.open sql, cnn
+				do while not rsAux.eof
+					chaveDia = CStr(rsAux("cod_aluno")) & "|" & Year(rsAux("data")) & Right("0" & Month(rsAux("data")), 2) & Right("0" & Day(rsAux("data")), 2)
+					if not dicDiaComFalta.Exists(chaveDia) then dicDiaComFalta.Add chaveDia, True
+					rsAux.movenext
+				loop
+				rsAux.close
+			end if
+
+			'OTIMIZACAO: a "falta real" é conferida em memória (dicDiaComFalta),
+			'sem o JOIN com SCA_FALTAS_DIARIA por CAST(data), que estourava o tempo em turmas grandes
+			sql = " SELECT DISTINCT J.cod_aluno, CAST(D.DataFalta AS DATE) AS DataFalta"
+			sql = sql & " FROM SCA_ALUNO_JUSTIFICATIVA_FALTAS J"
+			sql = sql & " INNER JOIN SCA_ALUNO_JUSTIFICATIVA_FALTAS_DIARIA D ON D.cod_aluno_justificativa_faltas = J.codigo"
+			sql = sql & " WHERE J.cod_empresa = " & Session("CodEmpresa")
+			sql = sql & " AND J.ano_letivo = " & strAnoLetivo
+			sql = sql & " AND J.Cod_turma = " & intCodTurma
+			sql = sql & " AND J.cod_aluno IN (" & strAlunos & ")"
+			sql = sql & " AND D.DataFalta >= '" & strDataIniFaltas & "'"
+			sql = sql & " AND D.DataFalta < DATEADD(MONTH, 1, '" & strDataIniFaltas & "')"
+			if CInt(intCodPeriodo) >= 6 and CInt(intCodPeriodo) <= 9 and intCodDisciplina <> "0" then
+				sql = sql & " AND ISNULL(D.cod_disciplina,0) = " & intCodDisciplina
+			end if
+			rsAux.open sql, cnn
+			do while not rsAux.eof
+				chaveJustificada = CStr(rsAux("cod_aluno")) & "|" & Year(rsAux("DataFalta")) & Right("0" & Month(rsAux("DataFalta")), 2) & Right("0" & Day(rsAux("DataFalta")), 2)
+				'Somente considera justificativa quando existe falta real (lançada em SCA_FALTAS_DIARIA no mês)
+				if dicDiaComFalta.Exists(chaveJustificada) and not dicFaltasJustificadas.Exists(chaveJustificada) then dicFaltasJustificadas.Add chaveJustificada, True
+				rsAux.movenext
+			loop
+			rsAux.close
+
+			'Remanejamentos da turma (origem: "rem. p/ ..." | destino: "rem. de ...")
+			set dicRemanejamento = remCarregaTurma(intCodTurma, strAnoLetivo)
+
+			sql = sqlAlunos
 			rs.open sql, cnn
 			%>		  
 		  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="tabela">
           <tr bgcolor="#E5E5E5">
             <td colspan="2" rowspan="2" align="center" class="celula"><strong><%=ucase(monthName(strMes))%></strong></td>
-            <td height="24"  colspan="31" align="center" class="celula"><strong><%=ucase(strNomeTipoBimestre)%></strong></td>
+            <td height="24"  colspan="32" align="center" class="celula"><strong><%=ucase(strNomeTipoBimestre)%></strong></td>
             </tr>
           <tr bgcolor="#E5E5E5">
-            <td height="24" colspan="31" align="center" class="celula"><strong>FALTA&nbsp;<%=strNomeNota%></strong></td>
+            <td height="24" colspan="32" align="center" class="celula"><strong>FALTA&nbsp;<%=strNomeNota%></strong></td>
           </tr>
           <tr bgcolor="#E5E5E5">
             <td height="19" class="celula"><div align="center"><strong>Matr&iacute;cula</strong></div></td>
-            <td class="celula"><div align="center"><strong>Nome do Aluno</strong></div></td>
+            <td class="celula"><div align="center"><strong>Nome do Aluno </strong></div></td>
             
 			<%
 			if isArray(vetAux1) then
@@ -425,7 +704,8 @@ Server.ScriptTimeout = 1200
 				next	
 
 				%>
-            	<td class="celula" align="center"><strong>Tot.Fal</strong></td>
+            	<td class="celula" align="center"><strong>Jus.</strong></td>
+            	<td class="celula" align="center"><strong>Fal.</strong></td>
             	</tr>
 		  		<%
 
@@ -434,15 +714,18 @@ Server.ScriptTimeout = 1200
 		  while not rs.eof
 		  		contLanc = contLanc + 1
 				strCodAluno = RS("CODIGO")
-				
+				DESC_SITUACAOALUNO = "&nbsp;<span style='font-size: 9px; color: red;'>" & RS("DESC_SITUACAOALUNO") & "&nbsp;" & FORMATADATAAP(RS("DATA_SITUACAO")) & "</span>"
+				strDataSituacaoAluno = RS("DATA_SITUACAO")
+				IF RS("DESC_SITUACAOALUNO")="ATIVO" THEN DESC_SITUACAOALUNO = ""
 				  %>
 				  <tr>
 					<td class="celula" width="6%"><div align="center"><%=rs("MATRICULA")%>
 					    <input type="hidden" name="txtCodAluno_<%=contLanc%>" value="<%=rs("CODIGO")%>">
 			        </div></td>
-					<td class="celula" width="67%">&nbsp;<%=rs("NOMEALUNO") %></td>
+					<td class="celula" width="67%">&nbsp;<%=rs("NOMEALUNO") %><%=DESC_SITUACAOALUNO%><%=remMarcacaoHtml(dicRemanejamento, strCodAluno)%></td>
                     <%
 					AcumuladaFalta = 0
+					AcumuladaFaltaJustificada = 0
 					if isArray(vetAux1) then
 						for j=0 to ubound(vetAux1,2)
 							
@@ -450,73 +733,70 @@ Server.ScriptTimeout = 1200
 							strData = strAnoLetivo & "/" & ZeroLeft(strMes,2) & "/" & ZeroLeft(diaConteudo,0)
                             diaSemana = weekday(strData)
 							strCorPodeFazerAvaliacao = ""
+							strStyleJustificativa = ""
 							bolFalta = false
 							selecionado = "0"
+							mostraPresenca = "S"
 							
-							' Consulta a quantidade de Faltas
-							sql = " select cod_aluno, cod_disciplina, falta "
-							sql = sql & " from SCA_FALTAS_DIARIA "
-							sql = sql & " where cod_aluno = " & strCodAluno 
-							sql = sql & " And cod_empresa = " & Session("CodEmpresa")
-							sql = sql & " And data = '" & strData & "'"
-							sql = sql & " and cod_disciplina = " & intCodDisciplina
-							rsAux.open sql, cnn	
-							if not rsAux.eof then
-								while not rsAux.eof
-									falta = rsAux("falta")
-									if strNomedisciplina = "INTERDISCIPLINAR" then 
-										falta = 1
-										selecionado = falta
-									else
-										selecionado = selecionado + falta
-									end if
-									AcumuladaFalta = AcumuladaFalta + falta
-									bolFalta = true
-									rsAux.movenext
-								wend
-							else
-								sql = " SELECT count(cod_turma) as total from SCA_HORARIO_AULA "
-								sql = sql & " where cod_empresa = " & Session("CodEmpresa")
-								sql = sql & " and cod_turma = " & intCodTurma
-								sql = sql & " and anoLetivo = " & strAnoLetivo
-								sql = sql & " and semestre = " & intSemestre
-								sql = sql & " and Cod_Disciplina = " & intCodDisciplina
-								sql = sql & " and diasemana = " & trim(diaSemana)
-								rs1.OPEN SQL, CNN
-								IF NOT rs1.EOF THEN
-									TotalMatriz = rs1("total")
-									if isnull(rs1("total")) or trim(rs1("total"))="0"  then
-									   TotalMatriz = "0"
-									end if   
-								END IF
-								rs1.close
-								if TotalMatriz <> "0" and TotalMatriz <> "" then
-								   	i=1
-									selecionado = ""
-									do while i <= clng(TotalMatriz)
-										if diaSemana=7 then
-											selecionado = "S.L."	
-										else
-											selecionado = selecionado & "."
-										end if
-										i = i + 1
-									loop
-								else
-									if diaSemana=7 then
-										selecionado = "S.L."	
-									else
-										selecionado = "."	
-									end if
-								end if	
+							if strDataSituacaoAluno<>"" and DESC_SITUACAOALUNO<>"" then
+							'verifica o dia da transferencia para não mostrar "." no Diário
+								'if session("usuarioWeb") = "SERGIO" then
+								'response.write "<br>strData:" & ConverteData(formataDataBD(strData))
+								'response.write "<br>strDataSituacaoAluno:" & ConverteData(formataDataBD(strDataSituacaoAluno))
+								'end if
+							
+								If ConverteData(formataDataBD(strData)) > ConverteData(formataDataBD(strDataSituacaoAluno)) Then
+									mostraPresenca = "N"
+								end if
 							end if
-							rsAux.close
+
+							'Remanejamento: na origem não mostra os dias a partir da data; no destino, os dias anteriores
+							if remDiaForaDaTurma(dicRemanejamento, strCodAluno, strData) then
+								mostraPresenca = "N"
+							end if
+							
+							IF mostraPresenca = "S" THEN
+								'OTIMIZADO: faltas carregadas previamente em memória.
+								chaveFalta = CStr(strCodAluno) & "|" & strAnoLetivo & Right("0" & strMes, 2) & Right("0" & diaConteudo, 2)
+								if dicFaltas.Exists(chaveFalta) then
+									bolFalta = true
+
+									'Na versão atual do relatório, qualquer falta é exibida como "F".
+									selecionado = "F"
+
+									'Preserva exatamente a regra atual de totalização:
+									'INTERDISCIPLINAR conta 1 para cada registro distinto encontrado;
+									'nas demais disciplinas soma o campo falta.
+									if strNomedisciplina = "INTERDISCIPLINAR" then
+										AcumuladaFalta = AcumuladaFalta + dicFaltasQtd(chaveFalta)
+									else
+										AcumuladaFalta = AcumuladaFalta + dicFaltas(chaveFalta)
+									end if
+
+									'Fundo verde e total de justificadas somente quando ha falta real neste dia.
+									if dicFaltasJustificadas.Exists(chaveFalta) then
+										AcumuladaFaltaJustificada = AcumuladaFaltaJustificada + 1
+										strStyleJustificativa = " style=""background-color:#d9ead3;"""
+									end if
+								else
+									if diaSemana = 7 then
+										selecionado = "S.L."
+									else
+										selecionado = "."
+									end if
+								end if
+							ELSE
+								selecionado = "&nbsp;"
+							END IF
 							%>
-							<td class="celula" width="1%" align="center"><%=selecionado%></td>
+							<td class="celula" width="1%" align="center"<%=strStyleJustificativa%>><%=selecionado%></td>
 							<%
 						next
 					end if	
+					if AcumuladaFaltaJustificada = 0 then AcumuladaFaltaJustificada = ""
 					if AcumuladaFalta = 0 then AcumuladaFalta = ""
 					%>
+ 					<td class="celula" width="1%" align="center"><%=AcumuladaFaltaJustificada%>&nbsp;</td>
  					<td class="celula" width="1%" align="center"><%=AcumuladaFalta%>&nbsp;</td>
                 </tr>
 			  <%
@@ -531,11 +811,9 @@ Server.ScriptTimeout = 1200
 		<input type="hidden" name="cmbPeriodo" value="<%=intCodPeriodo%>">
 		<input type="hidden" name="cmbSemestre" value="<%=intSemestre%>">
 		<input type="hidden" name="cmbDisciplinaTurma" value="<%=intCodDisciplina%>">
-		<input type="hidden" name="chkTipoNota" value="<%=intCodTipoNota%>">
 		<input type="hidden" name="cmbTurma" value="<%=intCodTurma%>">
 		<input type="hidden" name="cmbTurno" value="<%=intCodTurno%>">
 		<input type="hidden" name="chkAluno" value="<%=strAlunos%>">
-		<input type="hidden" name="cmbTipoLancamento" value="<%=intCodTipoLancamento%>">
 		<input type="hidden" name="cmbCurso" value="<%=intCodCurso%>">
 
 		 <!--Armazena a média que o aluno deve alcançar para ser aprovado na disciplina-->
@@ -560,23 +838,7 @@ Server.ScriptTimeout = 1200
         <input type="hidden" name="txtHiddenNotaDoTipoEF" value="<%=strNotaDoTipoEF%>">
         <input type="hidden" name="txtQtdeDias" value="<%=qtdeDiasMes%>">
         <input type="hidden" name="cmbMes" value="<%=strMes%>">	
-		<%
 		
-			strParametro = "Rel_DiarioFrequenciaEletronica_con.asp?cmbPeriodo="&intCodPeriodo
-			strParametro = strParametro & "&cmbSemestre="&intSemestre
-			strParametro = strParametro & "&chkTipoNota="&intCodTipoNota
-			strParametro = strParametro & "&cmbTurma="&intCodTurma
-			strParametro = strParametro & "&cmbTurmaProfessor="&intCodTurma
-			strParametro = strParametro & "&chkAluno="&strAlunos
-			strParametro = strParametro & "&cmbTurno="&intCodTurno
-			strParametro = strParametro & "&cmbTipoLancamento="&intCodTipoLancamento	
-			strParametro = strParametro & "&cmbCurso="&intCodCurso	
-			strParametro = strParametro & "&cmbMes="&strMes
-			strParametro = strParametro & "&cmbDisciplinaTurma="&intCodDisciplinaTurma
-			strParametro = strParametro & "&cmbDisciplinaDoProfessor="&intCodDisciplinaTurma
-			
-		
-		%>
 		<div align="center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 		  <input type="hidden" name="txtAnoLetivo" value="<%=strAnoLetivo%>">
 		  <input type="hidden" name="txtSemestre" value="<%=intSemestre%>">
@@ -585,25 +847,27 @@ Server.ScriptTimeout = 1200
 
 			<table width="100%" align="center" class="tabela" border="1" cellspacing="0" cellpadding="0">
 			  <tr>
-				<td width="30%" height="135" align="center" class="celula"><table width="93%" border="0" cellspacing="0" cellpadding="0">
+				<td width="30%" height="135" align="center" class="celula">
+				<table width="93%" border="0" cellspacing="0" cellpadding="0">
 				  <tr>
-					<td height="24">LEGENDA: </td>
+					<td colspan="2" height="24">&nbsp;LEGENDA: </td>
 				  </tr>
 				  <tr>
-					<td width="23%" height="19">&quot;.&quot; (ponto) =Acad&ecirc;mico PRESENTE &agrave; aula do dia.</td>
+					<td colspan="2" width="23%" height="19">&nbsp;&quot;.&quot; (ponto) = Presente na aula do dia;</td>
 				  </tr>
 				  <tr>
-					<td height="17">&quot;N&ordm;&quot; (N&uacute;mero) = Total de Falta.</td>
+					<td colspan="2" height="19">&nbsp;&quot;F&quot; = Falta;</td>
 				  </tr>
 				  <tr>
-					<td height="19">&quot;S.L.&quot; = Sábado letivo.</td>
+					<td colspan="2" height="19">&nbsp;&quot;S.L.&quot; = Sábado letivo;</td>
 				  </tr>
 				  <tr>
-					<td height="31">&nbsp;</td>
+					<td width="1%" height="19" style="background-color:#d9ead3;">&nbsp;&quot;F&quot;</td>
+					<td height="19" > =&nbsp;Falta justificada</td>
 				  </tr>
 				</table></td>
 				<td width="33%" align="center" class="celula" valign="top">
-				
+				<!--
 				<table width="91%" border="0" cellspacing="0" cellpadding="0">
 				  <tr valign="top">
 					<td height="23" align="center">PARA USO DA COORDENAÇÃO </td>
@@ -623,28 +887,118 @@ Server.ScriptTimeout = 1200
 				  <tr>
 					<td height="17" align="center">_________/_________/_________</td>
 				  </tr>
-				</table></td>
-				<td width="37%" align="center" class="celula" valign="top">
+				</table>
+				-->
+				
 				<table width="91%" border="0" cellspacing="0" cellpadding="0">
-				  <tr valign="top">
-					<td height="23">AULAS PREVISTAS: <%=intQtdeAulasPrevista%> </td>
+				  <tr>
+					<td colspan="2" height="40">&nbsp;</td>
 				  </tr>
 				  <tr>
-					<td width="33%" height="23">AULAS MINISTRADAS:  <%=intQtdeAulasMinistradas%></td>
+					<td width="50%" height="23" align="center">
+					  ____________________________
+					</td>
+					<td width="50%" height="23" align="center">
+					  ____________________________
+					</td>
 				  </tr>
 				  <tr>
-					<td height="30">DATA:_________/_________/_________ </td>
+					<td height="23" align="center">COORDENAÇÃO GERAL</td>
+					<td height="23" align="center">COORDENAÇÃO PEDAGÓGICA</td>
 				  </tr>
-				  <tr>
-					<td height="17">&nbsp;</td>
-				  </tr>
-				  <tr>
-					<td height="23"><div align="center">____________________________________</div></td>
-				  </tr>
-				  <tr>
-						<td height="17"><div align="center">VISTO DO PROFESSOR</div></td>
-				  </tr>
-				</table></td>
+				</table>				
+				
+				</td>
+				<td width="37%" align="center" class="celula" valign="top">
+					<!--
+					<table width="91%" border="0" cellspacing="0" cellpadding="0">
+					  <tr valign="top">
+						<td height="23">AULAS PREVISTAS: <%=intQtdeAulasPrevista%> </td>
+					  </tr>
+					  <tr>
+						<td width="33%" height="23">AULAS MINISTRADAS:  <%=intQtdeAulasMinistradas%></td>
+					  </tr>
+					  <tr>
+						<td height="30">DATA:_________/_________/_________ </td>
+					  </tr>
+					  <tr>
+						<td height="17">&nbsp;</td>
+					  </tr>
+					  <tr>
+						<td height="23"><div align="center">____________________________________</div></td>
+					  </tr>
+					  <tr>
+							<td height="17"><div align="center">ASSINATURA DO PROFESSOR</div></td>
+					  </tr>
+					</table>
+				    -->
+					
+					<table width="91%" border="0" cellspacing="0" cellpadding="0">
+					  <tr>
+						<td height="23">AULAS PREVISTAS: <%=intQtdeAulasPrevista%></td>
+					  </tr>
+					  <tr>
+						<td height="23">AULAS MINISTRADAS: <%=intQtdeAulasMinistradas%></td>
+					  </tr>
+					  <tr>
+						<td height="30">DATA:_________/_________/_________</td>
+					  </tr>
+					  <tr>
+						<td height="35">&nbsp;</td>
+					  </tr>
+					  <tr>
+						<td>
+						  <%
+						  Dim arrProfessores, nomeProfessor, iProfessor
+						  Dim dicProfessores, chaveProfessor
+
+						  Set dicProfessores = Server.CreateObject("Scripting.Dictionary")
+						  dicProfessores.CompareMode = 1 ' Ignora maiúsculas/minúsculas
+
+						  If Not IsNull(strProfessor) Then
+							arrProfessores = Split(strProfessor, "|")
+
+							For iProfessor = 0 To UBound(arrProfessores)
+							  nomeProfessor = Trim(arrProfessores(iProfessor))
+
+							  If nomeProfessor <> "" Then
+								If Not dicProfessores.Exists(nomeProfessor) Then
+								  dicProfessores.Add nomeProfessor, nomeProfessor
+								End If
+							  End If
+							Next
+						  End If
+
+						  If dicProfessores.Count > 0 Then
+						  %>
+						  <table width="100%" border="0" cellspacing="0" cellpadding="0"
+								 style="table-layout: fixed;">
+							<tr valign="top">
+							  <%
+							  For Each chaveProfessor In dicProfessores.Keys
+							  %>
+							  <td align="center" style="padding: 0 10px;">
+								<div style="width: 90%; border-top: 1px solid #000;
+											padding-top: 5px; overflow-wrap: break-word;">
+								  <%=Server.HTMLEncode(dicProfessores(chaveProfessor))%>
+								</div>
+							  </td>
+							  <%
+							  Next
+							  %>
+							</tr>
+						  </table>
+						  <%
+						  End If
+
+						  Set dicProfessores = Nothing
+						  %>
+						</td>
+					  </tr>
+					</table>
+
+					
+				</td>
 			  </tr>
 			</table>
 
@@ -670,22 +1024,25 @@ Server.ScriptTimeout = 1200
 	%>
 	<!--#include file="includes/inc_cabecalhoRelatorio.asp"-->
 	<br>
+	
     <table width="100%" cellspacing="0" cellpadding="0" class="tabela">
 	  <tr>
-		<td width="100px" align="left" class="celula"><strong>Curso:</strong> <%=strCurso%></td>
-		<td width="100px" align="left" class="celula"><strong>Período:</strong> <%=strPeriodo%></td>
-		<%if strTurno<>"" then%>
-		<td width="100px" align="left" class="celula"><strong>Turno:</strong> <%=strTurno%></td>
-		<%end if%>
-		<td width="100px" align="left" class="celula"><strong>Componente curricular:</strong> <%=strDisciplina%></td>
-		<td width="100px" align="left" class="celula"><strong>Turma:</strong> <%=strTurma%></td>
+		<!--td width="100px" align="left" class="celula"><strong>Curso:</strong> <%=strCurso%></td>
+		<td width="100px" align="left" class="celula"><strong>Período:</strong> <%=strPeriodo%></td-->
+		<td width="100px" align="left" class="celula"><strong>Turma:</strong> <%=strDescPeriodo%>&nbsp;-&nbsp;<%=strDescTurmaAluno%>&nbsp;&nbsp;<%=strDescTurma%></td>
+		<%if strDescTurno<>"" then%>
+		<td width="100px" align="left" class="celula"><strong>Turno:</strong> <%=strDescTurno%></td>
+		<%end if%>		
+		<td width="100px" align="left" class="celula"><strong>Componente curricular:</strong> <%if strNomedisciplina="" then%>Todas do Hor&aacute;rio<%else%><%=strNomedisciplina%><%end if%></td>
+		<td width="100px" align="left" class="celula"><strong>Professor(a):</strong> <%=strProfessor%></td>
 	  </tr>
 	</table>
+	
 	<br>
 	<table width="100%" cellspacing="0" cellpadding="0" class="tabela">
 	  <tr bgcolor="#CCCCCC">
 		<td width="70px" align="center" class="celula"><strong>Data</strong></td>
-		<td width="100px" align="center" class="celula"><strong>Professor(a)</strong></td>
+		<!--td width="100px" align="center" class="celula"><strong>Professor(a)</strong></td-->
 		<td width="20px" class="celula"><strong>Aula</strong></td>
 		<td class="celula"><strong>Conteúdo Ministrado</strong></td>
 		<td width="150px" class="celula"><strong>ConteúdoComplementar</strong></td>
@@ -696,6 +1053,25 @@ Server.ScriptTimeout = 1200
 	sub fimTabela()
 		response.Write("</table>")
 	end Sub
+
+    ' Regra de agrupamento: Infantil I/II/III integral ou Fundamental 1o ao 5o ano.
+    ' Identificacao pelo periodo e turno efetivamente cadastrados na turma.
+    agruparConteudoDia = False
+    sqlRegra = "SELECT TU.COD_PERIODO, TU.COD_TURNO, ISNULL(TN.DESC_TURNO,'') AS DESC_TURNO " & _
+               "FROM SCA_TURMA TU " & _
+               "LEFT JOIN SCA_TURNO TN ON TN.COD_TURNO = TU.COD_TURNO " & _
+               "WHERE TU.COD_EMPRESA = " & CLng(Session("CodEmpresa")) & _
+               " AND TU.COD_TURMA = " & CLng(intCodTurma)
+    Set rsRegra = cnn.Execute(sqlRegra)
+    If Not rsRegra.EOF Then
+        codPeriodoRegra = CLng(rsRegra("COD_PERIODO"))
+        codTurnoRegra = CLng(rsRegra("COD_TURNO"))
+        ' Guapó: Agrupamentos I a V = períodos 10 a 14; integral pela descrição do turno
+        agruparConteudoDia = ((codPeriodoRegra >= 1 And codPeriodoRegra <= 5) Or _
+                             ((codPeriodoRegra >= 10 And codPeriodoRegra <= 14) And InStr(UCase(rsRegra("DESC_TURNO") & ""), "INTEGRAL") > 0))
+    End If
+    rsRegra.Close
+    Set rsRegra = Nothing
 	intQtdeRegistroPorPagina = 0
 	intPagina = 1
 	mostraCabecalho
@@ -704,12 +1080,115 @@ Server.ScriptTimeout = 1200
 	contGeral = 0
 	disciplina = ""
 	textSabadoAnterior = ""
-	sql="SP_rel_conteudo_ministrado " & intCodColaborador & "," & intCodTurma & "," & intCodTurnoRH & "," & intCodDisciplina & ",'" & formatadataBD(dataInicio) & "', '" & formatadataBD(dataFim) & "'"
-		'if session("usuarioWeb") = "SERGIO" THEN
-			'RESPONSE.WRITE SQL & "<hr>"
+	sql="SP_rel_conteudo_ministrado 0," & intCodTurma & "," & intCodTurnoRH & "," & intCodDisciplina & ",'" & formatadataBD(dataInicio) & "', '" & formatadataBD(dataFim) & "'"
+		'if session("usuarioWeb") = "ROBERTO" THEN
+		'	RESPONSE.WRITE SQL & "<hr>"
 		'end if
 	rs.open sql, cnn
-	if not rs.eof then 
+	if not rs.eof then
+        If agruparConteudoDia Then
+            ' Agrupamento global por data, mesmo quando a procedure ordena por disciplina.
+            Set diasAgrupados = Server.CreateObject("Scripting.Dictionary")
+            Set textosPorDia = Server.CreateObject("Scripting.Dictionary")
+            Set aulasPorDia = Server.CreateObject("Scripting.Dictionary")
+            Set professoresPorDia = Server.CreateObject("Scripting.Dictionary")
+            Set complementosPorDia = Server.CreateObject("Scripting.Dictionary")
+            contAula = 0
+            contExtra = 0
+            Do While Not rs.EOF
+                If Not IsNull(rs("data_aula")) Then
+                    chaveDia = Right("0000" & Year(CDate(rs("data_aula"))), 4) & Right("0" & Month(CDate(rs("data_aula"))), 2) & Right("0" & Day(CDate(rs("data_aula"))), 2)
+                    If Not diasAgrupados.Exists(chaveDia) Then
+                        diasAgrupados.Add chaveDia, Day(CDate(rs("data_aula"))) & "/" & Right("0" & Month(CDate(rs("data_aula"))), 2) & "/" & Year(CDate(rs("data_aula")))
+                        Set itensDia = Server.CreateObject("Scripting.Dictionary")
+                        itensDia.CompareMode = 1
+                        textosPorDia.Add chaveDia, itensDia
+                        Set itensAula = Server.CreateObject("Scripting.Dictionary")
+                        aulasPorDia.Add chaveDia, itensAula
+                        Set itensProf = Server.CreateObject("Scripting.Dictionary")
+                        itensProf.CompareMode = 1
+                        professoresPorDia.Add chaveDia, itensProf
+                        Set itensComplemento = Server.CreateObject("Scripting.Dictionary")
+                        itensComplemento.CompareMode = 1
+                        complementosPorDia.Add chaveDia, itensComplemento
+                    End If
+                    Set itensDia = textosPorDia(chaveDia)
+                    If Not IsNull(rs("desc_conteudo_ministrado")) Then
+                        partesConteudo = Split(CStr(rs("desc_conteudo_ministrado")), "|")
+                        For Each parteConteudo In partesConteudo
+                            textoLimpo = Trim(CStr(parteConteudo))
+                            If Len(textoLimpo) > 0 Then
+                                If Not itensDia.Exists(textoLimpo) Then itensDia.Add textoLimpo, textoLimpo
+                            End If
+                        Next
+                    End If
+                    Set itensAula = aulasPorDia(chaveDia)
+                    If Not IsNull(rs("numero_aula")) Then
+                        numeroAtual = Trim(CStr(rs("numero_aula")))
+                        If Len(numeroAtual) > 0 Then
+                            If Not itensAula.Exists(numeroAtual) Then itensAula.Add numeroAtual, numeroAtual
+                        End If
+                        contAula = contAula + 1
+                    Else
+                        ' Preserva a contagem de sabados letivos do relatorio original.
+                        If Not IsNull(rs("desc_conteudo_ministrado")) Then
+                            partesExtra = Split(CStr(rs("desc_conteudo_ministrado")), "|")
+                            textoSabadoAnteriorGrupo = ""
+                            For idxExtra = 0 To UBound(partesExtra) - 1
+                                campoSabadoGrupo = Left(partesExtra(idxExtra), 16)
+                                If Trim(campoSabadoGrupo) <> Trim(textoSabadoAnteriorGrupo) Then contExtra = contExtra + 1
+                                textoSabadoAnteriorGrupo = campoSabadoGrupo
+                            Next
+                        End If
+                    End If
+                    Set itensProf = professoresPorDia(chaveDia)
+                    If Not IsNull(rs("professor")) Then
+                        valorProf = Trim(CStr(rs("professor")))
+                        If Len(valorProf) > 0 Then
+                            If Not itensProf.Exists(valorProf) Then itensProf.Add valorProf, valorProf
+                        End If
+                    End If
+                    Set itensComplemento = complementosPorDia(chaveDia)
+                    If Not IsNull(rs("desc_conteudo_complementar")) Then
+                        valorComplemento = Trim(CStr(rs("desc_conteudo_complementar")))
+                        If Len(valorComplemento) > 0 Then
+                            If Not itensComplemento.Exists(valorComplemento) Then itensComplemento.Add valorComplemento, valorComplemento
+                        End If
+                    End If
+                End If
+                rs.MoveNext
+            Loop
+            chavesDias = diasAgrupados.Keys
+            ' Ordena datas crescentes (YYYYMMDD).
+            For ix = 0 To UBound(chavesDias)
+                For jx = ix + 1 To UBound(chavesDias)
+                    If chavesDias(jx) < chavesDias(ix) Then
+                        tmpDia = chavesDias(ix)
+                        chavesDias(ix) = chavesDias(jx)
+                        chavesDias(jx) = tmpDia
+                    End If
+                Next
+            Next
+            For Each chaveDia In chavesDias
+                Set itensDia = textosPorDia(chaveDia)
+                Set itensAula = aulasPorDia(chaveDia)
+                Set itensProf = professoresPorDia(chaveDia)
+                Set itensComplemento = complementosPorDia(chaveDia)
+                Response.Write "<tr bgcolor='#FFFFFF'>"
+                Response.Write "<td class='celula'>" & formatadataAP(Server.HTMLEncode(diasAgrupados(chaveDia))) & "</td>"
+                'Response.Write "<td class='celula'>" & Server.HTMLEncode(Join(itensProf.Keys, ", ")) & "</td>"
+                Response.Write "<td class='celula'>" & Server.HTMLEncode(Join(itensAula.Keys, ", ")) & "</td>"
+                Response.Write "<td class='celula'>" & Replace(Server.HTMLEncode(Join(itensDia.Keys, vbLf)), vbLf, "<br>") & "</td>"
+                Response.Write "<td class='celula'>" & Replace(Server.HTMLEncode(Join(itensComplemento.Keys, vbLf)), vbLf, "<br>") & "</td>"
+                Response.Write "</tr>"
+                intQtdeRegistroPorPagina = intQtdeRegistroPorPagina + 1
+            Next
+            Set diasAgrupados = Nothing
+            Set textosPorDia = Nothing
+            Set aulasPorDia = Nothing
+            Set professoresPorDia = Nothing
+            Set complementosPorDia = Nothing
+        Else
 		%>
 		  <tr>
 			<td colspan="6" class="celula font14">Componente curricular: <strong><%=rs("disciplina")%></strong></td>
@@ -746,7 +1225,7 @@ Server.ScriptTimeout = 1200
 			%>
 			  <tr <%=fundoLinha%> >
 				<td class="celula"><%=rs("data_aula")%></td>
-				<td class="celula"><%=rs("professor")%> </td>
+				<!--td class="celula"><%=rs("professor")%> </td-->
 				<td class="celula"><%=rs("numero_aula")%></td>
 				<td class="celula"><%=replace(strDescContMin,"|","<br>")%></td>
 				<td class="celula"><%=rs("desc_conteudo_complementar")%></td>
@@ -757,15 +1236,17 @@ Server.ScriptTimeout = 1200
 			textSabadoAnterior = ""
 			rs.movenext
 		wend
+        End If
 		
 		%>
 		  <tr>
-			<td colspan="5" class="celula">Quantidade de aula: <%=contAula%> | Quantidade de aula sábado letivo: <%=contExtra%> | Total: <%=contAula+contExtra%></td>
+			<!--td colspan="4" class="celula">Quantidade de aula: <%=contAula%> | Quantidade de aula sábado letivo: <%=contExtra%> | Total: <%=contAula+contExtra%></td-->
+			<td colspan="4" class="celula">Total de aulas ministradas: <%=intQtdeAulasMinistradas%></td>
 		  </tr>
 		  
 		  <%if strAssinatura="S" then%>
 		  <tr height="28">
-				<td colspan="5">
+				<td colspan="4">
 					<br>
 					<br>
 					<table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -784,19 +1265,48 @@ Server.ScriptTimeout = 1200
 			<%end if%>
 		 <%
 		else
+			if strArquivoPlanejamentoEnviado = "S" then
 		%>
-		  <tr>
-			<td height="13" colspan="5" align="center" class="celula"><font color="#993300"><%=session("strMensagemRelatorioNaoEncontrado")%></font></td>
-	  </tr>
+			<tr>
+				<td height="13" colspan="4" align="center" class="celula"><font color="#26bd34"><strong>Planejamento/Conteúdo Ministrado em anexo.</strong></font></td>
+			</tr>
 		<%
+			else
+		%>
+			<tr>
+				<td height="13" colspan="4" align="center" class="celula"><font color="#993300"><%=session("strMensagemRelatorioNaoEncontrado")%></font></td>
+			</tr>
+		<%
+			end if
 	end if
 	rs.close
 %>
 </table>
 
 
-<% end if %>
+<% end if 
 
+sql = "select observacao from SCA_OBSERVACAO_DIARIO_TURMA"
+sql=sql & " where cod_turma=" & intCodTurma
+sql=sql & " and month(data) = " & strMes
+sql=sql & " and year(data) = " & strAnoLetivo
+rs.open sql, cnn
+if not rs.eof then
+	strObservacao = rs("observacao")
+end if
+rs.Close
+
+if trim(strObservacao) <> "" then
+%>
+		<br><table width="98%" border="0" cellspacing="0" cellpadding="0" class="tabela" align="center">
+			<tr>
+				<td class="celula"><strong>Observação:</strong> <br><%=strObservacao%></td>
+			</tr>
+		</table>
+		
+<%
+		end if
+%>
 <script>
 	aguarde.style.display="none";
 </script>

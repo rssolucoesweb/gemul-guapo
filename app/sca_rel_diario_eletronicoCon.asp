@@ -20,6 +20,7 @@ Contato: sergio@rssolucoesweb.com.br
 		<!--#include file="includes/inc_verificaSessionApp.asp"-->
 		<!--#include file="includes/inc_cnn.asp"-->
 		<!--#include file="includes/inc_formatadata.asp"-->
+		<!--#include file="includes/inc_sqlAlunoTurmaTodasSituacoes.asp"-->
 		<!--#include file=inc_meta.asp-->
 		<!--#include file=inc_css.asp-->
 		<!--#include file=inc_ico.asp-->
@@ -113,21 +114,24 @@ Contato: sergio@rssolucoesweb.com.br
 					frm.cmbSemestre.focus();
 					return false;
 				}
-				if (frm.cmbTurnoRH.value == 0){
+				if (frm.txtTurnoSelecionado.value == 0){
 					alert("O turno deve ser informado!");
 					frm.cmbTurnoRH.focus();
 					return false;
 				}
+				
+				if (frm.txtTipoPeriodo.value == "D"){
+					if (frm.cmbDisciplinaSelecionada.value == "" || frm.cmbDisciplinaSelecionada.value == "0"){
+						alert("A disciplina deve ser selecionada!");
+						return false;
+					}
+				}
+				
 				if (frm.cmbMes.value == "0"){
 					alert("Mês deve ser informado!");
 					frm.cmbMes.focus();
 					return false;
 				}
-				if (frm.cmbAvaliacao.value == "0"){
-					alert("A avaliação deve ser selecionada!");
-					frm.cmbAvaliacao.focus();
-					return false;
-				}		
 				
 				//*****verifica se um aluno foi selecionado
 				intContMarcado=0;
@@ -151,6 +155,12 @@ Contato: sergio@rssolucoesweb.com.br
 				frm.submit();
 				
 				return true;	
+			}
+			
+			function lancarObservacaoTurma(codTurma){
+				var frm = document.getElementById("frm")
+				window.open("sca_rel_diario_eletronico_ocorrencia_turma.asp?txtCodTurma="+codTurma,"Lancar", "top=50,left=50,height=650,width=900,menubar=no,toolbar=no,scrollbars=no,status=no");
+				return true;
 			}
         </script>
     </body>

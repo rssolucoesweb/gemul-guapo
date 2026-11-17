@@ -104,7 +104,6 @@
 	intSemestre 			= Trim(Request("cmbSemestre"))
 	intCodGrade				= Trim(Request("cmbGrade"))
 	
-	intCodDisciplina		= Trim(Request("cmbDisciplinaDoProfessor"))
 	strMes					= Trim(Request("cmbMes"))
 	intCodEstagio     		= Trim(Request.Form("cmbEstagio"))
 
@@ -116,7 +115,6 @@
 	intAnoLetivo 			= Trim(Request("txtAnoLetivo"))
 	
 	intCodTipoLancamento    = trim(request("cmbTipoLancamento"))
-	intCodDisciplina  		= trim(request("cmbDisciplinaDoProfessor"))
 	strData					= trim(request("txtData"))
 	mostraConteudo			= trim(request("mostraConteudo"))
 
@@ -146,7 +144,16 @@
 		intSemestre = rs("cod_Semestre")
 	END IF
 	rs.close
-	
+	'Guapó: turno integral identificado pela descrição do turno da turma (em Anápolis é o código 4)
+	strTurnoIntegral = "N"
+	if trim(intCodTurno & "") <> "" and trim(intCodTurno & "") <> "0" then
+		sql = "SELECT DESC_TURNO FROM SCA_TURNO WHERE COD_TURNO = " & CLng(intCodTurno)
+		RS.OPEN SQL, CNN
+		IF not RS.EOF THEN
+			if instr(ucase(rs("DESC_TURNO") & ""), "INTEGRAL") > 0 then strTurnoIntegral = "S"
+		END IF
+		rs.close
+	end if
 	'controla os botões
 	strDesabilitaIncluir = "disabled"
 	strDesabilitaExcluir = "disabled"
@@ -158,8 +165,8 @@
 <!-- the #js-page-content id is needed for some plugins to initialize -->
 <main id="js-page-content" role="main" class="page-content">
 <form id="frm" method="post" action="sca_rel_diario_eletronicoCon.asp">
-<input name="cmbCurso" type="hidden" id="cmbCurso" value="<%=intCodCurso%>">
-<input name="cmbPeriodo" type="hidden" id="cmbPeriodo" value="<%=intCodPeriodo%>">
+<input name="cmbCurso" 					type="hidden" id="cmbCurso" value="<%=intCodCurso%>">
+<input name="cmbPeriodo" 				type="hidden" id="cmbPeriodo" value="<%=intCodPeriodo%>">
 	<ol class="breadcrumb page-breadcrumb">
 		<li class="breadcrumb-item"><a href="javascript:void(0);"><%=sistema%></a></li>
 		<li class="breadcrumb-item"><%=modulo%></li>
@@ -198,13 +205,13 @@
 						<input name="txtCodAluno" type="hidden" id="txtCodAluno" value="<%=strCodAluno%>">
 						<input name="txtPodeEditar" value="<%=strPodeEditar%>" type="hidden">
 						<div class="row">
-							<div class="col-sm-2">
+							<div class="col-sm-1">
 								<div class="form-group">
 									<label class="form-label">Ano Letivo:</label>
 									<input <%=strBloqueio%> name="txtAnoLetivo" type="text" class="form-control" id="txtAnoLetivo"  value="<%=strAnoLetivo%>" size="5" maxlength="5" onKeyPress="return formataCampo(this,2,10)" readonly>
 								</div>
 							</div>
-							<div class="col-sm-2">
+							<div class="col-sm-1">
 								<div class="form-group">
 									<label class="form-label">Semestre:</label>
 									 <!--#include file="includes/inc_cmdSemestre.asp" -->
@@ -212,7 +219,7 @@
 							</div>
 							
 							<% if strVerificaCategoria = "" then%>
-							<div class="col-sm-4">
+							<div class="col-sm-2">
 								<div class="form-group">
 									<label class="form-label">Turma:</label>
 									 <!--#include file="includes/inc_cmdTurma.asp" -->
@@ -220,42 +227,56 @@
 							</div>
 							 <%end if%>
 							 <% if strVerificaCategoria = "Professor" then%>
-							<div class="col-sm-4">
+							<div class="col-sm-3">
 								<div class="form-group">
 									<label class="form-label">Turma:</label>
 									 <!--#include file="includes/inc_cmdTurmaProfessor.asp" -->
 								</div>
 							</div>
 							 <%end if%>
-							 <% if strVerificaCategoria = "Professor" then%>
-							<div class="col-sm-4">
+							 
+							 
+							<% if strVerificaCategoria = "Professor" then%>
+							<div class="col-sm-3">
 								<div class="form-group">
-									<label class="form-label">Disciplina <%=strVerificaCategoria%>:</label>
+									<label class="form-label">Disciplina:</label>
 									 <!--#include file="includes/inc_cmdDisciplinaDoProfessor.asp" -->
 								</div>
 							</div>
 							<%end if%>
 							<% if strVerificaCategoria = "" then%>
-							<div class="col-sm-4">
+							<div class="col-sm-3">
 								<div class="form-group">
 									<label class="form-label">Disciplina:</label>
 									 <!--#include file="includes/inc_cmbDisciplinaTurma.asp" -->
 								</div>
 							</div>
 							<%end if%>
+							<%if trim(intCodCurso & "") = "1" and strTurnoIntegral = "S" then 'turno integral do curso educação infantil (Guapó: pela descrição do turno)%>
+								<div class="col-sm-2">
+									<div class="form-group">
+										<label class="form-label">Turno:</label>
+										<select name="cmbTurnoRH" id="cmbTurnoRH" class="form-control">
+										<option value="0">INTEGRAL</option> 
+										</select>
+										<input name="txtTurnoSelecionado" type="hidden" id="txtTurnoSelecionado" value="<%=intCodTurno%>">
+									</div>
+								</div>
+							<%else%>							
+								<div class="col-sm-2">
+									<div class="form-group">
+										<label class="form-label">Turno:</label>
+										<%
+										filtroTurno="S"
+										intCodTurnoRH = intCodTurno 
+										%>									
+										<!--#include file="includes/inc_cmbTurnoRH.asp" -->
+										<input name="txtTurnoSelecionado" type="hidden" id="txtTurnoSelecionado" value="<%=intCodTurnoRH%>">
+									</div>
+								</div>
+							<%end if%>
 						</div>
 						<div class="row">
-							<div class="col-sm-2">
-								<div class="form-group">
-									<label class="form-label">Turno:</label>
-									<%
-									filtroTurno="S"
-									intCodTurnoRH = intCodTurno 
-									%>									
-									<!--#include file="includes/inc_cmbTurnoRH.asp" -->
-								</div>
-							</div>
-
 							<div class="col-sm-2">
 								<div class="form-group">
 									<label class="form-label">Conte&uacute;do Ministrado:</label>
@@ -265,32 +286,83 @@
 									</select>
 								</div>
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-2">
 								<div class="form-group">
 									<label class="form-label">M&ecirc;s:</label>
+									<%strExecutarSubmitMes="S"%>
 									 <!--#include file="includes/inc_cmbMes.asp" -->
 								</div>
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-2">
 								<div class="form-group">
-									<label class="form-label">Avaliação:</label>
-									<!--#include file="includes/inc_cmbAvaliacao.asp"-->
+									<label class="form-label">Observação:</label>
+
+									<div>
+										<button
+											<%if intCodTurma="" or intCodTurma="0" then%>
+												disabled
+											<%end if%>
+											onClick="lancarObservacaoTurma('<%=intCodTurma%>')"
+											type="button"
+											class="btn btn-outline-<%if intCodTurma="" or intCodTurma="0" then%>secondary<%else%>success<%end if%> btn-sm">
+											Inserir Observação
+										</button>
+									</div>
 								</div>
 							</div>
+							
+							
 						</div>
 						
-						<div class="row">
-							<div class="col-sm-12">
-								<div class="form-group">
-									<strong>Obs:</strong> Para emiss&atilde;o do di&aacute;rio frequencia eletr&ocirc;nico o conteudo programatico dever&aacute; estar enviado para a disciplina selecionada.
-								</div>
-							</div>
-						</div>
 						<br>
 						<div class="frame-wrap">
+							
 							<!--#include file="includes/inc_botoes_geraRelatorio.asp" -->
 						</div>
-							
+						<%
+					
+						if intCodTurma<>"" and intCodDisciplina<>"" and strMes<>"" then
+							sql = ""
+							sql = sql & " SELECT codigo, nome_arquivo, tipo_arquivo, data_hora_incl "
+							sql = sql & " FROM sca_planejamento_arquivo "
+							sql = sql & " WHERE ano_letivo = " & CLng(intAnoLetivo)
+							sql = sql & " AND mes = " & CLng(strMes)
+							sql = sql & " AND cod_turma = " & CLng(intCodTurma)
+							sql = sql & " AND cod_disciplina = " & CLng(intCodDisciplina)
+							sql = sql & " ORDER BY data_hora_incl DESC "
+							Set rs = cnn.Execute(sql)
+							If not rs.EOF Then
+								Response.Write "<table class='table table-bordered table-hover m-0'>"
+								Response.Write "<thead class='thead-themed'>"
+								Response.Write "<tr>"
+								Response.Write "<th colspan='3'>Anexos do Planejamento</th>"
+								Response.Write "</tr>"
+								Response.Write "<tr>"
+								Response.Write "<th>Arquivo</th>"
+								Response.Write "<th>Data</th>"
+								Response.Write "<th width='180'>Ações</th>"
+								Response.Write "</tr>"
+								Response.Write "</thead>"
+								Response.Write "<tbody>"
+
+								Do While Not rs.EOF
+									Response.Write "<tr>"
+									Response.Write "<td>" & Server.HTMLEncode(rs("nome_arquivo")) & "</td>"
+									Response.Write "<td>" & rs("data_hora_incl") & "</td>"
+									Response.Write "<td>"
+									Response.Write "<a target='_blank' class='btn btn-sm btn-outline-info' href='sca_planejamento_arquivo_visualizar.asp?codigo=" & rs("codigo") & "'>Visualizar</a> "
+									Response.Write "</td>"
+									Response.Write "</tr>"
+									rs.MoveNext
+								Loop
+
+								Response.Write "</tbody>"
+								Response.Write "</table>"
+							End If
+							rs.Close
+						end if
+						%>
+						
 					</div>
 				</div>
 			</div>
@@ -349,31 +421,18 @@
 								cont = 0
 								
 								if buscaHistorico = "N" then
-									sql = " SELECT distinct "
-									sql = sql & " AD.COD_ALUNO AS CODIGO, " 
-									sql = sql & " AD.COD_TURMA_REMANEJAMENTO AS COD_TURMA, "
-									sql = sql & " A.NOMEALUNO, "
-									sql = sql & " A.MATRICULA, "
-									sql = sql & " '' AS SEQUENCIA, "
-									sql = sql & " SA.DESC_SITUACAOALUNO "
-									sql = sql & " FROM SCA_ALUNO_DISCIPLINA AD INNER JOIN " 
-									sql = sql & " SCA_ALUNO A ON A.CODIGO = AD.COD_ALUNO  INNER JOIN "
-									sql = sql & " SCA_SITUACAOALUNO SA ON SA.Cod_SituacaoAluno = A.COD_SITUACAOALUNO  "
-									sql = sql & " WHERE AD.COD_EMPRESA = " & Session("CodEmpresa")
-									' Filtra o estagio
-									sql = sql & " AND AD.COD_TURMA_REMANEJAMENTO = " & intCodTurma	
-									sql = sql & " AND AD.COD_DISCIPLINA= " & intCodDisciplinaTurma
-									sql = sql & " ORDER BY A.NOMEALUNO "
-									
+									sql = sqlAlunoTurma(intCodTurma, "")
 								else   
 								   'seleciona os alunos pelo ano e semestres do histórico 			
-								   sql = " select DISTINCT A.CODIGO, AT.COD_TURMA, HED.COD_DISCIPLINA, A.NOMEALUNO, A.MATRICULA,  '' AS SEQUENCIA "
+								   sql = " select DISTINCT A.CODIGO, AT.COD_TURMA, HED.COD_DISCIPLINA, A.NOMEALUNO, A.MATRICULA, ss.DESC_SITUACAOALUNO, '' AS SEQUENCIA, '' as data_SituacaoAluno "
 								   sql = sql & " from SCA_HISTORICO_ESCOLAR_DISCIPLINA HED "
 								   sql = sql & " INNER JOIN SCA_HISTORICO_ESCOLAR HE ON HE.CODIGO = HED.COD_HISTORICO_ESCOLAR "
 								   sql = sql & " INNER JOIN SCA_ALUNO A ON A.CODIGO = HE.COD_ALUNO" 'AND A.COD_EMPRESA = HE.COD_EMPRESA "
 								   sql = sql & " INNER JOIN SCA_CONTROLE_SITUACAO_ALUNO_FECHAMENTO SA ON SA.COD_ALUNO = A.CODIGO"
 								   SQL = SQL & " AND SA.ANO_LETIVO = HE.ANO_LETIVO"
 								   sql = sql & " INNER JOIN SCA_ALUNO_TURMA AT ON  AT.COD_ALUNO=A.CODIGO" 'AND AT.COD_EMPRESA = A.COD_EMPRESA "
+								   sql = sql & " INNER JOIN SCA_SITUACAOALUNO SS"
+								   sql = sql & " 		ON SS.Cod_SituacaoAluno = SA.COD_SITUACAOALUNO"
 								   'sql = sql & " WHERE A.COD_EMPRESA = " & Session("CodEmpresa")
 								   sql = sql & " WHERE AT.COD_TURMA = " & intCodTurma	
 								   sql = sql & " AND HE.ANO_LETIVO = " & strAnoLetivo
@@ -388,7 +447,10 @@
 										cont = cont + 1
 										strCodigoAluno      = rs("codigo")
 										strMatricula		= rs("MATRICULA")
-
+										strSituacaoAluno 	= rs("DESC_SITUACAOALUNO")
+										if rs("DESC_SITUACAOALUNO")<>"ATIVO" then
+											strSituacaoAluno 	= rs("DESC_SITUACAOALUNO") & " " & rs("data_SituacaoAluno")
+										end if
 										'Função que verifica a siuação do aluno
 										strSituacaoPromocao = "" 'Não é necessário mostrar a situação promoção nesta tela
 
@@ -401,7 +463,7 @@
 											<td><%=strMatricula%></td>
 											<td><%=rs("NOMEALUNO")%></td>
 											<%if buscaHistorico = "N" then%>
-											<td><%=rs("DESC_SITUACAOALUNO")%></td>
+											<td><%=strSituacaoAluno%></td>
 											<%end if%>
 										</tr>
 										 <%
@@ -433,6 +495,9 @@
 		<%
 		end if
 		%>
+		<input name="txtTipoPeriodo" 			type="hidden" id="txtTipoPeriodo" value="<%=strTipoPeriodo%>">
+		<input name="cmbDisciplinaSelecionada" 	type="hidden" id="cmbDisciplinaSelecionada" value="<%=intCodDisciplina%>">
+
 	</form>
 </main>
 <!-- this overlay is activated only when mobile menu is triggered -->
