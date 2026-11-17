@@ -39,6 +39,66 @@
 
 	'controla os botões
 	acao = "IE"
+	
+	'verifica se já tem regente lançado somente para infantil I, II e III
+	if intCodTurma<>"0" then
+		sql = "select t.cod_periodo, p.cod_curso from sca_turma t inner join sca_periodo p on p.cod_periodo = t.cod_periodo where t.cod_turma = " & intCodTurma
+		rs.open sql, cnn
+		if rs.eof = false then
+			intCodPeriodo = rs("cod_periodo")
+			intCodCurso = rs("cod_curso")
+		end if
+		rs.close
+		
+		if intCodPeriodo = "10" or intCodPeriodo = "11" or intCodPeriodo = "12" then
+			strExisteRegente = "N"
+			sql = "SELECT distinct C.NOME AS PROFESSOR "
+			sql = sql & " FROM	SCA_HORARIO_AULA HA"
+			sql = sql & " INNER JOIN SCA_HORARIO H ON H.COD_EMPRESA=HA.COD_EMPRESA AND H.CODIGO=HA.COD_HORARIO"
+			sql = sql & " INNER JOIN SCA_TURMA T ON T.COD_EMPRESA=HA.COD_EMPRESA AND T.COD_TURMA=HA.COD_TURMA"
+			sql = sql & " INNER JOIN SCA_GRADECURRICULAR G ON G.COD_GRADECURRICULAR=T.COD_GRADECURRICULAR"
+			sql = sql & " INNER JOIN SCA_PERIODO P ON P.COD_PERIODO=G.COD_PERIODO"
+			sql = sql & " LEFT JOIN SRH_MODULACAO_DISCIPLINAR_DOCENTE M ON M.Cod_Colaborador = HA.COD_COLABORADOR AND HA.ANOLETIVO = M.ANO_LETIVO"
+			sql = sql & " LEFT JOIN SRH_COLABORADOR C ON C.CODIGO=HA.COD_COLABORADOR "
+			sql = sql & " LEFT  JOIN SCA_DISCIPLINA D ON D.COD_DISCIPLINA=HA.COD_DISCIPLINA"
+			sql = sql & " LEFT JOIN SCA_TURMA TJ ON TJ.COD_EMPRESA=HA.COD_EMPRESA AND TJ.COD_TURMA=HA.TURMA_JUNCAO"
+			sql = sql & " LEFT JOIN SCA_turno turSCA ON turSCA.COD_turno=H.codturno"
+			
+			sql = sql & " WHERE	1=1 "
+			if UCASE(strNomeTurno) = "INTEGRAL"  then 
+				if intCodTurnoRH <> "0" then
+					sql = sql & " AND M.Cod_Turno = " & intCodTurnoRH
+				end if
+			end if
+			if strCompartilharDados = "S" then
+				sql = sql & " AND	HA.COD_EMPRESA	= " & Session("CodEmpresa")
+			end if   
+			
+			sql = sql & " AND		HA.ANOLETIVO	= " & strAnoLetivo
+			sql = sql & " AND		HA.SEMESTRE		in (" & intSemestre & ")"
+			sql = sql & " AND		P.COD_CURSO		= " & intCodCurso
+			
+			if intCodDisciplinaGrade <> "0" then
+				sql = sql & " AND		D.COD_DISCIPLINA		= " & intCodDisciplinaGrade
+			end if
+			
+			if intCodTurno <> "0" then
+				sql = sql & " AND		T.COD_TURNO		= " & intCodTurno
+			end if
+			
+			if intcodPeriodo <> "0" then
+				sql = sql & " AND		G.COD_PERIODO	= " & intcodPeriodo
+			end if
+			
+			sql = sql & " AND		T.COD_TURMA		= " & intCodTurma
+			'response.write sql
+			rs.open sql, cnn
+			if rs.eof = false then
+				strExisteRegente = "S"
+			end if
+			rs.close
+		end if
+	end if
 
 %>
 
@@ -57,6 +117,9 @@
 			<small>
 				<%=descricao_pagina%>
 			</small>
+			
+			
+			
 		</h1>
 	</div>
 	<div class="row">
@@ -111,9 +174,9 @@
 							</div>
 						</div>
 						<%
-						if session("usuarioWeb") = "SERGIO" then
-							'response.write "strNomeTurno:" & strNomeTurno
-						end if
+						'if session("usuarioWeb") = "SERGIO" then
+						'	response.write "strNomeTurno:" & strNomeTurno
+						'end if
 						%>
 						<%if UCASE(strNomeTurno) = "INTEGRAL" then%>
 						<div class="row">
@@ -127,7 +190,13 @@
 							</div>
 						</div>
 						<%else
-								intCodTurnoRH = intCodTurno
+								if intCodTurnoRH = "" then intCodTurnoRH = "0"
+								sql = "select trh.cod_turno from SCA_TURNO t inner join SRH_TURNO trh on trh.desc_turno = t.desc_turno and trh.Cod_Grupo = " & session("codGrupo") & " where t.cod_turno = " & intCodTurno
+								rs.open sql, cnn
+								if not rs.eof then
+									intCodTurnoRH = rs("cod_turno")
+								end if
+								rs.close
 							%>
 							<input name="cmbTurnoHorario" type="hidden" id="cmbTurnoHorario" value="<%=intCodTurno%>">
 						<%end if%>
@@ -145,8 +214,21 @@
 								</div>
 							</div>
 						</div>
-						
 						<br>
+						<%if strExisteRegente = "S" then%>
+						<div class="row">
+							<div class="col-sm-6">
+								<div class="form-group">
+									<label class="form-label">Você vai alterar ou incluir?</label>
+									<select name="cmbTroca" id="cmbTroca" class="form-control">
+										<option value="ALTERAR_REGENTE">Alterar o regente atual</option>
+										<option value="INCLUIR_REGENTE">Incluir o segundo regente</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<br>
+						<%end if%>
 						<div class="frame-wrap">
 							<!--#include file="includes/inc_botoes_cadastro.asp" -->
 						</div>
@@ -208,6 +290,8 @@
 	if intCodDisciplinaGrade = "" then intCodDisciplinaGrade = 0
 	if intCodTurnoRH = "" then intCodTurnoRH = 0
 	if intCodTurnoRH <> "0" then
+	
+	
 	%>
 	
 	<div class="row">
@@ -290,7 +374,8 @@
 					if intCodTurno <> "0" then
 						sql = sql & " and TU.Cod_Turno = " & intCodTurno
 					end if
-					sql = sql & " Order by H.horario, H.Tempo"
+					sql = sql & " Order by H.Sequencia_Aulas, H.Tempo"
+					
 				end if
 				
 				rs.open sql, cnn
@@ -313,9 +398,10 @@
 							sql = sql & " AND HA.ANOLETIVO	= " & strAnoLetivo
 							sql = sql & " AND ha.DiaSemana = " & cint(i)
 							sql = sql & " AND H.codigo =  " & rs("Codigo")
-							'if UCASE(session("usuarioWeb")) = "SERGIO" then
+							
+							'if UCASE(session("usuarioWeb")) = "ROBERTO" then
 							'	response.Write(sql)
-							'	RESPONSE.END
+								'RESPONSE.END
 							'end if
 							
 							RSAUX.OPEN SQL, CNN
@@ -508,7 +594,6 @@
 								end if
 								
 								sql = sql & " Order by DESCRICAO, NOMETURMA, DIASEMANA, horario "
-								
 								rs.open sql, cnn
 								if rs.eof = false then
 									while not rs.eof

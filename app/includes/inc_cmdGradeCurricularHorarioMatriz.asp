@@ -29,7 +29,7 @@
 
 	RS.OPEN SQL, CNN
 %>
-<select name="cmbGrade" id="cmbGrade" style="width:320pt" class="form-control" <%=strFuncao%>>
+<select name="cmbGrade" id="cmbGrade" class="form-control" <%=strFuncao%>>
 	<option value="0">Selecione...</option>
 <%
 	IF RS.EOF = FALSE THEN

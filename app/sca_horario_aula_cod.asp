@@ -26,6 +26,8 @@ response.Buffer = false
 	strSemestre 			= Trim(Request.Form("cmbSemestre"))
 	intCodTurma 			= Trim(Request.Form("cmbTurma"))
 	intCodTurnoRH			= Trim(Request.Form("cmbTurnoHorario"))
+	strTrocaAcao			= Trim(Request.Form("cmbTroca"))
+	
 	intCodGrade 			= Trim(Request.Form("cmbGrade"))
 	intCodDisciplina		= Trim(Request.Form("cmbDisciplinaGrade"))
 	intCodProfessor		 	= Trim(Request.Form("cmbProfessor"))
@@ -84,21 +86,11 @@ response.Buffer = false
 		end if   
 	END IF
 	RSAUX.CLOSE
+	
 
 	if acao="I" then
-		if session("codGrupo") = "2" then
-			sql = "Delete h from SCA_horario_aula h "
-			sql = sql & " inner join SCA_HORARIO f on f.codigo = h.cod_horario "
-			sql = sql & " where h.COD_EMPRESA	= " & intCodEmp
-			sql = sql & " AND	h.ANOLETIVO		= " & strAnoLetivo
-			sql = sql & " AND	h.SEMESTRE		= " & strSemestre
-			sql = sql & " AND	h.Cod_turma		= " & intCodTurma
-			sql = sql & " AND	h.Cod_Disciplina= " & intCodDisciplina
-			if strHiddenNomeTurno = "INTEGRAL" then
-				sql = sql & " AND 	f.CodTurno	= " & intCodTurnoAca
-			end if
-		else
-		
+		if strTrocaAcao = "ALTERAR_REGENTE" or strTrocaAcao="" then
+	
 			sql = "Delete h from SCA_horario_aula h "
 			sql = sql & " inner join SCA_HORARIO f on f.codigo = h.cod_horario "
 			sql = sql & " inner join SCA_turno t on t.Cod_Turno = f.CodTurno"
@@ -111,15 +103,16 @@ response.Buffer = false
 			if strHiddenNomeTurno = "INTEGRAL" then
 				sql = sql & " AND 	tr.Cod_Turno	= " & intCodTurnoRH
 			end if
+						
+			'if ucase(session("usuarioWeb")) = "SERGIO" then
+			'	response.write sql
+			'	response.end
+			'end if
+			
+			cnn.execute sql
+			GravarLog sql
 		end if
-					
-		'if ucase(session("usuarioWeb")) = "SERGIO" then
-			'response.write sql
-			'response.end
-		'end if
 		
-		cnn.execute sql
-		GravarLog sql
 		
 		MostrarMensagem = "S"
 		'Pega a Quantidade Selecionada de semana
@@ -249,27 +242,42 @@ response.Buffer = false
 	elseif acao="E" then
 		
 		strMensagem = "Registro Excluido com sucesso..."
-	
-		sql = "Delete h from SCA_horario_aula h "
-		sql = sql & " inner join SCA_HORARIO f on f.codigo = h.cod_horario "
-		sql = sql & " inner join SCA_turno t on t.Cod_Turno = f.CodTurno"
-		sql = sql & " where h.COD_EMPRESA	= " & intCodEmp
-		sql = sql & " AND	h.ANOLETIVO		= " & strAnoLetivo
-		sql = sql & " AND	h.SEMESTRE		= " & strSemestre
-		sql = sql & " AND	h.Cod_turma		= " & intCodTurma
-		if intDiaSemana<>"" then
-		sql = sql & " AND	h.diaSemana in (" & intDiaSemana & ")"
-		end if
-		if intCodDisciplina<>"0" then
+		
+		if session("codGrupo") = "2" then
+			sql = "Delete h from SCA_horario_aula h "
+			sql = sql & " inner join SCA_HORARIO f on f.codigo = h.cod_horario "
+			sql = sql & " where h.COD_EMPRESA	= " & intCodEmp
+			sql = sql & " AND	h.ANOLETIVO		= " & strAnoLetivo
+			sql = sql & " AND	h.SEMESTRE		= " & strSemestre
+			sql = sql & " AND	h.Cod_turma		= " & intCodTurma
 			sql = sql & " AND	h.Cod_Disciplina= " & intCodDisciplina
+			if strHiddenNomeTurno = "INTEGRAL" then
+				sql = sql & " AND 	f.CodTurno	= " & intCodTurnoAca
+			end if
+		else
+		
+			sql = "Delete h from SCA_horario_aula h "
+			sql = sql & " inner join SCA_HORARIO f on f.codigo = h.cod_horario "
+			sql = sql & " inner join SCA_turno t on t.Cod_Turno = f.CodTurno"
+			sql = sql & " inner join SRH_turno tr on left(tr.Desc_Turno,3) = left(t.Desc_Turno,3) and tr.cod_grupo = " & session("codGrupo")
+			sql = sql & " where h.COD_EMPRESA	= " & intCodEmp
+			sql = sql & " AND	h.ANOLETIVO		= " & strAnoLetivo
+			sql = sql & " AND	h.SEMESTRE		= " & strSemestre
+			sql = sql & " AND	h.Cod_turma		= " & intCodTurma
+			if intDiaSemana<>"" then
+			sql = sql & " AND	h.diaSemana in (" & intDiaSemana & ")"
+			end if
+			if intCodDisciplina<>"0" then
+				sql = sql & " AND	h.Cod_Disciplina= " & intCodDisciplina
+			end if
+			if strHiddenNomeTurno = "INTEGRAL" then
+				sql = sql & " AND 	tr.Cod_Turno	= " & intCodTurnoRH
+			end if
+			if intCodProfessor <> "" and intCodProfessor <> "0" then
+				sql = sql & " AND 	h.Cod_Colaborador	= " & intCodProfessor
+			end if
+			
 		end if
-		if strHiddenNomeTurno = "INTEGRAL" then
-			sql = sql & " AND 	t.Cod_Turno	= " & intCodTurnoRH
-		end if
-		if intCodProfessor <> "" and intCodProfessor <> "0" then
-			sql = sql & " AND 	h.Cod_Colaborador	= " & intCodProfessor
-		end if
-
 		cnn.execute sql
 		GravarLog sql
 		
