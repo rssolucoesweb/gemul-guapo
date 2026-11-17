@@ -136,6 +136,7 @@ Contato: sergio@rssolucoesweb.com.br
 				sql = sql & " from SCA_NOTAS_FALTAS nf "
 				sql = sql & " inner join SCA_DISCIPLINA d on d.Cod_Disciplina = nf.Cod_Disciplina"
 				sql = sql & " where nf.cod_aluno = " & strCodAluno
+				sql = sql & " and	nf.cod_empresa = " & Session("CodEmpresa")
 				sql = sql & " order by d.desc_disciplina"
 				rs.open sql, cnn
 				if rs.eof = false then
