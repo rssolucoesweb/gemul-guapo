@@ -137,6 +137,17 @@ Contato: sergio@rssolucoesweb.com.br
 				
 				return true;	
 			}
+			
+			function lancarObservacao(codAluno, aluno){
+				var frm = document.getElementById("frm")
+				window.open("sca_rel_extrato_nota_falta_ocorrencia.asp?txtCodAluno="+codAluno+"&txtAluno="+aluno,"Lancar", "top=50,left=50,height=650,width=900,menubar=no,toolbar=no,scrollbars=no,status=no");
+				return true;
+			}
+			function lancarObservacaoTurma(codTurma){
+				var frm = document.getElementById("frm")
+				window.open("sca_rel_extrato_nota_falta_ocorrencia_turma.asp?txtCodTurma="+codTurma,"Lancar", "top=50,left=50,height=650,width=900,menubar=no,toolbar=no,scrollbars=no,status=no");
+				return true;
+			}
 
         </script>
     </body>

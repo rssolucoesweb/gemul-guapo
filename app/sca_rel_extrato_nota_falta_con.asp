@@ -208,10 +208,16 @@
 									 <!--#include file="includes/inc_cmdSemestre.asp" -->
 								</div>
 							</div>
-							<div class="col-sm-8">
+							<div class="col-sm-6">
 								<div class="form-group">
 									<label class="form-label">Turma:</label>
 									 <!--#include file="includes/inc_cmdTurma.asp" -->
+								</div>
+							</div>
+							<div class="col-sm-2">
+								<div class="form-group">
+									<label class="form-label">Observação da Turma:</label>
+									<button <%if intCodTurma="" or intCodTurma="0" then%>disabled<%end if%> onClick="lancarObservacaoTurma('<%=intCodTurma%>')" type="button" class="btn btn-outline-<%if intCodTurma="" or intCodTurma="0" then%>secondary<%else%>success<%end if%> btn-sm">Inserir Observação</button>
 								</div>
 							</div>
 						</div>
@@ -310,6 +316,7 @@
 									<th><strong>Matr&iacute;cula</strong></th>
 									<th><strong>Nome</strong></th>
 									<th><strong>Situa&ccedil;&atilde;o</strong></th>
+									<th><strong>Observa&ccedil;&atilde;o</strong></th>
 								  </tr>
 								</thead>
 								<tbody>
@@ -405,19 +412,21 @@
 											<td><%=strMatricula%></td>
 											<td><%=rs("NOMEALUNO")%><%=tipo_criterio%></td>
 											<td><%=rs("DESC_SITUACAOALUNO")%></td>
+											<td><button onClick="lancarObservacao('<%=rs("codigo")%>','<%=rs("NOMEALUNO")%>')" type="button" class="btn btn-outline-success btn-sm">Observação</button></td>
+										
 										</tr>
 										 <%
 										 rs.movenext
 									  wend
 									  %>
 									   <tr>
-										<td colspan="4" align="left"><strong>Quantidade de alunos: <%=cont%></strong></td>
+										<td colspan="5" align="left"><strong>Quantidade de alunos: <%=cont%></strong></td>
 									  </tr>
 									  <%
 								  else
 									 %>
 									 <tr> 
-									 <td colspan="4" align="center" class="celula"><%=session("strMensagemNaoEncontrado")%></td>
+									 <td colspan="5" align="center" class="celula"><%=session("strMensagemNaoEncontrado")%></td>
 									 </tr>
 									 <%
 								  end if

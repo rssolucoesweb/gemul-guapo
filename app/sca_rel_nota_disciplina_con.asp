@@ -298,6 +298,8 @@
 											
 											if rs("DESC_SITUACAOALUNO")<>"ATIVO" then
 												strSituacaoAluno 	= "&nbsp&nbsp<font size='1' color='red'>" & rs("DESC_SITUACAOALUNO") & " " & rs("data_SituacaoAluno") & "</font>"
+											else
+												strSituacaoAluno	= ""
 											end if
 											%>
 											 <tr style="cursor: pointer">

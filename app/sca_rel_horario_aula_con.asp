@@ -26,6 +26,18 @@
 	intCodGrade				= Trim(Request.Form("cmbGrade"))
 	intCodTurma				= intCodTurmaProfessor
 
+	strAcessoComoCoordenadorSecretarioAuxiliar = ""
+	SQL = "SELECT ACES_PERF_CODG"
+	SQL = SQL & " FROM SEG_ACESSOS_USUARIO"
+	SQL = SQL & " WHERE ACES_USUA_CODG = '" & session("usuarioWeb") & "'"
+	SQL = SQL & " AND ACES_PERF_CODG in (2, 17,79,15)"	'Guapó: 79 = COORDENADORES (TURNO); não tem o 38
+	rs.open sql, cnn
+	if not rs.EOF then	
+		strAcessoComoCoordenadorSecretarioAuxiliar = "S"
+	end if
+	rs.close
+
+
 	if trim(intCodTurma) <> "" then
 		sql = "SELECT SCA_TURMA.cod_turma, SCA_TURMA.cod_Semestre , SCA_PERIODO.Cod_Curso, SCA_PERIODO.Cod_Periodo, SCA_TURMA.cod_turno, SCA_TURMA.Sala, SCA_TURMA.NomeTurma"
 		sql = sql & " FROM SCA_TURMA "
@@ -54,7 +66,7 @@
 	if intCodProfessor = "" then intCodProfessor = "0"
 	if intCodTurmaProfessor = "" then intCodTurmaProfessor = "0"
 	if intCodColaboradorProfessor = "" then intCodColaboradorProfessor = "0"
-	
+	'response.write strAcessoPerfil
 	'IF intCodColaboradorProfessor <> "0" THEN
 	'	intCodCurso 		= "0"
 	'	intCodSerie 		= "0"

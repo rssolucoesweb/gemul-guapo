@@ -8,7 +8,7 @@ response.Buffer = false
 %>
 <html>
 <head>
-<title>GEMUL - Inconsistencia do Cadastro do Aluno</title>
+<title>GEMUL - Inconsistência do Cadastro do Aluno</title>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <link type="text/css" rel="stylesheet" href="css_rel/Estilo_Impressao.css">
 <body>
@@ -110,7 +110,7 @@ response.Buffer = false
                 <td class="celula">Naturalidade</td>
                 <td class="celula">UF</td>
                 <td class="celula">Nacionalidade</td>
-                <td class="celula">Etnia</td>
+                <td class="celula">Cor</td>
                 <td class="celula">Endereço</td>
                 <td class="celula">Nome da Mãe</td>
               </tr>            

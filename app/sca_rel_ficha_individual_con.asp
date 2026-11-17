@@ -181,7 +181,7 @@
 									</select>
 								</div>
 							</div>
-							<div style="display:none" class="col-sm-2">
+							<div class="col-sm-2" style="display:none">
 								<div class="form-group">
 									<label class="form-label">Promover ano letivo</label>
 									<select name="cmbPromoverAnoLetivo" class="form-control" id="cmbPromoverAnoLetivo" >
@@ -238,7 +238,14 @@
 								</thead>
 								<tbody>
 								<%
-								 sql = "SELECT  SCA_ALUNO.CODIGO, SCA_ALUNO.MATRICULA, SCA_ALUNO.NOMEALUNO, SCA_ALUNO.DATANASCIMENTO, SCA_ALUNO.MAE , SCA_PERIODO.DESCRICAO AS PERIODO, SCA_CURSO.DESCRICAO AS CURSO, SCA_TURMA.COD_TURMA, SCA_TURMA.NomeTurma, SA.DESC_SITUACAOALUNO"
+								 sql = "SELECT  SCA_ALUNO.CODIGO, SCA_ALUNO.MATRICULA, SCA_ALUNO.NOMEALUNO, SCA_ALUNO.DATANASCIMENTO, SCA_ALUNO.MAE , SCA_PERIODO.DESCRICAO AS PERIODO, SCA_CURSO.DESCRICAO AS CURSO, SCA_TURMA.COD_TURMA, SCA_TURMA.NomeTurma, "
+								sql = sql & " (SELECT TOP 1 SITA.Desc_SituacaoAluno"
+								sql = sql & "     FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
+								sql = sql & "     INNER JOIN SCA_SITUACAOALUNO SITA ON SITA.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
+								sql = sql & "     WHERE CS.COD_EMPRESA = SCA_ALUNO_TURMA.COD_EMPRESA"
+								sql = sql & "         AND CS.COD_ALUNO   = SCA_ALUNO_TURMA.COD_ALUNO"
+								sql = sql & "         AND CS.ANO_LETIVO  = SCA_ALUNO_TURMA.ANO_LETIVO"
+								sql = sql & "     ORDER BY CS.CODIGO DESC) as situacaoAluno"
 								sql = sql & " FROM SCA_ALUNO_TURMA "
 								sql = sql & " INNER JOIN SCA_ALUNO ON SCA_ALUNO_TURMA.COD_ALUNO = SCA_ALUNO.CODIGO "
 								sql = sql & " INNER JOIN SCA_SITUACAOALUNO SA ON SA.COD_SITUACAOALUNO = SCA_ALUNO.COD_SITUACAOALUNO "
@@ -266,6 +273,7 @@
 								   sql = sql & "AND SCA_ALUNO.MATRICULA = '" & strMatricula & "'"
 								end if	
 								sql = sql & " Order By SCA_TURMA.COD_TURMA, SCA_ALUNO.NOMEALUNO"
+								'response.write sql
 								cont = 0
 								rs.open sql, cnn
 								if rs.eof = false then
@@ -273,8 +281,8 @@
 										strCodigoAluno        = rs("codigo")
 										strMatricula		  = rs("MATRICULA")
 										sitAluno=""
-										IF RS("DESC_SITUACAOALUNO")<>"ATIVO" THEN
-											sitAluno = "&nbsp&nbsp<span style='color:red; font-size:10px;'>(" & RS("DESC_SITUACAOALUNO") & ")</span>"
+										IF RS("situacaoAluno")<>"ATIVO" THEN
+											sitAluno = "&nbsp&nbsp<span style='color:red; font-size:10px;'>(" & RS("situacaoAluno") & ")</span>"
 										END IF
 										cont = cont + 1
 										%>

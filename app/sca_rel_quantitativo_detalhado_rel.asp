@@ -63,9 +63,7 @@ Server.ScriptTimeout = 1200
 	strTituloRelatorio  	= "QUANTITAVOS DE ALUNOS - DETALHADO<br><strong>" & strTipoCurso & " - " & strAnoLetivo & "<br>" & situacaoAluno & "</strong>"
 	
 	sql = "exec [dbo].[SP_SCA_QuantAlunoPorIdadeSexo_idades] " & session("codGrupo") & "," & strAnoLetivo & ",'" &strTipoCurso& "','" & strDescTurno & "','" & situacaoAluno & "'," & intCodEmpresa
-	if session("usuarioWeb") = "SERGIO" THEN
-		response.write sql
-	END IF
+
 	vetIdades = null
 	rs.open sql, cnn
 	if not rs.eof then
@@ -133,9 +131,6 @@ Server.ScriptTimeout = 1200
 	cod_escola = 0
 		
 	sql = "exec [dbo].[SP_SCA_QuantAlunoPorIdadeSexo_resultado] " & session("codGrupo") & "," & strAnoLetivo & ",'" & strTipoCurso & "','" & strDescTurno & "','" & situacaoAluno & "'," & intCodEmpresa
-	if session("usuarioWeb") = "SERGIO" THEN
-		response.write sql
-	END IF	
 	corLinha = "bgcolor='#CCCCCC'"
 	
 	rs.open sql, cnn
@@ -182,9 +177,6 @@ Server.ScriptTimeout = 1200
 		rs.close
 		
 		sql = "exec [dbo].[SP_SCA_QuantAlunoPorIdadeSexo_resultado_total] " & session("codGrupo") & "," & strAnoLetivo & ",'" & strTipoCurso & "','" & strDescTurno & "','" & situacaoAluno & "'," & intCodEmpresa
-	if session("usuarioWeb") = "SERGIO" THEN
-		response.write sql
-	END IF		
 		total_geral_M_linha = 0
 		total_geral_F_linha = 0
 		total_geral_linha = 0

@@ -591,8 +591,11 @@ RESPONSE.END
 						end if
 						
 					 if not isnull(rs("MEDIA")) and rs("MEDIA")<>"" then
-						
-							strMedia = FORMATNUMBER(rs("MEDIA"),1)
+							if buscaHistorico = "S" then
+								strMedia = rs("MEDIA")
+							else
+								strMedia = FORMATNUMBER(rs("MEDIA"),1)
+							end if
 							if cCur(strMedia) < cCur(intMediaAprovacao) then
 								strResultadoFinal = "<font color='#FF0000'>RN</font>"
 							else
@@ -1445,7 +1448,12 @@ RESPONSE.END
 						
 					 if not isnull(rs("MEDIA")) and rs("MEDIA")<>"" then
 						
-							strMedia = FORMATNUMBER(rs("MEDIA"),1)
+							if buscaHistorico = "S" then
+								strMedia = rs("MEDIA")
+							else
+								strMedia = FORMATNUMBER(rs("MEDIA"),1)
+							end if
+							
 							if cCur(strMedia) < cCur(intMediaAprovacao) then
 								strResultadoFinal = "<font color='#FF0000'>RN</font>"
 							else
