@@ -3,6 +3,7 @@
 	acao = "I"
 
 	strAnoLetivo			= Trim(Request.Form("txtAnoLetivo"))
+	if strAnoLetivo = "" then strAnoLetivo = session("strAnoLetivo")	'ano letivo da sessão (Trocar Ano Letivo)
 	strSemestre             = Trim(Request.Form("txtSemestre"))
 
 	intCodCurso				= Trim(Request.Form("txtCodCurso"))	
