@@ -14,7 +14,7 @@ response.ContentType = "text/html"
 
 
 <%
-	on error resume next
+	'on error resume next
 	'----------Inicia uma tranzação--------------
 	cnn.begintrans
 	acao 				= Trim(Request.QueryString("acao"))

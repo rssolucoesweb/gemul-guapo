@@ -1,6 +1,5 @@
 <%
 	acao = "I"
-
 	strTemAcessoAdministrador = ""
 	SQL = "SELECT ACES_PERF_CODG" 'SCA(ADMINISTRADOR)
 	SQL = SQL & " FROM SEG_ACESSOS_USUARIO"
@@ -12,6 +11,7 @@
 	end if
 	rs.close
 
+
 	intCodDisciplina	= Trim(Request.Form("txtCodigo"))
 	strDescricao 		= Trim(Request.Form("txtDescricao"))
 	strDescAbreviada	= Trim(Request.Form("txtDescAbreviada"))
@@ -19,7 +19,7 @@
 		
 	if trim(intCodDisciplina) <> "" then
 	
-		sql = "SELECT COD_Disciplina, DESC_Disciplina, Desc_Abreviada, Desc_historico, situacao, uso_historico"
+		sql = "SELECT COD_Disciplina, DESC_Disciplina,ordem, Desc_Abreviada, Desc_historico, situacao, uso_historico"
 		sql = sql & " FROM SCA_DISCIPLINA"
 		sql = sql & " Where COD_Disciplina = " & intCodDisciplina
 		
@@ -29,6 +29,7 @@
 			
 			intCodigo	 			= rs("COD_Disciplina")
 			strDescricao			= rs("DESC_Disciplina")
+			strOrdem				= rs("ordem")
 			strDescAbreviada		= rs("Desc_Abreviada")
 			strDescHistorico		= rs("Desc_Historico")
 			strSituacao				= rs("situacao")
@@ -38,7 +39,7 @@
 			strDesabilitaExcluir	= "" 'Desabilita o botão Excluir
 			
 			acao = "E"
-			if Session("UsuarioMaster") = "S" or strTemAcessoAdministrador = "S" then
+			if Session("UsuarioMaster") = "S" or strTemAcessoAdministrador = "S" then 
 				acao = "AE"
 			end if
 			
@@ -116,7 +117,10 @@
 									<option <%if strUsoHistorico = "N" then response.write "selected"%> value="N">Não</option>
 								</select>
 							</div>
-							
+							<div class="form-group">
+								<label class="form-label">Ordem </label>
+								<input name="txtOrdem" type="text" class="form-control" id="txtOrdem" size="5" maxlength="2"  onKeyPress="return formataCampo(this,2,2)" value="<%=strOrdem%>">
+							</div>
 							<div class="frame-wrap">
 								<!--#include file="includes/inc_botoes_cadastro.asp"-->
 							</div>
@@ -129,7 +133,7 @@
 	<%
 	cont =0
 
-	sql = "SELECT COD_Disciplina, DESC_Disciplina, Desc_Abreviada, Desc_Historico, situacao, uso_historico"
+	sql = "SELECT COD_Disciplina, DESC_Disciplina, Desc_Abreviada, Desc_Historico, situacao, uso_historico, ordem"
 	sql = sql & " FROM SCA_DISCIPLINA"
 	sql = sql & " Order by situacao, uso_historico, DESC_Disciplina"
 	rs.open sql, cnn
@@ -163,6 +167,7 @@
 									<th><strong>Descri&ccedil;&atilde;o (Hist&oacute;rico) </strong></th>
 									<th><strong>Situação</strong></th>
 									<th><strong>Somente Histórico</strong></th>
+									<th><strong>Ordem (histórico)</strong></th>
 								  </tr>
 								</thead>
 								<tbody>
@@ -183,14 +188,14 @@
 									<td height="20" class="celula"><%=trim(rs("Desc_Historico"))%></td>
 									<td height="20" class="celula"><%=trim(situacao)%></td>
 									<td height="20" class="celula"><%=trim(uso_historico)%></td>
-									
+									<td height="20" class="celula"><%=trim(rs("ordem"))%></td>									
 								  </tr>
 								  <%				
 								rs.movenext
 							wend
 							%>
 									<tr>
-										<td height="21" colspan="5" class="celula">Total Registros : <%=cont%></td>
+										<td height="21" colspan="6" class="celula">Total Registros : <%=cont%></td>
 									</tr>
 								</tbody>
 							</table>

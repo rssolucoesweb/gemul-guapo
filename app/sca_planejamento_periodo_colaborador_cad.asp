@@ -1,6 +1,7 @@
 <%
 	acao = ""
 	strAnoLetivo		= Trim(Request.Form("txtAnoLetivo"))
+	strAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
 	if strAnoLetivo="" then strAnoLetivo = year(date)
 	intCodEmp			= Session("CodEmpresa")
 %>
@@ -57,7 +58,7 @@
 								<div class="col-sm-2">	
 									<div class="form-group">
 										<label class="form-label">Ano Letivo</label>
-										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" onBlur="submit()" class="form-control" value="<%=strAnoLetivo%>" maxlength="4"  onKeyPress="return formataCampo(this, 2, 4)">
+										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" class="form-control" value="<%=strAnoLetivo%>" maxlength="4"  onKeyPress="return formataCampo(this, 2, 4)" readonly>
 									</div>
 								</div>	
 							</div>

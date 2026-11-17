@@ -1,6 +1,8 @@
 <%
 	strUsuario 				=  Trim(Request.Form("txtLogin"))
 	strSenha 				=  Trim(Request.Form("txtSenha"))
+	'novo login: volta para o ano letivo padrão da unidade (troca de ano feita em trocar-ano-letivo.asp)
+	Session("strAnoLetivoEscolhido") = ""
 %>
 <script>
 		//alert("Sistema temporariamente indisponível.\nEstamos com uma instabilidade nos servidores, estamos trabalhando para normalizar.\nPedimos desculpas pelo transtorno.");

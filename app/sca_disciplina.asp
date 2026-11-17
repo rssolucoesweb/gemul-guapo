@@ -79,6 +79,7 @@ Contato: sergio@rssolucoesweb.com.br
 						+ src/../jquery-snippets.js (core) -->
         <script src="js/vendors.bundle.js"></script>
         <script src="js/app.bundle.js"></script>
+		<script src="js/js_funcoes_gerais.js"></script>
 		<script src="js_app/sca_disciplina.js"></script>
         <script type="text/javascript">
         </script>

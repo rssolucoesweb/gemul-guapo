@@ -10,6 +10,12 @@
 <%if strRetiraBotaoRecibo="S" then%>
 	<button onclick="return abreConsulta('Recibo_servico_rel.asp?id=<%=id%>')"  type="button" class="btn btn-outline-info">Excluir</button>
 <%end if%>
+<%if strBotaoConsultar = "S" then%>
+	<button onClick="submit()"  type="button" class="btn btn-outline-success">Consultar</button>
+<%end if%>
+<%if strBotaoVincular = "S" then%>
+	<button onClick="vincular()"  type="button" class="btn btn-outline-info">Vincular</button>
+<%end if%>
 <%if strRetiraBotaolimparTela="" then%>
 <button onClick="window.location='<%=replace(pagina_atual,"/app/","")%>'"  type="button" class="btn btn-outline-warning">Limpar tela</button>
 <%end if%>

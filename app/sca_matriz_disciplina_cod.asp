@@ -114,7 +114,7 @@ response.ContentType = "text/html"
 		
 		sql = "INSERT SCA_ALUNO_DISCIPLINA (COD_EMPRESA, COD_ALUNO, "
 		sql = sql & " COD_TURMA, COD_TURMA_REMANEJAMENTO,COD_GRADECURRICULARDISCIPLINA_REMANEJAMENTO, "
-		sql = sql & " COD_GRADECURRICULARDISCIPLINA, COD_DISCIPLINA, SITUACAO, COD_SITUACAO_ACADEMICA)"
+		sql = sql & " COD_GRADECURRICULARDISCIPLINA, COD_DISCIPLINA, SITUACAO, COD_SITUACAO_ACADEMICA,usuario_incl,data_hora_incl,tela)"
 		sql = sql & " VALUES ("
 		sql = sql & "" & intCodEmpresa & ","
 		sql = sql & "" & strCodAluno & ","
@@ -125,10 +125,13 @@ response.ContentType = "text/html"
 		sql = sql & "" & intCodDisciplina & ","
 		sql = sql & "'" & strSituacaoDisciplina & "',"
 		if strSituacaoPromocao <> "" and strSituacaoPromocao <> "0" then
-			sql = sql & "" & strSituacaoPromocao & ")"
+			sql = sql & "" & strSituacaoPromocao & ","
 		else
-			sql = sql & " null)"
+			sql = sql & " null,"
 		end if	
+		sql = sql & "'" & SESSION("USUARIOWEB") & "',"
+		sql = sql & "GETDATE(),"
+		sql = sql & "'sca_matriz_disciplina_cod.asp')"
 		cnn.execute sql
 		GravarLog sql
 
@@ -246,17 +249,20 @@ response.ContentType = "text/html"
 
 		sql = "Delete From sca_faltas_diaria"
 		sql = sql & " where cod_aluno_disciplina in (" & cod_excluirDisc & ")"
+		sql = sql & " and cod_empresa = " & Session("CodEmpresa")
 		cnn.execute sql
 		GravarLog sql
 
 
 		sql = "Delete From SCA_NOTAS_FALTAS"
 		sql = sql & " where cod_aluno_disciplina in (" & cod_excluirDisc & ")"
+		sql = sql & " and cod_empresa = " & Session("CodEmpresa")
 		cnn.execute sql
 		GravarLog sql
 		
 		sql = "Delete From SCA_ALUNO_DISCIPLINA "
 		sql = sql & " where Codigo in (" & cod_excluirDisc & ")"
+		sql = sql & " and cod_empresa = " & Session("CodEmpresa")
 		cnn.execute sql
 		GravarLog sql
 

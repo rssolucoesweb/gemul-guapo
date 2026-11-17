@@ -26,6 +26,7 @@ response.ContentType = "text/html"
 	strChPratica					= Trim(Request.Form("txtChPratica"))
 	strChTeorica					= Trim(Request.Form("txtChTeorica"))
 	strOmitirCriterio				= Trim(Request.Form("cmbOmitirCriterio"))
+	strOmitirDocumentacao			= Trim(Request.Form("cmbOmitirDocumentacao"))
 	
 	if strChPratica = "" then strChPratica = "0"
 	if strChTeorica = "" then strChTeorica = "0"
@@ -66,11 +67,8 @@ response.ContentType = "text/html"
 			sql = sql & " Ch_Teorica = " & strChTeorica & ","
 		end if
 
-		if strOmitirCriterio = "" then
-			sql = sql & " Omitir_Criterio = null,"
-		else
-			sql = sql & " Omitir_Criterio = '" & strOmitirCriterio & "'"
-		end if
+		sql = sql & " Omitir_Criterio = '" & strOmitirCriterio & "',"
+		sql = sql & " Omitir_Documentacao = '" & strOmitirDocumentacao & "'"
 		
 		sql = sql & " WHERE COD_GRADECURRICULAR = " & intCodGrade
 		sql = sql & " And Cod_GradeCurricularDisciplina = " & intCodCurricularDisciplina

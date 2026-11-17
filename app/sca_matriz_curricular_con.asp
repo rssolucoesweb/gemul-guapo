@@ -40,6 +40,7 @@ Contato: sergio@rssolucoesweb.com.br
 					mensagem_alerta_pagina = ""
 					
 					strAnoLetivo 	= request("txtAnoLetivo")
+					strAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
 					intSemestre 	= request("cmbSemestre")
 					if intSemestre = "" then intSemestre = 0
 					strSituacao 	= request("cmbSituacao")
@@ -83,7 +84,7 @@ Contato: sergio@rssolucoesweb.com.br
 													<div class="col-sm-4">
 														<div class="form-group">
 															<label class="form-label">Ano</label>
-															<input  name="txtAnoLetivo" type="text" class="form-control" id="txtAnoLetivo" onBlur="submit()"  value="<%=strAnoLetivo%>" size="5" maxlength="5" onKeyPress="return formataCampo(this,2,10)">
+															<input  name="txtAnoLetivo" type="text" class="form-control" id="txtAnoLetivo"  value="<%=strAnoLetivo%>" size="5" maxlength="5" onKeyPress="return formataCampo(this,2,10)" readonly>
 														</div>
 													</div>	
 													<div class="col-sm-4">	

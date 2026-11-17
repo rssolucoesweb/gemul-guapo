@@ -11,6 +11,7 @@
 
 	intCodEmp				= Session("CodEmpresa")
 	strAnoLetivo 			= Trim(Request.Form("txtAnoLetivo"))
+	strAnoLetivo = session("strAnoLetivo")	'ano letivo vem da sessão (Trocar Ano Letivo)
 	intSemestre 			= Trim(Request.Form("cmbSemestre"))
 	strDataLancamento 		= Trim(Request("txtDataLancamento"))
 	intCodTurma 			= Trim(Request("cmbTurma"))
@@ -119,7 +120,7 @@
 							<div class="col-sm-1">
 								<div class="form-group">
 									<label class="form-label">Ano Letivo:</label>
-									<input <%=strBloqueio%> name="txtAnoLetivo" type="text" class="form-control" id="txtAnoLetivo" onBlur="submit()"  value="<%=strAnoLetivo%>" size="5" maxlength="5" onKeyPress="return formataCampo(this,2,10)">
+									<input <%=strBloqueio%> name="txtAnoLetivo" type="text" class="form-control" id="txtAnoLetivo"  value="<%=strAnoLetivo%>" size="5" maxlength="5" onKeyPress="return formataCampo(this,2,10)" readonly>
 								</div>
 							</div>
 							<div class="col-sm-1">

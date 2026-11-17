@@ -290,7 +290,8 @@
 	right: 0;
 	background: #ffffff;
 	border-radius: 5px;
-	min-width: 160px;
+	min-width: 240px;
+	white-space: nowrap;
 	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 	z-index: 1000;
 }
