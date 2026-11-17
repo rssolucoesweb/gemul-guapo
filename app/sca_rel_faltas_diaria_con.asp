@@ -35,11 +35,14 @@
 				alert("A turma deve ser informada!");
 				frm.cmbTurma.focus();
 				return false;
-			}		
-			if (frm.cmbDisciplinaTurma.value == 0){
-				alert("A disciplina deve ser informada!");
-				frm.cmbDisciplinaTurma.focus();
-				return false;
+			}	
+			
+			if (frm.txtTipoPeriodo.value == 'D'){
+				if (frm.cmbDisciplinaTurma.value == 0){
+					alert("A disciplina deve ser informada!");
+					frm.cmbDisciplinaTurma.focus();
+					return false;
+				}	
 			}	
 
 			//*****verifica se um aluno foi selecionado
@@ -261,7 +264,7 @@
 									<!--#include file="includes/inc_cmdTurma.asp"-->
 								</div>
 							</div>
-						<%if strOpcaoRelatorio = "0" then%>
+						<%if strOpcaoRelatorio = "0" and strTipoPeriodo="D" then%>
 							<div class="col-sm-4">
 								<div class="form-group">
 								
@@ -454,27 +457,131 @@ if intCodTurma<>"0" and intCodCurso<>"0" and intCodPeriodo<>"0" then
 											
 											<% 
 											strLacamentos = "" 
-											sql = " select FD.DATA, P.Descricao, SUM(FD.FALTA) AS FALTA "
+											if strTipoPeriodo="D" then
+												sql = " select FD.DATA, P.Descricao, SUM(distinct FD.FALTA) AS FALTA "
+											else
+												sql = " select distinct FD.DATA, P.Descricao, 1 AS FALTA "
+											end if											
+											
 											sql = sql & " from " & strTabela & " FD "
 											sql = sql & " INNER JOIN SCA_DISCIPLINA D ON D.COD_DISCIPLINA = FD.cod_disciplina "
 											sql = sql & " INNER JOIN SCA_PERIODO P ON P.Cod_Periodo = FD.cod_periodo "
 											sql = sql & " where FD.cod_empresa = " & Session("CodEmpresa") 
 											sql = sql & " and ano_letivo = " & strAnoLetivo
 											sql = sql & " and semestre = " & intSemestre 
-											sql = sql & " and cod_aluno = " & strCodigoAluno 
-											sql = sql & " and FD.cod_disciplina = " & intCodDisciplinaTurma 
-											sql = sql & " GROUP BY FD.DATA, P.Descricao	"
+											sql = sql & " and cod_aluno = " & strCodigoAluno
+											if strTipoPeriodo="D" then
+												sql = sql & " and FD.cod_disciplina = " & intCodDisciplinaTurma 
+												sql = sql & " GROUP BY FD.DATA, P.Descricao	"
+											end if
+											total_faltas = 0
 											rsaux.open sql, cnn
 											if rsaux.eof = false then
 												while not rsaux.eof
 													strLacamentos = strLacamentos + formatadataAp(rsaux("DATA")) & " - " & rsaux("Descricao") & ": " & rsaux("FALTA") & " Falta(s)<br>"
+													total_faltas = total_faltas + 1
 													rsaux.movenext
 												wend
 											end if
 											rsaux.close
 											%>
-											<br><%=strLacamentos%>
-											
+											<%=strLacamentos%>
+											<%
+											if total_faltas>0 then
+											%>
+											<font color=red><strong>Faltas: <%=total_faltas%><strong></font>
+											<%
+											'verifica somente as faltas realmente justificadas
+											'
+											'6º ao 9º:
+											'  aluno + data + disciplina
+											'
+											'demais períodos:
+											'  aluno + data
+											'
+											'Uma justificativa sem falta correspondente não entra na contagem.
+											falta_justificada = 0
+
+											sql = ""
+											sql = sql & " ;WITH FaltasReais AS ( "
+											sql = sql & "     SELECT DISTINCT "
+											sql = sql & "         FD.cod_aluno, "
+											sql = sql & "         CAST(FD.data AS DATE) AS data_falta, "
+											sql = sql & "         ISNULL(FD.cod_disciplina, 0) AS cod_disciplina "
+											sql = sql & "     FROM " & strTabela & " FD "
+											sql = sql & "     WHERE FD.cod_empresa = " & Session("CodEmpresa")
+											sql = sql & "       AND FD.ano_letivo = " & strAnoLetivo
+											sql = sql & "       AND FD.semestre = " & intSemestre
+											sql = sql & "       AND FD.cod_aluno = " & strCodigoAluno
+
+											if strTipoPeriodo="D" then
+												sql = sql & "       AND FD.cod_disciplina = " & intCodDisciplinaTurma
+											end if
+
+											sql = sql & " ), Justificativas AS ( "
+											sql = sql & "     SELECT DISTINCT "
+											sql = sql & "         d.DataFalta, "
+											sql = sql & "         ISNULL(d.cod_disciplina, 0) AS cod_disciplina "
+											sql = sql & "     FROM SCA_ALUNO_JUSTIFICATIVA_FALTAS j "
+											sql = sql & "     INNER JOIN SCA_ALUNO_JUSTIFICATIVA_FALTAS_DIARIA d "
+											sql = sql & "         ON d.cod_aluno_justificativa_faltas = j.codigo "
+											sql = sql & "     WHERE j.cod_aluno = " & strCodigoAluno
+											sql = sql & "       AND j.ano_letivo = " & strAnoLetivo
+											sql = sql & " ) "
+											sql = sql & " SELECT COUNT(DISTINCT "
+											sql = sql & "     CASE "
+											sql = sql & "         WHEN F.data_falta IS NOT NULL THEN "
+											sql = sql & "             CASE "
+											sql = sql & "                 WHEN " & intCodPeriodo & " BETWEEN 6 AND 9 THEN "
+											sql = sql & "                     CONVERT(VARCHAR(10), J.DataFalta, 120) + '|' + "
+											sql = sql & "                     CONVERT(VARCHAR(20), J.cod_disciplina) "
+											sql = sql & "                 ELSE "
+											sql = sql & "                     CONVERT(VARCHAR(10), J.DataFalta, 120) "
+											sql = sql & "             END "
+											sql = sql & "     END "
+											sql = sql & " ) AS QuantidadeFaltasJustificadas "
+											sql = sql & " FROM Justificativas J "
+											sql = sql & " LEFT JOIN FaltasReais F "
+											sql = sql & "     ON F.data_falta = CAST(J.DataFalta AS DATE) "
+											sql = sql & "    AND ( "
+											sql = sql & "         " & intCodPeriodo & " NOT BETWEEN 6 AND 9 "
+											sql = sql & "         OR F.cod_disciplina = J.cod_disciplina "
+											sql = sql & "    ) "
+
+											rsAux.open sql, cnn
+
+											if rsAux.eof = false then
+												if not isnull(rsAux("QuantidadeFaltasJustificadas")) then
+													falta_justificada = rsAux("QuantidadeFaltasJustificadas")
+												end if
+											end if
+
+											rsAux.close
+
+											if falta_justificada > total_faltas then
+												falta_justificada = total_faltas
+											end if
+
+											if falta_justificada > 0 then
+												%>
+												<br><font color=green><strong>Justificadas: <%=falta_justificada%><strong></font>
+												<%
+											end if
+											if falta_justificada>0 then
+												if total_faltas>falta_justificada then
+													%>
+													<br><font color=red><strong>Total: <%=total_faltas-falta_justificada%><strong></font>
+													<%
+												else
+													%>
+													<br><font color=blue><strong>Total: 0<strong></font>
+													<%
+												end if
+											end if
+											%>
+											<%
+											end if
+											%>
 											</td>
 										</tr>
 										 <%
@@ -502,6 +609,8 @@ if intCodTurma<>"0" and intCodCurso<>"0" and intCodPeriodo<>"0" then
 		<%
 		end if
 		%>
+		<input name="txtTipoPeriodo" 		type="hidden" id="txtTipoPeriodo" value="<%=strTipoPeriodo%>">
+		
 	</form>
 </main>
 <!-- this overlay is activated only when mobile menu is triggered -->
