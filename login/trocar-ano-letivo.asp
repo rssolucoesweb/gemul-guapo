@@ -78,47 +78,92 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Trocar Ano Letivo – GEMUL</title>
+	<link rel="stylesheet" href="css/styles.css"> <!-- usa o mesmo CSS do login -->
 	<style>
-		body { font-family: Arial, Helvetica, sans-serif; background: #f3f5f9; margin: 0; }
-		.box { max-width: 420px; margin: 60px auto; background: #fff; border-radius: 12px; padding: 28px 30px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
-		h1 { font-size: 22px; margin: 0 0 6px 0; color: #1f2a44; }
-		.sub { color: #555; margin: 0 0 16px 0; }
+		#logo-login { width: 100% !important; max-width: 500px !important; }
+		.logo-rodape { width: 85px !important; }
 		.ano-lista { display: flex; flex-direction: column; gap: 10px; margin: 18px 0 8px 0; }
-		.ano-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid #d6dbe4; border-radius: 10px; text-decoration: none; color: #1f2a44; font-size: 18px; font-weight: 600; background: #fff; }
+		.ano-item {
+			display: flex; align-items: center; justify-content: space-between;
+			padding: 14px 18px; border: 1px solid #d6dbe4; border-radius: 10px;
+			text-decoration: none; color: #1f2a44; font-size: 18px; font-weight: 600;
+			background: #ffffff; transition: background .15s, border-color .15s;
+		}
 		.ano-item:hover { background: #f1f5fb; border-color: #1a5ea8; }
 		.ano-item.atual { border-color: #1a5ea8; background: #eaf2fb; cursor: default; }
 		.ano-tag { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 12px; }
-		.ano-tag.atual { background: #1a5ea8; color: #fff; }
+		.ano-tag.atual { background: #1a5ea8; color: #ffffff; }
 		.ano-tag.padrao { background: #e8f5e9; color: #2e7d32; }
 		.ano-aviso { color: #b00020; margin: 10px 0; }
-		.voltar { color: #1a5ea8; text-decoration: none; }
 	</style>
 </head>
 <body>
-<div class="box">
-	<h1>Trocar Ano Letivo</h1>
-	<p class="sub">
-	<%if intAnoAtual > 0 then%>Ano letivo atual: <strong><%=intAnoAtual%></strong>. Escolha o ano em que deseja trabalhar.<%else%>Escolha o ano letivo em que deseja trabalhar.<%end if%>
-	</p>
-	<%if strMensagem <> "" then%><p class="ano-aviso"><%=Server.HTMLEncode(strMensagem)%></p><%end if%>
-	<%if intCodEmpresa = 0 then%>
+
+<div class="container">
+
+  <!-- LADO ESQUERDO -->
+  <!-- LADO ESQUERDO -------------------------------------------------------->
+    <div class="left">
+        <div class="left-content">
+            <h2>Secretaria Municipal de<br><strong>Educação</strong></h2>
+            <div class="logo">
+                <img src="/matricula/img/logomarca-topo-guapo.png" alt="Prefeitura de Guapó">
+            </div>
+        </div>
+    </div>
+
+  <!-- LADO DIREITO -->
+  <div class="right">
+    <div class="login-box">
+	  <h1>Trocar Ano Letivo</h1>
+      <p class="subtitle">
+		<%if intAnoAtual > 0 then%>
+        Ano letivo atual: <strong><%=intAnoAtual%></strong>. Escolha o ano em que deseja trabalhar.
+		<%else%>
+		Escolha o ano letivo em que deseja trabalhar.
+		<%end if%>
+      </p>
+
+	  <%if strMensagem <> "" then%>
+		<p class="ano-aviso"><%=Server.HTMLEncode(strMensagem)%></p>
+	  <%end if%>
+
+	  <%if intCodEmpresa = 0 then%>
 		<p class="ano-aviso">Selecione primeiro a unidade escolar.</p>
-	<%elseif not isArray(vetAnos) then%>
+	  <%elseif not isArray(vetAnos) then%>
 		<p class="ano-aviso">Nenhum ano letivo disponível para esta unidade.</p>
-	<%else%>
+	  <%else%>
 		<div class="ano-lista">
-		<%for i = 0 to ubound(vetAnos, 2)
+		<%
+		for i = 0 to ubound(vetAnos, 2)
 			intAno = anoNumero(vetAnos(0, i))
-			if intAno = intAnoAtual then%>
-			<div class="ano-item atual"><span><%=intAno%></span><span class="ano-tag atual">Ano atual</span></div>
-			<%else%>
-			<a class="ano-item" href="trocar-ano-letivo.asp?ano=<%=intAno%><%=strLinkVolta%>"><span><%=intAno%></span><%if trim(vetAnos(1, i) & "") = "S" then%><span class="ano-tag padrao">Padrão</span><%end if%></a>
-			<%end if
-		next%>
+			if intAno = intAnoAtual then
+		%>
+			<div class="ano-item atual">
+				<span><%=intAno%></span>
+				<span class="ano-tag atual">Ano atual</span>
+			</div>
+		<%	else %>
+			<a class="ano-item" href="trocar-ano-letivo.asp?ano=<%=intAno%><%=strLinkVolta%>">
+				<span><%=intAno%></span>
+				<%if trim(vetAnos(1, i) & "") = "S" then%><span class="ano-tag padrao">Padrão</span><%end if%>
+			</a>
+		<%
+			end if
+		next
+		%>
 		</div>
-	<%end if%>
-	<br>
-	<a class="voltar" href="<%if strVoltaParam <> "" then response.write Server.HTMLEncode(strVoltaParam) else response.write "selecionar_escola.asp"%>">← Voltar ao Sistema</a>
+	  <%end if%>
+
+		<br>
+      <a href="<%if strVoltaParam <> "" then response.write Server.HTMLEncode(strVoltaParam) else response.write "selecionar_escola.asp"%>" class="forgot">← Voltar ao Sistema</a>
+
+	  <p class="login-rodape">
+		<img class="logo-rodape" src="img/logo-login.png" alt="GEMUL">
+	  </p>
+    </div>
+  </div>
+
 </div>
 </body>
 </html>
