@@ -533,11 +533,15 @@ If CLng(intCodTurma) > 0 Then
                 strSituacaoAlerta = "NÃO CLASSIFICADO"
             End If
 			
-			situacaoAluno = vetAlunos(idxSituacao, i)
-			if situacaoAluno="ATIVO" Then
-				situacaoAluno =""
+			' A consulta dos alunos nem sempre traz a data da situação: só mostra o que existir
+			situacaoAluno = ""
+			if idxSituacao >= 0 then situacaoAluno = Trim("" & vetAlunos(idxSituacao, i))
+			if situacaoAluno = "" or UCase(situacaoAluno) = "ATIVO" Then
+				situacaoAluno = ""
 			Else
-				situacaoAluno =  "<font size=1 color='red'><br>(" & vetAlunos(idxSituacao, i) & " " & vetAlunos(idxDataSituacao, i) & ")</font>"
+				strDataSituacaoAluno = ""
+				if idxDataSituacao >= 0 then strDataSituacaoAluno = " " & vetAlunos(idxDataSituacao, i)
+				situacaoAluno = "<font size=1 color='red'><br>(" & Html(situacaoAluno) & strDataSituacaoAluno & ")</font>"
 			end if
 %>
 
