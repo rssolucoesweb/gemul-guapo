@@ -26,9 +26,9 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 <!--#include file="includes/inc_Botoes_relatorio.asp"-->
 <!--#include file="includes/inc_aguarde.asp"-->
 <%
-	sub buscaProfessor(anoLetivo, semestre, codDisc, turma)
+	sub buscaProfessor(anoLetivo, semestre, codDisc, turma, strTipoPeriodo)
 		professor = ""
-		sql = "SELECT	C.NOME AS PROFESSOR"
+		sql = "SELECT	distinct C.NOME AS PROFESSOR"
 		sql = sql & " 	FROM	SCA_HORARIO_AULA HA"
 		sql = sql & " 	INNER JOIN SCA_HORARIO H ON H.COD_EMPRESA=HA.COD_EMPRESA AND H.CODIGO=HA.COD_HORARIO"
 		sql = sql & " 	INNER JOIN SCA_TURMA T ON T.COD_EMPRESA=HA.COD_EMPRESA AND T.COD_TURMA=HA.COD_TURMA"
@@ -40,7 +40,9 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 		sql = sql & " 	WHERE	HA.COD_EMPRESA	= " & session("CodEmpresa")
 		sql = sql & " 	AND		HA.ANOLETIVO	= " & anoLetivo
 		sql = sql & " 	AND		T.COD_TURMA 	= " & turma
-		sql = sql & " 	AND		D.COD_DISCIPLINA = " & codDisc
+		if strTipoPeriodo="D" then
+			sql = sql & " 	AND		D.COD_DISCIPLINA = " & codDisc
+		end if
 		sql = sql & " 	AND		HA.SEMESTRE		= " & semestre
 		RSaux.OPEN SQL, CNN
 		IF not RSaux.EOF THEN
@@ -51,6 +53,7 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 	end Sub	
 	
 	
+	strTipoPeriodo	 		= Trim(Request.Form("txtTipoPeriodo"))
 	intAnoLetivoAtual	 		= Trim(Request.Form("txtAnoLetivo"))
 	intSemestreAtual	 		= Trim(Request.Form("cmbSemestre"))
 	
@@ -147,33 +150,41 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 			
 			'NOTA ATUAL
 			
-			sql = " SELECT "
-			sql = sql & " NULL as TAXA, " 
-			sql = sql & " NULL AS DATA_ABONO, " 
-			sql = sql & " NULL AS USUARIO_ABONO, " 
+			sql = " SELECT distinct "
 			sql = sql & " A.CODIGO, " 
 			sql = sql & " A.MATRICULA, " 
 			sql = sql & " A.NOMEALUNO, " 
 			sql = sql & " T.COD_TURMA, " 
 			sql = sql & " T.NOMETURMA, T.TURMAALUNO, " 
 			sql = sql & " FD.DATA, " 
-			sql = sql & " D.DESC_DISCIPLINA, " 
 			sql = sql & " TUR.DESC_TURNO, " 
-			sql = sql & " D.COD_DISCIPLINA, " 
-			sql = sql & " COUNT(FD.FALTA) AS FALTA " 
+			if strTipoPeriodo = "D" then
+				sql = sql & " D.COD_DISCIPLINA, " 
+				sql = sql & " D.DESC_DISCIPLINA, " 
+				sql = sql & " 1 AS FALTA " 
+			else
+				sql = sql & " 0 as COD_DISCIPLINA," 
+				sql = sql & " 1 AS FALTA " 
+			end if
 			sql = sql & " from " & strTabela & " FD "
 			sql = sql & " INNER JOIN SCA_ALUNO A ON A.CODIGO = FD.COD_ALUNO "
-			sql = sql & " INNER JOIN SCA_DISCIPLINA D ON D.COD_DISCIPLINA = FD.COD_DISCIPLINA " 
+			if strTipoPeriodo = "D" then
+				sql = sql & " INNER JOIN SCA_DISCIPLINA D ON D.COD_DISCIPLINA = FD.COD_DISCIPLINA " 
+			end if
 			sql = sql & " INNER JOIN SCA_TURMA T ON (SELECT TOP 1 COD_TURMA FROM SCA_ALUNO_TURMA WHERE COD_ALUNO = A.CODIGO AND SCA_ALUNO_TURMA.Ano_Letivo = " & intAnoLetivoAtual & " and SCA_ALUNO_TURMA.Semestre in (" & intSemestreAtual & ") ORDER BY CODIGO DESC) = T.Cod_Turma "
 			sql = sql & " INNER JOIN SCA_TURNO TUR ON TUR.COD_TURNO = T.Cod_TURNO " 
 			sql = sql & " where FD.cod_empresa = " & strCod_empresa
 			'sql = sql & " and T.COD_TURMA = " & intCodTurma 
 			sql = sql & " and T.AnoLetivo = " & intAnoLetivoAtual
 			sql = sql & " and T.Cod_Semestre = " & intSemestreAtual 
-			sql = sql & " and FD.COD_DISCIPLINA = " & intCodDisciplina 
+			if strTipoPeriodo="D" then
+				sql = sql & " and FD.COD_DISCIPLINA = " & intCodDisciplina 
+			end if
 			sql = sql & " and YEAR(FD.DATA) = " & intAnoLetivoAtual 
 			sql = sql & " and A.CODIGO = " & vetAluno(j)
-			sql = sql & " GROUP BY A.CODIGO, A.MATRICULA, A.NOMEALUNO, T.COD_TURMA, T.NOMETURMA, T.TURMAALUNO, FD.DATA, D.DESC_DISCIPLINA, TUR.DESC_TURNO, D.COD_DISCIPLINA "
+			if strTipoPeriodo = "D" then
+				sql = sql & " GROUP BY A.CODIGO, A.MATRICULA, A.NOMEALUNO, T.COD_TURMA, T.NOMETURMA, T.TURMAALUNO, FD.DATA, D.DESC_DISCIPLINA, TUR.DESC_TURNO, D.COD_DISCIPLINA "
+			end if
 			sql = sql & " ORDER BY FD.DATA "
 			'response.write sql
 			rs.open sql, cnn
@@ -211,9 +222,11 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 					<div class="table-responsive-lg">
 					<table width="98%" border="1" cellspacing="0" cellpadding="0" class="tabela" align="center">
 				  <tr>
-				    <td width="50%" height="43" align="center" class="celula"><font size="2">Disciplina:<strong><font size="2"><strong><%=rs("DESC_DISCIPLINA")%></strong></font></strong></font></td>
+				    <%if strTipoPeriodo = "D" then%>
+					<td width="50%" height="43" align="center" class="celula"><font size="2">Disciplina:<strong><font size="2"><strong><%=rs("DESC_DISCIPLINA")%></strong></font></strong></font></td>
+					<%end if%>
 				    <td width="50%" align="center" class="celula"><font size="2">Professor(a): <strong>
-			        <% buscaProfessor intAnoLetivoAtual, intSemestreAtual, rs("COD_DISCIPLINA"), intCodTurma%></strong></font>&nbsp;</td>
+			        <% buscaProfessor intAnoLetivoAtual, intSemestreAtual, rs("COD_DISCIPLINA"), intCodTurma, strTipoPeriodo%></strong></font>&nbsp;</td>
 				    </tr>
                   </table>
 				  </div>
@@ -237,9 +250,65 @@ strAnoCab = Trim(Request.QueryString("AnoLetivo"))
 				wend 
 				%>
 				  <tr>
-				    <td align="center" class="celula"><strong>Total de Faltas</strong></td>
+				    <td align="center" class="celula"><strong>Faltas</strong></td>
 				    <td align="center" class="celula"><strong>&nbsp;<%=strTotalFaltas%>&nbsp;</strong></td>
 				    </tr>
+					
+				<%
+				'verifica somente as faltas realmente justificadas
+				'até o 5º ano: aluno + data
+				'6º ao 9º ano: aluno + data + disciplina
+				falta_justificada = 0
+
+				sql = ""
+				sql = sql & " ;WITH FaltasReais AS ( "
+				sql = sql & " SELECT DISTINCT FD.cod_aluno, CAST(FD.data AS DATE) AS data_falta, ISNULL(FD.cod_disciplina,0) AS cod_disciplina "
+				sql = sql & " FROM " & strTabela & " FD "
+				sql = sql & " WHERE FD.cod_empresa = " & strCod_empresa
+				sql = sql & " AND FD.ano_letivo = " & intAnoLetivoAtual
+				sql = sql & " AND FD.cod_aluno = " & vetAluno(j)
+				if strTipoPeriodo = "D" then
+					sql = sql & " AND FD.cod_disciplina = " & intCodDisciplina
+				end if
+				sql = sql & " ), Justificativas AS ( "
+				sql = sql & " SELECT DISTINCT d.DataFalta, ISNULL(d.cod_disciplina,0) AS cod_disciplina "
+				sql = sql & " FROM SCA_ALUNO_JUSTIFICATIVA_FALTAS j "
+				sql = sql & " INNER JOIN SCA_ALUNO_JUSTIFICATIVA_FALTAS_DIARIA d ON d.cod_aluno_justificativa_faltas = j.codigo "
+				sql = sql & " WHERE j.cod_aluno = " & vetAluno(j)
+				sql = sql & " AND j.ano_letivo = " & intAnoLetivoAtual
+				sql = sql & " AND j.Cod_turma = " & intCodTurma
+				sql = sql & " ) "
+				sql = sql & " SELECT COUNT(DISTINCT CASE WHEN F.data_falta IS NOT NULL THEN "
+				sql = sql & " CASE WHEN " & intCodPeriodo & " BETWEEN 6 AND 9 THEN "
+				sql = sql & " CONVERT(VARCHAR(10),J.DataFalta,120) + '|' + CONVERT(VARCHAR(20),J.cod_disciplina) "
+				sql = sql & " ELSE CONVERT(VARCHAR(10),J.DataFalta,120) END END) AS QuantidadeFaltasJustificadas "
+				sql = sql & " FROM Justificativas J "
+				sql = sql & " LEFT JOIN FaltasReais F ON F.data_falta = CAST(J.DataFalta AS DATE) "
+				sql = sql & " AND (" & intCodPeriodo & " NOT BETWEEN 6 AND 9 OR F.cod_disciplina = J.cod_disciplina) "
+
+				rsAux.open sql, cnn
+				if rsAux.eof = false then
+					if not isnull(rsAux("QuantidadeFaltasJustificadas")) then
+						falta_justificada = rsAux("QuantidadeFaltasJustificadas")
+					end if
+				end if
+				rsAux.close
+
+				if falta_justificada > strTotalFaltas then falta_justificada = strTotalFaltas
+				if falta_justificada > 0 then
+				%>
+				  <tr>
+				    <td align="center" class="celula"><strong>Justificadas</strong></td>
+					<td align="center" class="celula"><strong>&nbsp;<%=falta_justificada%>&nbsp;</strong></td>
+				</tr>
+					 <tr>
+				    <td align="center" class="celula"><strong>Total</strong></td>
+					<td align="center" class="celula"><strong>&nbsp;<%=strTotalFaltas-falta_justificada%>&nbsp;</strong></td>
+				</tr>
+				<%
+				end if
+				%>	
+					
                 </table>
 				</div>
 <br>
