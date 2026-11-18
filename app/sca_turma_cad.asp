@@ -1,3 +1,4 @@
+<!--#include file="includes/inc_cursosAtendimento.asp"-->
 <%
 	acao = "I"
 
@@ -37,6 +38,11 @@
 	strSituacaoTurma				= Trim(Request.form("cmbSituacaoTurma"))
 	intVagasMatriculas				= Trim(Request.form("txtVagasMatriculas"))
 	intVagasMatriculasUtilizadas	= Trim(Request.form("txtVagasMatriculasUtilizadas"))
+	strTipoTurma		 			= Trim(Request.Form("cmbTipoTurma"))	'ESC / AEE / ATC (igual Anápolis)
+	strAlteracaoTipoAtvCompl		= Trim(Request.Form("txtAlteracaoTipoAtvCompl"))
+	if request.Form("txtHiddenCodigoAtivCompl") <> "" then 
+		strCodigoAtivCompl  = request.Form("txtHiddenCodigoAtivCompl")
+	end if
 
 
 	if strSala <> "" then strSala = ZeroLeft(Trim(strSala),2)
@@ -44,7 +50,7 @@
 	if intSemestre = "" then intSemestre = session("strSemestre")
 
 	if trim(intCodTurma) <> ""  then 
-		sql = "SELECT SCA_TURMA.capacidade, SCA_TURMA.nomeTurma, SCA_SEMESTRE.sigla, SCA_TURMA.Cod_Turma, SCA_GRADECURRICULAR.diferenciada, "
+		sql = "SELECT SCA_TURMA.capacidade, isnull(sca_turma.tipo_turma,'ESC') as tipo_turma, SCA_TURMA.nomeTurma, SCA_SEMESTRE.sigla, SCA_TURMA.Cod_Turma, SCA_GRADECURRICULAR.diferenciada, "
 		sql = sql & " SCA_TURMA.Cod_GradeCurricular, SCA_TURMA.Cod_Semestre, SCA_TURMA.Cod_Turno, SCA_TURMA.Sala, SCA_TURMA.Ano, "
 		sql = sql & " SCA_TURMA.Cod_SemestreCriacao,SCA_TURMA.AnoLetivo, SCA_TURMA.TurmaAluno, SCA_TURMA.Cod_FichaDescritiva, SCA_TURMA.DisponibilizaIntegralizacao,"
 		sql = sql & " SCA_GRADECURRICULAR.Cod_Periodo, SCA_PERIODO.Cod_Curso, SCA_TURMA.DesvincularCriterioAvaliacao, SCA_TURMA.situacao, sca_turma.VagasMatriculas, sca_turma.VagasMatriculasUtilizadas"
@@ -58,6 +64,7 @@
 		if rs.eof = false then
 			intCodTurma 			= rs("Cod_Turma")
 			strNomeTurma 			= rs("NomeTurma")
+			strTipoTurma			= trim(rs("tipo_turma"))
 			intCodCurso	 			= rs("Cod_Curso")
 			intCodPeriodo 			= rs("Cod_Periodo")
 			intSemestre 			= rs("Cod_Semestre")
@@ -84,6 +91,28 @@
 		    acao = "AE"
 		end if 
 		rs.close
+		
+		'atividades complementares vinculadas (turma ATC)
+		if strTipoTurma = "ATC" then
+			if strAlteracaoTipoAtvCompl <> "S" then
+				strCodigoAtivCompl = ""
+				sql = " select atividade_complementar_id "
+				sql = sql & " from sca_turma_atendimento_atividade "
+				sql = sql & " where cod_turma = " & intCodTurma
+				rsAux.open sql,cnn
+				while not rsAux.eof
+					if strCodigoAtivCompl = "" then
+						strCodigoAtivCompl = rsAux("atividade_complementar_id")
+					else
+						strCodigoAtivCompl = strCodigoAtivCompl & "," & rsAux("atividade_complementar_id")
+					end if 
+					rsAux.MoveNext
+				wend
+				rsAux.close
+			end if
+		else
+			strCodigoAtivCompl = ""
+		end if
 	else
 		IF LEN(trim(strNomeTurma)) = 9 THEN
 			strDesabilitaIncluir	= "" 'Desabilita o botão Incluir
@@ -124,6 +153,16 @@
 		strSiglaSemestre = intSemestreCriacao
 		if intSemestreCriacao = "3" then strSiglaSemestre		= "A"
 	end if 
+	
+	'Tipo de atendimento: AEE e ATC têm curso/período próprios (Guapó: achados pela sigla AE/AT)
+	if strTipoTurma = "" or strTipoTurma = "0" then strTipoTurma = "ESC"
+	IF strTipoTurma = "AEE" then
+		intCodCurso = intCodCursoAEE
+		intCodPeriodo = intCodPeriodoAEE
+	ELSEIF strTipoTurma = "ATC" then
+		intCodCurso = intCodCursoATC
+		intCodPeriodo = intCodPeriodoATC
+	END IF
 	
 	if intCodCurso = "" then intCodCurso = "0"
     if intCodCurso <> "0" then
@@ -191,20 +230,37 @@
 						<%end if%>
 						<form id="frm" name="frm" method="post">
 							<input name="txtCodigo" type="hidden" id="txtCodigo" value="<%=intCodTurma%>">
+							<input name="txtHiddenCodigoAtivCompl" type="hidden" id="txtHiddenCodigoAtivCompl" value="<%=strCodigoAtivCompl%>">
+							<input type="hidden" name="txtAlteracaoTipoAtvCompl" id="txtAlteracaoTipoAtvCompl" value="<%=strAlteracaoTipoAtvCompl%>" />
 							
 							<div class="row">
-								<div class="col-sm-3">
+								<div class="col-sm-1">
 									<div class="form-group">
 										<label class="form-label">Ano</label>
 										<input type="text" id="txtAnoLetivo" name="txtAnoLetivo" class="form-control"  value="<%=intAnoLetivo%>" maxlength="4" onKeyPress="return formataCampo(this,2,4)" readonly>
 									</div>
 								</div>	
-								<div class="col-sm-3">	
+								<div class="col-sm-2">	
 									<div class="form-group">
 										<label class="form-label">Semestre</label>
 										<!--#include file="includes/inc_cmdSemestreTodos.asp"-->
 									</div>
+								</div>
+								<div class="col-sm-3">	
+									<div class="form-group">
+										<label class="form-label">Tipo Atendimento</label>
+										<!--#include file="includes/inc_cmbTipoTurma.asp"-->
+									</div>
 								</div>	
+								<%IF strTipoTurma="AEE" OR strTipoTurma="ATC" THEN%>
+								<div class="col-sm-6">
+									<div class="form-group">
+										<label class="form-label">Tipo</label>
+										<!--#include file="includes/inc_cmdCurso.asp" -->
+										<input name="cmbPeriodo" type="hidden" id="cmbPeriodo" value="<%=intCodPeriodo%>">
+									</div>
+								</div>	
+								<%ELSE%>
 								<div class="col-sm-3">
 									<div class="form-group">
 										<label class="form-label">Curso</label>
@@ -217,7 +273,73 @@
 										<!--#include file="includes/inc_cmdPeriodo.asp" -->
 									</div>
 								</div>	
+								<%END IF%>
 							</div>	
+							<%IF strTipoTurma="ATC" THEN%>
+							<br>
+							<div class="row">
+								<div class="col-sm-4">
+									<div class="form-group">
+										<%'IF strAcessoPerfil = "ADMINISTRADOR_TEMPORARIO" then %>
+										<br>
+										<button class="btn btn-success waves-effect waves-themed" type="button" id="button-addon5" onclick="return abreConsultaVincularTipoAC('sca_turma_atividade_complementar.asp')" >Vincular Tipo de Atividade Complementar <i class="fal fa-arrow-alt-circle-right"></i></button>
+										<%'end if%>
+									</div>
+								</div>
+							</div>
+							
+							<% if strCodigoAtivCompl <> "" then %>
+							<br>
+							<div class="row">
+								<div class="col-sm-12">
+									<div class="form-group">
+										
+										<table width="100%" align="left" cellpadding="0" cellspacing="0" border="1	" id="AtivCompl" class="tabela">                
+											<tr>
+												<td class="celula" align="center"><strong>Descrição</strong></td>
+												<td class="celula" align="center"><strong>Área</strong></td>
+												<td class="celula" align="center"><strong>SubÁrea</strong></td>                    
+												<% 'if strCodigo = "" then %>
+												<td class="celula" align="center"><strong>Remover</strong></td>
+												<% 'end if %>
+												<td class="celula" style="display:none">&nbsp;</td>                    
+											</tr>
+											<% 
+											sql = " select at.id, ar.descricao as area,sb.descricao as subarea, at.id, at.descricao as atividade_complementar "
+											sql = sql & " from sca_atividade_complementar at "
+											sql = sql & " inner join sca_atividade_complementar_subArea sb on at.subarea_id = sb.id "
+											sql = sql & " inner join sca_atividade_complementar_area ar on ar.id = sb.area_id "
+											sql = sql & " where at.id in (" & trim(strCodigoAtivCompl) & ")"
+											sql = sql & " order by ar.codigo,sb.codigo "
+											rs.open sql,cnn
+											if rs.eof = false then 
+												while not rs.eof                                                                          
+													strCorFundo = ""
+													%>
+													<tr bgcolor="<%=strCorFundo%>">   
+														<td class="celula">&nbsp;<%=trim(rs("atividade_complementar"))%></td>                                    
+														<td class="celula">&nbsp;<%=trim(rs("area"))%></td>
+														<td class="celula">&nbsp;<%=trim(rs("subarea"))%></td>                                        
+														<td class="celula" align="center"><img src="../../images/botao_vermelho_normal.gif" onclick="return removerLinha(this)"></td>
+														<td class="celula" style="display:none">&nbsp;<input type="checkbox" name="chkCodigosAtivCompl" id="chkCodigosAtivCompl" value="<%=trim(rs("id"))%>" checked /> </td>
+													</tr>
+													<% 
+												   rs.movenext
+												wend                                
+											end if
+											rs.close                 
+											 %>
+										</table>
+										
+									</div>
+								</div>
+							</div>
+							<br>
+							<%  
+							end if 
+							%>
+							
+							<%END IF%>
 							<%
 								if strCurso = "EDUCAÇÃO INFANTIL" then strDesvincularCriterioAvaliacao = "S"
 							%>

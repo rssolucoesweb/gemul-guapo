@@ -80,7 +80,7 @@ Contato: sergio@rssolucoesweb.com.br
 						+ src/../jquery-snippets.js (core) -->
         <script src="js/vendors.bundle.js"></script>
         <script src="js/app.bundle.js"></script>
-		<script src="js_app/sca_turma.js"></script>
+		<script src="js_app/sca_turma.js?v=2"></script>
         <script type="text/javascript">
         </script>
     </body>

@@ -43,6 +43,12 @@ response.ContentType = "text/html"
 	strSituacaoTurmaAnterior		= Trim(Request.form("cmbSituacaoTurmaAnterior"))
 	intVagasMatriculas				= Trim(Request.form("txtVagasMatriculas"))
 	intVagasMatriculasUtilizadas	= Trim(Request.form("txtVagasMatriculasUtilizadas"))
+	strTipoTurma		 	= Trim(Request.Form("cmbTipoTurma"))	'ESC / AEE / ATC
+	if strTipoTurma <> "AEE" and strTipoTurma <> "ATC" then strTipoTurma = "ESC"
+	dim vetCodAtivCompl
+	if Request.form("chkCodigosAtivCompl") <> "" then
+		vetCodAtivCompl       		= Split(Request.form("chkCodigosAtivCompl"),",")
+	end if
 
 	if intCodFichaDescritiva = "" then intCodFichaDescritiva = "0"
 	if strSimouNaoIntegralizacao = "" then strSimouNaoIntegralizacao = "N"
@@ -141,11 +147,12 @@ response.ContentType = "text/html"
 
 		strMensagem = "Registro Salvo com sucesso..."
 	
-		sql = " Insert Into SCA_TURMA ( Cod_Empresa, Cod_GradeCurricular, Cod_Semestre, Cod_Turno, Cod_periodo, " 
+		sql = "Insert Into SCA_TURMA ( Cod_Empresa, tipo_turma, Cod_GradeCurricular, Cod_Semestre, Cod_Turno, Cod_periodo, " 
 		sql = sql & " NomeTurma, TurmaAluno, Sala, Ano, AnoLetivo, capacidade, Cod_SemestreCriacao, Cod_FichaDescritiva, DisponibilizaIntegralizacao, DesvincularCriterioAvaliacao, situacao, VagasMatriculas, VagasMatriculasUtilizadas)"
 		sql = sql & " Values ("
 		'sql = sql & "" & intCodTurma & ","
 		sql = sql & "" & intCodEmp & ","
+		sql = sql & "'" & strTipoTurma & "',"
 		sql = sql & "" & intCodGrade & ","
 		sql = sql & "" & intSemestre & ","
 		sql = sql & "" & intCodTurno & ","
@@ -167,7 +174,11 @@ response.ContentType = "text/html"
 		sql = sql & "'" & strSituacaoTurma & "',"
 		sql = sql & "" & intVagasMatriculas & ","
 		sql = sql & "" & intVagasMatriculasUtilizadas & ")"
-		cnn.execute sql
+		'código da turma criada (Cod_Turma é IDENTITY: o Max+1 de antes podia pegar o código errado)
+		set rsNovaTurma = cnn.Execute("SET NOCOUNT ON; " & sql & "; SELECT SCOPE_IDENTITY() AS novo")
+		intCodTurma = clng(rsNovaTurma("novo"))
+		rsNovaTurma.close
+		set rsNovaTurma = nothing
 		if trim(request.ServerVariables("SERVER_NAME")) <> "www.smeduc.com.br" then
 			GravarLog sql
 		end if
@@ -240,6 +251,20 @@ response.ContentType = "text/html"
 				
 			next		
 		end if
+		
+		'atividades complementares da turma ATC (igual Anápolis)
+		if isArray(vetCodAtivCompl) and strTipoTurma = "ATC" then
+			sql = "Delete from SCA_turma_atendimento_atividade where cod_turma = " & intCodTurma
+			cnn.execute sql
+			for iAtv = 0 to Ubound(vetCodAtivCompl)
+				sql = "Insert into SCA_turma_atendimento_atividade(cod_turma,atividade_complementar_id, usuario_incl,data_hora_incl) values("
+				sql = sql & "" & intCodTurma & ","
+				sql = sql & "" & clng(trim(vetCodAtivCompl(iAtv))) & ","
+				sql = sql & "'" & session("UsuarioWeb") & "',"
+				sql = sql & "getdate())"
+				cnn.execute sql
+			next	
+		end if
 			
 				
 	elseif acao="A" then
@@ -298,7 +323,8 @@ response.ContentType = "text/html"
 		sql = sql & " DesvincularCriterioAvaliacao = '" & strDesvincularCriterioAvaliacao & "',"
 		sql = sql & " situacao = '" & strSituacaoTurma & "',"
 		sql = sql & " VagasMatriculas = " & intVagasMatriculas & ","
-		sql = sql & " VagasMatriculasUtilizadas = " & intVagasMatriculasUtilizadas
+		sql = sql & " VagasMatriculasUtilizadas = " & intVagasMatriculasUtilizadas & ","
+		sql = sql & " tipo_turma = '" & strTipoTurma & "'"
 		sql = sql & " where Cod_Turma = " & intCodigo
 		
 		 if session("usuarioWeb") = "SERGIO" then
@@ -379,6 +405,20 @@ response.ContentType = "text/html"
 			end if
 			
 		end if	
+		
+		'atividades complementares da turma ATC (igual Anápolis)
+		if isArray(vetCodAtivCompl) and strTipoTurma = "ATC" then
+			sql = "Delete from SCA_turma_atendimento_atividade where cod_turma = " & intCodigo
+			cnn.execute sql
+			for iAtv = 0 to Ubound(vetCodAtivCompl)
+				sql = "Insert into SCA_turma_atendimento_atividade(cod_turma,atividade_complementar_id, usuario_incl,data_hora_incl) values("
+				sql = sql & "" & intCodigo & ","
+				sql = sql & "" & clng(trim(vetCodAtivCompl(iAtv))) & ","
+				sql = sql & "'" & session("UsuarioWeb") & "',"
+				sql = sql & "getdate())"
+				cnn.execute sql
+			next	
+		end if
 		
 	else
 	
