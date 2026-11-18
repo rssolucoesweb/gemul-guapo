@@ -33,7 +33,7 @@
 				sigla = trim(rs("PERF_SIST_SIGL"))
 				if sigla = "SCA" then
 				%>
-				<div class="module-card" onclick="window.location.href='https://<%=URL%>/app/<%=trim(rs("MODU_URL"))%>'">
+				<div class="module-card" onclick="window.location.href='<%=session("urlSistema")%><%=trim(rs("MODU_URL"))%>'">
 					<i class="fa-solid fa-graduation-cap icon-academico" style="font-size: 40px;"></i>
 					<br>
 					<span>Acadêmico</span>
@@ -41,7 +41,7 @@
 				<%
 				elseif sigla = "DAS" then
 				%>
-				<div class="module-card" onclick="window.location.href='https://<%=URL%>/app/<%=trim(rs("MODU_URL"))%>'">
+				<div class="module-card" onclick="window.location.href='<%=session("urlSistema")%><%=trim(rs("MODU_URL"))%>'">
 					<i class="fa-solid fa-chart-line icon-dashboard" style="font-size: 40px;"></i>  
 					<br>
 					<span>Dashboard</span>
@@ -49,7 +49,7 @@
 				<%
 				elseif sigla = "PLA" then
 				%>
-				<div class="module-card" onclick="window.location.href='https://<%=URL%>/app/<%=trim(rs("MODU_URL"))%>'">
+				<div class="module-card" onclick="window.location.href='<%=session("urlSistema")%><%=trim(rs("MODU_URL"))%>'">
 					<i class="fa-solid fa-calendar-alt icon-planejamento" style="font-size: 40px;"></i>  
 					<br>
 					<span>Planejamento</span>
@@ -57,7 +57,7 @@
 				<%
 				elseif sigla = "SME" then
 					%>
-					<div class="module-card" onclick="window.location.href='https://<%=URL%>/app/<%=trim(rs("MODU_URL"))%>'">
+					<div class="module-card" onclick="window.location.href='<%=session("urlSistema")%><%=trim(rs("MODU_URL"))%>'">
 						<i class="fa-solid fa-utensils icon-merenda" style="font-size: 40px;"></i>
 						<br>
 						<span>Merenda Escolar</span>
@@ -73,7 +73,7 @@
 				<%
 				elseif sigla = "PAT" then
 				%>
-				<div class="module-card" onclick="window.location.href='https://<%=URL%>/app/<%=trim(rs("MODU_URL"))%>'">
+				<div class="module-card" onclick="window.location.href='<%=session("urlSistema")%><%=trim(rs("MODU_URL"))%>'">
 					 <i class="fa-solid fa-warehouse icon-patrimonio" style="font-size: 40px;"></i>
 					<br>
 					<span>Patrimônio</span>
@@ -89,7 +89,7 @@
 				<%
 				elseif sigla = "STE" then
 				%>
-				<div class="module-card" onclick="window.location.href='https://<%=URL%>/app/<%=trim(rs("MODU_URL"))%>'">
+				<div class="module-card" onclick="window.location.href='<%=session("urlSistema")%><%=trim(rs("MODU_URL"))%>'">
 					<i class="fa-solid fa-bus icon-transporte" style="font-size: 40px;"></i>  
 					<br>
 					<span>Transporte Escolar</span>
@@ -97,7 +97,7 @@
 				<%
 				elseif sigla = "AEE" then
 				%>
-				<div class="module-card" onclick="window.location.href='https://<%=URL%>/app/<%=trim(rs("MODU_URL"))%>'">
+				<div class="module-card" onclick="window.location.href='<%=session("urlSistema")%><%=trim(rs("MODU_URL"))%>'">
 					 <i class="fa-solid fa-hands-holding-child icon-atendimento" style="font-size: 40px;"></i>
 					<br>
 					<span>Atendimento Educacional</span>
@@ -129,7 +129,7 @@
 				<%
 				elseif sigla = "ESP" then
 				%>
-				<div class="module-card" onclick="window.location.href='https://<%=URL%>/app/<%=trim(rs("MODU_URL"))%>'">
+				<div class="module-card" onclick="window.location.href='<%=session("urlSistema")%><%=trim(rs("MODU_URL"))%>'">
 					<i class="fa-solid fa-futbol icon-esporte" style="font-size: 40px;"></i>  
 					<br>
 					<span>Esporte</span>
