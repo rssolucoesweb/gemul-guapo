@@ -40,7 +40,17 @@ Contato: sergio@rssolucoesweb.com.br
 			color: #000;
 			margin: 6px -15px 4px;
 		}
-		
+		.container {
+		  display: grid;
+		  grid-template-columns: 1fr 1fr 1fr; /* 3 colunas */
+		  gap: 8px 30px;
+		  width: 98%;
+		  margin: auto;
+		}
+
+		.item {
+		  height: 20px;
+		}
 	</style>
     </head>
    <body class="nav-function-top header-function-fixed" style="">
@@ -112,6 +122,32 @@ Contato: sergio@rssolucoesweb.com.br
 				
 				return true;	
 			}	
+			// Gera o PDF no servidor: envia os mesmos filtros/colunas em outra aba
+			function gerarPDF(){
+				var frm = document.getElementById("frm");
+				var acaoOriginal = frm.action;
+				frm.action = "sca_rel_aluno_pdf.asp";
+				frm.target = "_blank";
+				frm.submit();
+				frm.action = acaoOriginal;
+				frm.target = "";
+				return false;
+			}
+			// Liga o botao "Gerar PDF" (inc_botoes_geraRelatorio.asp) a gerarPDF(),
+			// substituindo o comportamento anterior. Pode ser removido depois que o
+			// onclick do botao for trocado diretamente para gerarPDF().
+			$(function(){
+				$("button, input[type=button], input[type=submit], a").each(function(){
+					var t = ($(this).text() || $(this).val() || "").replace(/\s+/g, " ").trim().toLowerCase();
+					if (t === "gerar pdf"){
+						this.addEventListener("click", function(e){
+							e.preventDefault();
+							e.stopImmediatePropagation();
+							gerarPDF();
+						}, true);
+					}
+				});
+			});
 			function verificaOpcaoNecessidadeEspecialSN(opcao){
 				if (opcao=="S"){
 					$("#listaDeficiencias").show();	

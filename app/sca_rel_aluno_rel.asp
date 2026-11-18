@@ -3,7 +3,7 @@
 response.Charset = "utf-8" 
 response.ContentType = "text/html" 
 response.Expires=0
-Server.ScriptTimeOut = 5000
+Server.ScriptTimeOut = 8000
 response.Buffer = false
 %>
 <html>
@@ -17,7 +17,8 @@ response.Buffer = false
 <!--#include file="includes/inc_formatadata.asp"-->
 <!--#include file="includes/inc_formataCPF.asp"-->
 <!--#include file="includes/inc_Botoes_relatorio.asp"-->	
-<!--#include file="includes/inc_aguarde.asp"-->	
+<!--#include file="includes/inc_aguarde.asp"-->
+<!--#include file="includes/inc_cursosAtendimento.asp"-->	
 <br>
 <%
 	dim intPagina
@@ -65,6 +66,8 @@ response.Buffer = false
 	mostra_sala_aee 			= Trim(Request.Form("sala_aee"))
 	mostra_necessidadeespeciais = Trim(Request.Form("necessidadeespeciais"))
 	mostra_turma 				= Trim(Request.Form("turma"))
+	mostra_turno 				= Trim(Request.Form("turno"))
+	mostra_periodo 				= Trim(Request.Form("periodo"))
 	mostra_assinatura			= Trim(Request.Form("assinatura"))
 	mostra_assinaturapaiemae	= Trim(Request.Form("assinaturapaiemae"))
 	mostra_controlerequerimento	= Trim(Request.Form("controlerequerimento"))
@@ -78,6 +81,7 @@ response.Buffer = false
 	mostra_id_censo 		= trim(request.form("id_censo"))
 	
 
+	strTipoTurma 			= Trim(Request.Form("cmbTipoTurma"))
 	intCodTurma 			= Trim(Request.Form("cmbTurma"))
 	intCodTurmaQuebra		= Trim(Request.Form("cmbQuebraPagina"))
 	intCodDisciplinaTurma   = trim(request("cmbDisciplinaTurma"))
@@ -91,7 +95,7 @@ response.Buffer = false
 	intCodFormaIngresso 	= Trim(Request.Form("cmbFormaIngresso"))
 	intCodTurno		 		= Trim(Request.Form("cmbTurno"))
 	intCodEmpresa	 		= Trim(Request.Form("cmbEmpresaGrupo"))
-	
+	strDataMatricula		= formatadataBD(Trim(Request.Form("txtDataMatricula")))
 	if session("NivelPermissao") = "A" then
 	else
 		intCodEmpresa = Trim(Session("CodEmpresa"))
@@ -119,6 +123,12 @@ response.Buffer = false
 	
 	strTituloRelatorio = "Relatório de Alunos"
 
+	IF strTipoTurma = "AEE" then
+		strTituloRelatorio  	= strTituloRelatorio & "<br>Atendimento Educacional Especializado"
+	ELSEIF strTipoTurma = "ATC" then	
+		strTituloRelatorio  	= strTituloRelatorio & "<BR>Atividade Complementar"
+	END IF
+
 	if strIdade <> "0" then
 		strTituloRelatorio  	= strTituloRelatorio & " - Com idade de " & strIdade
 	end if	
@@ -131,6 +141,10 @@ response.Buffer = false
 	if strSalaAEE = "S" then
 		strTituloRelatorio  	= strTituloRelatorio & " - Usa Sala AEE"
 	end if
+	if strDataMatricula <> "" then
+		strTituloRelatorio  	= strTituloRelatorio & " - Data da Matrícula: " & formatadataAP(strDataMatricula)
+	end if
+	
     sub mostraCabecalho()
 	%>
 	<!--#include file="includes/inc_cabecalhoRelatorio.asp"-->
@@ -138,13 +152,19 @@ response.Buffer = false
 	<table width="100%" border="0" cellspacing="0" cellpadding="0" class="tabela">
 	  <tr bgcolor="#CCCCCC">
 		<%if intCodEmpresa = "0" then%>
-		<td width="15%" class="<%=strclasse%>"><div align="left">Unidade</div></td>
+		<td width="20%" class="<%=strclasse%>"><div align="left">Unidade</div></td>
 		<%end if%>
 		<%if mostra_turma = "S" then%>
 		<td width="10%" class="<%=strclasse%>"><div align="center"><strong>Turma</strong></div></td>
 		<%end if%>
+		<%if mostra_periodo = "S" then%>
+		<td width="8%" class="<%=strclasse%>"><div align="center"><strong>Período</strong></div></td>
+		<%end if%>
+		<%if mostra_turno = "S" then%>
+		<td width="5%" class="<%=strclasse%>"><div align="center"><strong>Turno</strong></div></td>
+		<%end if%>
 		 <!--'if mostra_matricula = "S" then -->
-		<td width="10%" class="<%=strclasse%>"><div align="center"><strong>Matr&iacute;cula</strong></div></td>
+		<td width="8%" class="<%=strclasse%>"><div align="center"><strong>Matr&iacute;cula</strong></div></td>
 		 <!--'end if -->
 		<td width="25%" class="<%=strclasse%>"><div align="center"><strong>Nome do Aluno</strong></div></td>
 		<%if mostra_sexo = "S" then%>
@@ -199,7 +219,7 @@ response.Buffer = false
 		<td width="8%" class="<%=strclasse%>"><div align="center"><strong>Cartão SUS</strong></div></td>
 		<%end if%>
 		<%if mostra_bolsafamilia = "S" then%>
-		<td width="8%" class="<%=strclasse%>"><div align="center"><strong>Auxílio Brasil</strong></div></td>
+		<td width="8%" class="<%=strclasse%>"><div align="center"><strong>Bolsa Família</strong></div></td>
 		<%end if%>
 		<%if mostra_nomepai = "S" then%>
 		<td width="20%" class="<%=strclasse%>"><div align="center"><strong>Pai</strong></div></td>
@@ -254,7 +274,7 @@ response.Buffer = false
 		<td width="10%" class="<%=strclasse%>"><div align="center"><strong>Possui alergia?</strong></div></td>
 		<%end if%>
 		<%if mostra_etnia = "S" then%>
-		<td width="10%" class="<%=strclasse%>"><div align="center"><strong>Etnia</strong></div></td>
+		<td width="10%" class="<%=strclasse%>"><div align="center"><strong>Cor</strong></div></td>
 		<%end if%>
 		<%if mostra_id_censo = "S" then%>
 		<td width="10%" class="<%=strclasse%>"><div align="center"><strong>ID Censo</strong></div></td>
@@ -294,89 +314,190 @@ response.Buffer = false
 	intPagina = 1
 	mostraCabecalho
 	cont = 0
+
+	sql = "set nocount on "
 	
-   sql = "SELECT  DISTINCT   A.CODIGO, A.MATRICULA, A.CPF, A.NOMEALUNO, A.DATANASCIMENTO, A.DATAFASTAMENTO, A.DATAMATRICULA, FLOOR(DATEDIFF(DAY, A.DataNascimento, GETDATE()) / 365.25) AS IDADE, "
-   sql = sql & " A.MAE, A.PAI, SA.DESC_SITUACAOALUNO, A.ATENDIMENTOESPECIAL, iif(A.sala_aee='S','Sim','Não') as sala_aee, NE.Desc_NecEspecial AS NECESSIDADEESPECIAIS, "
-   sql = sql & " A.LOGRADOURO, A.NUMERO_ENDERECO, A.COMP_ENDERECO, A.NUMREGISTRONASC, A.CEPRESIDENCIA, A.RESPONSAVELFONE, A.RESPONSAVEL, A.CIDADENASCIMENTO, A.CIDADERESIDENCIA, A.BAIRROALUNO,  A.SEXOALUNO, "
-   sql = sql & " A.FONECOMERCIAL, A.FONERESIDENCIAL, A.FONECELULAR, A.bolsa_Familia, A.CARTAOSUS, A.EMAIL, T.COD_TURMA, T.NomeTurma, T.TURMAALUNO, TC.DESCRICAO + ' (' + TC.RESUMO + ')' AS TENIS_TAMANHO, TR.DESCRICAO AS UNIFORME_TAMANHO,"
-   sql = sql & " case when A.MEDICAMENTO_CONTROLADO = 'S' then 'Sim. ' + A.MEDICAMENTO_CONTROLADO_QUAL else 'Não' end as MEDICAMENTO_CONTROLADO,"
-   sql = sql & " case when A.TRANSPORTE_ESCOLAR = 'S' then 'Sim' else 'Não' end as TRANSPORTE_ESCOLAR,"
-   sql = sql & " case when A.AUTORIZA_USO_IMAGEM = 'S' then 'Sim' else 'Não' end as AUTORIZA_USO_IMAGEM,"
-   sql = sql & " case when A.RESTRICAO_ALIMENTAR = 'S' then 'Sim. ' + A.RESTRICAO_ALIMENTAR_QUAL else 'Não' end as RESTRICAO_ALIMENTAR,"
-   sql = sql & " case when A.ALERGIA = 'S' then 'Sim. ' + A.ALERGIA_QUAL else 'Não' end as ALERGIA, EM.RAZAOSOCIAL AS UNIDADE, A.ID_CENSO, ETN.DESCRICAO AS ETNIA"   
-   sql = sql & " FROM SCA_ALUNO A "
-   sql = sql & " INNER JOIN sca_aluno_turma AT ON AT.COD_ALUNO = A.CODIGO "
-   sql = sql & " INNER JOIN sca_aluno_turma_situacao ATC ON ATC.COD_ALUNO_TURMA = AT.CODIGO "
-   sql = sql & " LEFT JOIN SCA_TURMA T ON AT.COD_TURMA = T.Cod_Turma  AND AT.ANO_LETIVO = T.AnoLetivo AND AT.SEMESTRE = T.Cod_Semestre AND AT.cod_empresa = T.cod_empresa "
-   sql = sql & " LEFT JOIN SCA_GRADECURRICULAR G ON T.Cod_GradeCurricular = G.Cod_GradeCurricular"
-   sql = sql & " LEFT JOIN SCA_PERIODO P ON P.Cod_Periodo = G.Cod_Periodo "
-   sql = sql & " LEFT JOIN SCA_CURSO C ON C.Cod_Curso = P.Cod_Curso "
-   sql = sql & " LEFT JOIN SCA_SITUACAOALUNO SA ON SA.Cod_SITUACAOALUNO = ATC.COD_SITUACAOALUNO"
-   sql = sql & " LEFT JOIN SCA_NECESSIDADEESPECIAL NE ON NE.Cod_NecEspecial = A.COD_NECESPECIAL"
-   sql = sql & " LEFT JOIN SEG_EMPRESA EM ON EM.CODIGO = AT.COD_EMPRESA"
-   sql = sql & " LEFT JOIN SCA_ETNIAS ETN ON ETN.CODIGO = A.COD_ETNIA"
-   sql = sql & " LEFT JOIN SCA_TAMANHO_CALCADO TC ON TC.CODIGO = A.COD_TAMANHO_CALCADO"
-   sql = sql & " LEFT JOIN SCA_TAMANHO_ROUPA TR ON TR.CODIGO = A.COD_TAMANHO_ROUPA"
-   sql = sql & " where 1=1"
-   IF intCodEmpresa <> "0" THEN
+	IF strTipoTurma = "AEE" then
+		'AEE
+		sql = sql & " IF OBJECT_ID('tempdb..#SCA_ALUNO_TURMA') IS NOT NULL DROP TABLE #SCA_ALUNO_TURMA"
+		sql = sql & " SELECT DISTINCT T.ANOLETIVO AS ANO_LETIVO, AD.COD_ALUNO, AD.COD_EMPRESA, AD.COD_TURMA, T.Cod_Semestre AS Semestre, 'A' as SITUACAO"
+		sql = sql & " INTO #SCA_ALUNO_TURMA"
+		sql = sql & " from SCA_ALUNO_DISCIPLINA AD"
+		sql = sql & " INNER JOIN SCA_TURMA T ON T.Cod_Turma = AD.COD_TURMA"
+		sql = sql & " where T.ANOLETIVO = " & strAnoLetivo 
+		sql = sql & " AND T.Cod_Semestre = " & strSemestre
+		IF intCodEmpresa <> "0" THEN
+			sql = sql & " AND T.cod_empresa = " & intCodEmpresa
+		END IF
+		sql = sql & " AND T.Cod_periodo = " & clng(intCodPeriodoAEE)	'AEE (Guapó: período achado pela sigla do curso)
+	ELSEIF strTipoTurma = "ATC" then
+		'AEE
+		sql = sql & " IF OBJECT_ID('tempdb..#SCA_ALUNO_TURMA') IS NOT NULL DROP TABLE #SCA_ALUNO_TURMA"
+		sql = sql & " SELECT DISTINCT T.ANOLETIVO AS ANO_LETIVO, AD.COD_ALUNO, AD.COD_EMPRESA, AD.COD_TURMA, T.Cod_Semestre AS Semestre, 'A' as SITUACAO"
+		sql = sql & " INTO #SCA_ALUNO_TURMA"
+		sql = sql & " from SCA_ALUNO_TIPO_ATENDIMENTO AD"
+		sql = sql & " INNER JOIN SCA_TURMA T ON T.Cod_Turma = AD.COD_TURMA"
+		sql = sql & " where T.ANOLETIVO = " & strAnoLetivo 
+		sql = sql & " AND T.Cod_Semestre = " & strSemestre
+		IF intCodEmpresa <> "0" THEN
+			sql = sql & " AND T.cod_empresa = " & intCodEmpresa
+		END IF
+		sql = sql & " AND T.Cod_periodo = " & clng(intCodPeriodoATC)	'ATC (Guapó: período achado pela sigla do curso)
+	else
+		sql = sql & " IF OBJECT_ID('tempdb..#SCA_ALU_TURMA') IS NOT NULL DROP TABLE #SCA_ALU_TURMA"
+		sql = sql & " Select max(codigo) as codigo_SCA_ALUNO_TURMA, ANO_LETIVO, COD_ALUNO, COD_EMPRESA"
+		sql = sql & " into #SCA_ALU_TURMA"
+		sql = sql & " from SCA_ALUNO_TURMA"
+		sql = sql & " where ANO_LETIVO = " & strAnoLetivo
+		sql = sql & " AND Semestre = " & strSemestre
+		IF intCodEmpresa <> "0" THEN
+			sql = sql & " AND cod_empresa = " & intCodEmpresa
+		END IF
+		if intCodTurma <> "0" then
+		  sql = sql & " and COD_TURMA = " & intCodTurma
+		end if
+		sql = sql & " group by ANO_LETIVO, COD_ALUNO, COD_EMPRESA"
+
+		sql = sql & " IF OBJECT_ID('tempdb..#SCA_ALUNO_TURMA') IS NOT NULL DROP TABLE #SCA_ALUNO_TURMA"
+		sql = sql & " Select at.CODIGO, at.COD_EMPRESA, at.COD_ALUNO, at.COD_TURMA, at.SEQUENCIA, at.ANO_LETIVO, at.SEMESTRE, at.SITUACAO, at.DATA_SITUACAO"
+		sql = sql & " into #SCA_ALUNO_TURMA"
+		sql = sql & " from SCA_ALUNO_TURMA at "
+		sql = sql & " inner join #SCA_ALU_TURMA aa on aa.codigo_SCA_ALUNO_TURMA = at.codigo "
+	end if
+
+	sql = sql & " SELECT  DISTINCT   A.CODIGO, A.MATRICULA, A.CPF, A.NOMEALUNO, A.DATANASCIMENTO, ISNULL(AA.DATAFASTAMENTO, A.DATAFASTAMENTO) AS DATAFASTAMENTO, ISNULL(AA.DATAMATRICULA, A.DATAMATRICULA) AS DATAMATRICULA, FLOOR(DATEDIFF(DAY, A.DataNascimento, GETDATE()) / 365.25) AS IDADE, A.MAE, A.PAI, "
+	sql = sql & " 	ISNULL("
+	sql = sql & "     ("
+	sql = sql & "         SELECT TOP 1 SS.Desc_SituacaoAluno"
+	sql = sql & "         FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
+	sql = sql & "         INNER JOIN SCA_SITUACAOALUNO SS "
+	sql = sql & "             ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
+	sql = sql & "         WHERE CS.COD_EMPRESA = AT.COD_EMPRESA"
+	sql = sql & "           AND CS.COD_ALUNO   = AT.COD_ALUNO"
+	sql = sql & "           AND CS.ANO_LETIVO  = AT.ANO_LETIVO"
+	sql = sql & "         ORDER BY CS.CODIGO DESC"
+	sql = sql & "     ),"
+	sql = sql & "     'ATIVO'"
+	sql = sql & " ) AS Desc_SituacaoAluno,"
+	sql = sql & " ISNULL("
+	sql = sql & "     ("
+	sql = sql & "         SELECT TOP 1 SS.Cod_SituacaoAluno"
+	sql = sql & "         FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
+	sql = sql & "         INNER JOIN SCA_SITUACAOALUNO SS "
+	sql = sql & "             ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
+	sql = sql & "         WHERE CS.COD_EMPRESA = AT.COD_EMPRESA"
+	sql = sql & "           AND CS.COD_ALUNO   = AT.COD_ALUNO"
+	sql = sql & "           AND CS.ANO_LETIVO  = AT.ANO_LETIVO"
+	sql = sql & "         ORDER BY CS.CODIGO DESC"
+	sql = sql & "     ),"
+	sql = sql & "     1"
+	sql = sql & " ) AS COD_SITUACAOALUNOATUAL,"
+	sql = sql & " A.ATENDIMENTOESPECIAL, P.descricao as periodo, TU.desc_turno as turno,iif(A.sala_aee='S','Sim','Não') as sala_aee, NE.Desc_NecEspecial AS NECESSIDADEESPECIAIS, "
+	sql = sql & " A.LOGRADOURO, A.NUMERO_ENDERECO, A.COMP_ENDERECO, A.NUMREGISTRONASC, A.CEPRESIDENCIA, A.RESPONSAVELFONE, A.RESPONSAVEL, A.CIDADENASCIMENTO, A.CIDADERESIDENCIA, A.BAIRROALUNO,  A.SEXOALUNO, "
+	sql = sql & " A.FONECOMERCIAL, A.FONERESIDENCIAL, A.FONECELULAR, A.bolsa_Familia, A.CARTAOSUS, A.EMAIL, T.COD_TURMA, T.NomeTurma, T.TURMAALUNO, TC.DESCRICAO + ' (' + TC.RESUMO + ')' AS TENIS_TAMANHO, TR.DESCRICAO AS UNIFORME_TAMANHO,"
+	sql = sql & " case when A.MEDICAMENTO_CONTROLADO = 'S' then 'Sim. ' + A.MEDICAMENTO_CONTROLADO_QUAL else 'Não' end as MEDICAMENTO_CONTROLADO,"
+	sql = sql & " case when A.TRANSPORTE_ESCOLAR = 'S' then 'Sim' else 'Não' end as TRANSPORTE_ESCOLAR,"
+	sql = sql & " case when A.AUTORIZA_USO_IMAGEM = 'S' then 'Sim' else 'Não' end as AUTORIZA_USO_IMAGEM,"
+	sql = sql & " case when A.RESTRICAO_ALIMENTAR = 'S' then 'Sim. ' + A.RESTRICAO_ALIMENTAR_QUAL else 'Não' end as RESTRICAO_ALIMENTAR,"
+	sql = sql & " case when A.ALERGIA = 'S' then 'Sim. ' + A.ALERGIA_QUAL else 'Não' end as ALERGIA, EM.RAZAOSOCIAL AS UNIDADE, A.ID_CENSO, ETN.DESCRICAO AS ETNIA"   
+	sql = sql & " FROM SCA_ALUNO A "
+	sql = sql & " INNER JOIN #SCA_ALUNO_TURMA AT ON AT.COD_ALUNO = A.CODIGO "
+	sql = sql & " LEFT JOIN SCA_ALUNO_ANO_LETIVO AA ON AA.Cod_ALUNO = AT.COD_ALUNO and AA.ANO_LETIVO = AT.ANO_LETIVO AND AA.COD_EMPRESA = AT.COD_EMPRESA"
+	sql = sql & " LEFT JOIN SCA_TURMA T ON AT.COD_TURMA = T.Cod_Turma  AND AT.ANO_LETIVO = T.AnoLetivo AND AT.SEMESTRE = T.Cod_Semestre AND AT.cod_empresa = T.cod_empresa "
+	sql = sql & " LEFT JOIN SCA_GRADECURRICULAR G ON T.Cod_GradeCurricular = G.Cod_GradeCurricular"
+	sql = sql & " LEFT JOIN SCA_PERIODO P ON P.Cod_Periodo = G.Cod_Periodo "
+	sql = sql & " LEFT JOIN SCA_CURSO C ON C.Cod_Curso = P.Cod_Curso "
+	sql = sql & " LEFT JOIN SCA_TURNO TU ON TU.COD_TURNO = T.COD_TURNO "
+	sql = sql & " LEFT JOIN SCA_NECESSIDADEESPECIAL NE ON NE.Cod_NecEspecial = A.COD_NECESPECIAL"
+	sql = sql & " LEFT JOIN SEG_EMPRESA EM ON EM.CODIGO = AT.COD_EMPRESA"
+	sql = sql & " LEFT JOIN SCA_ETNIAS ETN ON ETN.CODIGO = A.COD_ETNIA"
+	sql = sql & " LEFT JOIN SCA_TAMANHO_CALCADO TC ON TC.CODIGO = A.COD_TAMANHO_CALCADO"
+	sql = sql & " LEFT JOIN SCA_TAMANHO_ROUPA TR ON TR.CODIGO = A.COD_TAMANHO_ROUPA"
+	sql = sql & " where 1=1"
+	IF strTipoTurma = "AEE" THEN
+		sql = sql & " AND C.Sigla = 'AE'"	'Guapó: AEE pela sigla
+	END IF
+	IF strTipoTurma = "ESC" THEN
+		sql = sql & " AND isnull(C.Sigla,'') NOT IN ('AE','AT')"	'Guapó: escolarização (inclui EJA)
+	END IF
+	IF intCodEmpresa <> "0" THEN
 		sql = sql & " AND T.cod_empresa = " & intCodEmpresa
-   END IF
-   
-   sql = sql & " AND T.SITUACAO='A'"
-   
-   sql = sql & " and 	AT.Ano_Letivo = " &  strAnoLetivo
-   sql = sql & " and 	AT.Semestre in (" & strSemestre & ")"
-   
-   if intCodCurso <> "0" then
+	END IF
+	
+	
+	IF strDataMatricula <> "" THEN
+		sql = sql & " AND A.DATAMATRICULA = '" & formatadataBD(strDataMatricula) & "'"
+	END IF
+
+	sql = sql & " AND T.SITUACAO='A'"
+	sql = sql & " AND AT.SITUACAO IN ('A','T','D','C')"
+
+	sql = sql & " and 	AT.Ano_Letivo = " &  strAnoLetivo
+	sql = sql & " and 	AT.Semestre in (" & strSemestre & ")"
+
+	if intCodCurso <> "0" then
 	  sql = sql & " and C.Cod_Curso = " & intCodCurso
-   end if
-   
-   if intCodPeriodo <> "0" then
+	end if
+
+	if intCodPeriodo <> "0" then
 	  sql = sql & " and G.Cod_Periodo = " & intCodPeriodo
-   end if
-   
-   if intCodTurno <> "0" then
+	end if
+
+	if intCodTurno <> "0" then
 	  sql = sql & " and T.COD_TURNO = " & intCodTurno
-   end if
-   
-   if intCodTurma <> "0" then
+	end if
+
+	if intCodTurma <> "0" then
 	  sql = sql & " and AT.COD_TURMA = " & intCodTurma
-   end if
-    
+	end if
+	
 	'1	ATIVO
 	'3	CANCELADO
 	'4	DESISTENTE
 	'5	TRANSFERIDO
 	IF TRIM(intCodSituacaoAluno) <> "0"  THEN 
-		sql = sql & " and 	ATC.cod_situacaoaluno = " & TRIM(intCodSituacaoAluno)
+		sql = sql & " and 	"
+		sql = sql & " ISNULL("
+		sql = sql & "     ("
+		sql = sql & "         SELECT TOP 1 SS.Cod_SituacaoAluno"
+		sql = sql & "         FROM SCA_CONTROLE_SITUACAO_ALUNO CS"
+		sql = sql & "         INNER JOIN SCA_SITUACAOALUNO SS "
+		sql = sql & "             ON SS.Cod_SituacaoAluno = CS.COD_SITUACAOALUNO"
+		sql = sql & "         WHERE CS.COD_EMPRESA = AT.COD_EMPRESA"
+		sql = sql & "           AND CS.COD_ALUNO   = AT.COD_ALUNO"
+		sql = sql & "           AND CS.ANO_LETIVO  = AT.ANO_LETIVO"
+		sql = sql & "         ORDER BY CS.CODIGO DESC"
+		sql = sql & "     ),"
+		sql = sql & "     1"
+		sql = sql & " ) = " & TRIM(intCodSituacaoAluno)
 	END IF
-   
-   if strSexo <> "0" then
+
+	if strSexo <> "0" then
 	  sql = sql & " and A.SEXOALUNO = '" & strSexo & "'"
-   end if
-   
-   if strAniversariante <> "0" then
+	end if
+
+	if strAniversariante <> "0" then
 	  sql = sql & " and month(A.DATANASCIMENTO) = " & strAniversariante
-   end if
-   
-   if strIdade <> "0" then
+	end if
+
+	if strIdade <> "0" then
 	  sql = sql & " and FLOOR(DATEDIFF(DAY, A.DataNascimento, GETDATE()) / 365.25)  = " & strIdade
-   end if
-   
+	end if
+
 	if strAtendimentoEspecial <> "0" then
 	  sql = sql & " and A.ATENDIMENTOESPECIAL = '" & strAtendimentoEspecial & "'"
 	end if
-    if strSalaAEE <> "0" then
+	if strSalaAEE <> "0" then
 	  sql = sql & " and A.sala_aee = '" & strSalaAEE & "'"
 	end if
-       if strNecessidadeEspecial= "S" then
+	   if strNecessidadeEspecial= "S" then
 	  sql = sql & " and A.codigo in (select distinct cod_aluno from sca_aluno_necessidadeespecial where COD_NECESSIDADEESPECIAL in (" & deficiencias & "))"
 	end if
 
-   
+
 	'ordem de classificação do relatorio
-   if intCodTurmaQuebra = "TURMA" then
-   
+	if intCodTurmaQuebra = "TURMA" then
+
 	   if strOrdem = "unidade" then
 		  sql = sql & " Order By EM.RAZAOSOCIAL, T.NomeTurma, A.NOMEALUNO"
 	   elseif strOrdem = "alfabetica" then
@@ -393,9 +514,9 @@ response.Buffer = false
 	   elseif strOrdem = "bairro" then
 		  sql = sql & " Order By T.NomeTurma, A.BAIRROALUNO"
 	   end if
-	
+
 	else
-	
+
 	   if strOrdem = "unidade" then
 		  sql = sql & " Order By EM.RAZAOSOCIAL, A.NOMEALUNO"
 	   elseif strOrdem = "alfabetica" then
@@ -414,10 +535,9 @@ response.Buffer = false
 	   end if
 		
 	end if   
-	
-	if session("usuarioWeb") = "SERGIO" THEN
-		response.write sql
-	END IF
+
+
+	'response.write sql
 	rs.open sql, cnn
 	if not rs.eof then 
 		controle = 0
@@ -452,13 +572,19 @@ response.Buffer = false
 			<tr>
 			
 				<%if intCodEmpresa = "0" then%>
-				<td width="15%" class="<%=strclasse%>"><div align="left"><%=rs("unidade")%></div></td>
+				<td width="20%" class="<%=strclasse%>"><div align="left"><%=rs("unidade")%></div></td>
 				<%end if%>
 				<%if mostra_turma = "S" then%>
 				<td width="10%" class="<%=strclasse%>"><div align="center"><%=rs("nometurma")%> - <%=rs("turmaaluno")%></div></td>
 				<%end if%>
+				<%if mostra_periodo = "S" then%>
+				<td width="8%" class="<%=strclasse%>"><div align="center"><%=rs("periodo")%></div></td>
+				<%end if%>
+				<%if mostra_turno = "S" then%>
+				<td width="5%" class="<%=strclasse%>"><div align="center"><%=rs("turno")%></div></td>
+				<%end if%>
 				<%'if mostra_matricula = "S" then%>
-				<td width="10%" class="<%=strclasse%>"><div align="center"><%=rs("MATRICULA")%></div></td>
+				<td width="8%" class="<%=strclasse%>"><div align="center"><%=rs("MATRICULA")%></div></td>
 				<%'end if%>
 				<td width="25%" class="<%=strclasse%>"><div align="left"><%=rs("NOMEALUNO")%></div></td>
 				<%if mostra_sexo = "S" then%>
@@ -646,7 +772,7 @@ response.Buffer = false
 		   <tr>
 			<td colspan="40" class="<%=strclasse%>">Quantidade de Alunos Por Turma: <%=contPorTurma%></td>
 		   </tr>
-           <%
+		   <%
 		end if
 		   %>   
 		  <tr>
