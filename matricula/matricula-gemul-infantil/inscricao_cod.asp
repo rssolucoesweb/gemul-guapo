@@ -101,6 +101,17 @@ End Function
 	if strCurso="EDUCACAO_INFANTIL" 	then strCurso = "EDUCAÇÃO INFANTIL"
 	if strCurso="ENSINO_FUNDAMENTAL" 	then strCurso = "ENSINO FUNDAMENTAL"
 	
+	'turno INTEGRAL: o responsável precisa marcar a condicionalidade de trabalho (declaração de trabalho)
+	if ucase(strTurno) = "INTEGRAL" and Trim(Request.Form("chkDeclaracaoTrabalho")) <> "S" then
+		%>
+		<script>
+			alert("ATENÇÃO: Para o turno INTEGRAL é obrigatório marcar a condicionalidade de trabalho (declaração de trabalho).");
+			history.back();
+		</script>
+		<%
+		RESPONSE.End()
+	end if
+	
 	'on error resume next
 	'----------Inicia uma tranzação--------------
 	cnn.begintrans
