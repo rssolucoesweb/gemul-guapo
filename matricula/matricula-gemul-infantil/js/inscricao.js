@@ -246,6 +246,7 @@
 		//Ao selecionar a série, a combo turno será preenchida com os turnos que tiverem vagas
 		$('#codigo_turno').change(function () {
 			var descTurno = $("#codigo_turno").val();
+			atualizarDeclaracaoTrabalho();
 			/*if (descTurno == "INTEGRAL") {
 				$("#codigo_escola").val("0");
 				$("#cadastro_reserva").val("S");
@@ -318,6 +319,7 @@
         $("#Aluno").focus();
         $("#id").val("");
         $("#codigo_turno").val("0");
+        atualizarDeclaracaoTrabalho();
         $("#codigo_serie").val("0");
 		$("#codigo_renda").val("0");
         $("#codigo_escola").val("0");
@@ -458,6 +460,7 @@
 		var url = "ajax/inc_retorno_ajax.asp";
 		$("#codigo_turno").prop('disabled', false);
 		$('#codigo_turno').html('<option value="0">Carregando...</option>');
+		atualizarDeclaracaoTrabalho();
 
 		$.get(url, 
 			{
@@ -737,9 +740,31 @@
             inconsistencia = true;
         }
 
+        //turno INTEGRAL: obrigatório marcar a condicionalidade de trabalho (declaração de trabalho)
+        atualizarDeclaracaoTrabalho();
+        if ($("#codigo_turno").val() == "INTEGRAL" && !$("#chkDeclaracaoTrabalho").prop('checked')) {
+            adiconarRemoverClasseInconsistencia($("#chkDeclaracaoTrabalho"), true, "Para o turno integral é obrigatório marcar a condicionalidade de trabalho (declaração de trabalho)")
+            inconsistencia = true;
+        }
+        else {
+            adiconarRemoverClasseInconsistencia($("#chkDeclaracaoTrabalho"), false)
+        }
+
         $(".has-error.has-feedback > input").first().focus();
 
         return inconsistencia;
+    };
+
+    //mostra a opção da declaração de trabalho só quando o turno for INTEGRAL
+    var atualizarDeclaracaoTrabalho = function () {
+        if ($("#codigo_turno").val() == "INTEGRAL") {
+            $("#bloco_declaracao_trabalho").show();
+        }
+        else {
+            $("#chkDeclaracaoTrabalho").prop('checked', false);
+            $("#bloco_declaracao_trabalho").hide();
+            $("span[data-campo='chkDeclaracaoTrabalho']").text("");
+        }
     };
 
     var adiconarRemoverClasseInconsistencia = function (componente, inconsistencia, mensagem) {

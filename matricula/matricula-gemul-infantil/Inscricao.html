@@ -368,6 +368,16 @@
                         </select>
                         <span id="helpTurno" data-campo="codigo_turno" class="help-block"></span>
                     </div>
+                    <!-- Turno INTEGRAL: condicionalidade de trabalho (declaração de trabalho) -->
+                    <div class="form-group" id="bloco_declaracao_trabalho" style="display:none">
+                        <div class="checkbox">
+                            <label for="chkDeclaracaoTrabalho">
+                                <input type="checkbox" id="chkDeclaracaoTrabalho" name="chkDeclaracaoTrabalho" value="S">
+                                <span class="obrigatorio">*</span> Estou ciente de que a vaga no turno <strong>INTEGRAL</strong> tem como condicionalidade o trabalho do(s) respons&aacute;vel(is), comprovado por <strong>declara&ccedil;&atilde;o de trabalho</strong>.
+                            </label>
+                        </div>
+                        <span id="helpDeclaracaoTrabalho" data-campo="chkDeclaracaoTrabalho" class="help-block"></span>
+                    </div>
                 </div>
 			</div>
             <div class="row">             
@@ -399,7 +409,7 @@
     <script src="js/jquery-2.1.3.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/jquery.mask.min.js"></script>
-    <script src="js/inscricao.js"></script>
+    <script src="js/inscricao.js?v=2"></script>
     <script src="js/jquery.blockUI.js"></script>
     <script src="js/bootbox.min.js"></script>
     <script type="text/javascript">
