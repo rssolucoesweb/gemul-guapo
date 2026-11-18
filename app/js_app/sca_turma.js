@@ -5,6 +5,11 @@
 		frm.submit();
 	}
 
+
+	function abreConsultaVincularTipoAC(caminho){
+		window.open(caminho,"abreConsulta","top=5,left=5,height=600,width=1000,menubar=no,toolbar=no,scrollbars=yes,status=yes");
+	}
+
 	function salvar(acao){
 		
 		var frm = document.getElementById("frm");
@@ -97,3 +102,90 @@
 			return true;
 		}
  	}
+	
+function carregaTiposAtivCompl(strCodigosAtivCompl) {
+
+    var hidden = document.getElementById("txtHiddenCodigoAtivCompl");
+
+    var codigos = [];
+
+    // já existentes
+    if (hidden.value != "") {
+        codigos = hidden.value.split(",");
+    }
+
+    // novos
+    if (strCodigosAtivCompl != "") {
+
+        var novos = strCodigosAtivCompl.split(",");
+
+        for (var i = 0; i < novos.length; i++) {
+
+            var codigo = novos[i];
+
+            // adiciona somente se não existir
+            if (codigos.indexOf(codigo) == -1) {
+                codigos.push(codigo);
+            }
+        }
+    }
+
+    // valida máximo de 6
+    if (codigos.length > 6) {
+        alert("Somente pode ser vinculado até 6 tipos de atividade complementar!");
+        return false;
+    }
+
+    hidden.value = codigos.join(",");
+
+    document.getElementById("txtAlteracaoTipoAtvCompl").value = "S";
+
+    frm.submit();
+}
+
+function removerLinha(obj) {
+
+    // Capturamos a referência da TR (linha) pai do objeto
+    var objTR = obj.parentNode.parentNode;
+    // Capturamos a referência da TABLE (tabela) pai da linha
+    var objTable = objTR.parentNode;
+    // Capturamos o índice da linha
+    var indexTR = objTR.rowIndex;
+    // Chamamos o método de remoção de linha nativo do JavaScript, passando como parâmetro o índice da linha  
+    objTable.deleteRow(indexTR);
+
+    var form = document.getElementById("frm");
+    var strCodigosAtivCompl = "";
+
+    //*****verifica se uma atividade complementar foi selecionado
+
+    document.getElementById("txtHiddenCodigoAtivCompl").value = "";
+
+    for (var i = 0; i < form.elements.length; i++) {
+        //verifica todos os checkbox
+        if (form.elements[i].type == "checkbox") {
+            if (form.elements[i].name == "chkCodigosAtivCompl") {
+                //verifica se o checkbox está marcado
+                if (form.elements[i].checked && !form.elements[i].disabled) {
+                    if (strCodigosAtivCompl == "")
+                        strCodigosAtivCompl = form.elements[i].value;
+                    else
+                        strCodigosAtivCompl = strCodigosAtivCompl + "," + form.elements[i].value;
+                }
+            }
+        }
+    }
+
+    if (strCodigosAtivCompl != "") {
+
+        if (document.getElementById("txtHiddenCodigoAtivCompl").value == "") {
+            document.getElementById("txtHiddenCodigoAtivCompl").value = strCodigosAtivCompl;
+        } else {
+            strCodigosAtivCompl_aux = strCodigosAtivCompl + "," + document.getElementById("txtHiddenCodigoAtivCompl").value;
+            document.getElementById("txtHiddenCodigoAtivCompl").value = strCodigosAtivCompl_aux;
+        }
+		
+    }
+
+    document.getElementById("txtAlteracaoTipoAtvCompl").value = "S"
+}

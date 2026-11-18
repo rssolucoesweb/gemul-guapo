@@ -8,6 +8,14 @@
 	sql = "SELECT Cod_curso, Descricao, Desc_Abreviada, Sigla, Cod_Grau"
 	sql = sql & " FROM SCA_CURSO"
 	SQL = SQL & " WHERE Situacao = 'A' "
+	'tipo de atendimento da turma (Guapó: AEE/ATC pela sigla AE/AT)
+	IF strTipoTurma = "AEE" THEN
+		sql = sql & " AND Sigla = 'AE'"
+	ELSEIF strTipoTurma = "ATC" THEN
+		sql = sql & " AND Sigla = 'AT'"
+	ELSEIF strTipoTurma = "ESC" THEN
+		sql = sql & " AND isnull(Sigla,'') NOT IN ('AE','AT')"
+	END IF
 	sql = sql & " Order by Descricao"
 	RS.OPEN SQL, CNN
 %>

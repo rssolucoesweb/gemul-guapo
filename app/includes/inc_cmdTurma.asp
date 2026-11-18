@@ -53,6 +53,14 @@
 	if 	intCodGrade <> "0" then
 		sql = sql & " AND SCA_TURMA.Cod_GradeCurricular = " & intCodGrade
 	end if
+	'tipo de atendimento (igual Anápolis): ATC fica fora da lista geral; Guapó acha AEE/ATC pela sigla do curso
+	if 	strTipoTurma = "AEE" then
+		sql = sql & " AND SCA_CURSO.Sigla = 'AE'"
+	elseif 	strTipoTurma = "ESC" then
+		sql = sql & " AND isnull(SCA_CURSO.Sigla,'') NOT IN ('AE','AT')"
+	else
+		sql = sql & " AND isnull(SCA_CURSO.Sigla,'') <> 'AT'"
+	end if
 	sql = sql & " AND SCA_TURMA.Situacao = 'A' " 
 	sql = sql & " order by SCA_TURMA.NomeTurma"
 	RS.OPEN SQL, CNN
