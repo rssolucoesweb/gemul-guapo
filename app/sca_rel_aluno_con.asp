@@ -9,6 +9,8 @@
 	strExecutarSubmit         = "S"
 	strExecutarSubmitTipoEmpresa= "S"
 	strExecutarFiltroTipoEmpresa = "1,2,3,4"
+	strTipoTurma	     	= Trim(Request.Form("cmbTipoTurma"))
+	IF strTipoTurma = "" THEN strTipoTurma = "0"
 	intCodTipoEmpresa     	= Trim(Request.Form("cmbTipoEmpresa"))
 	IF intCodTipoEmpresa = "" THEN intCodTipoEmpresa = "0"
 	intCodEmpresaGrupo     	= Trim(Request.Form("cmbEmpresaGrupo"))
@@ -31,6 +33,7 @@
 
 	intCodTurno		 		= Trim(Request.Form("cmbTurno"))
 	intCodPlanoPagamento	= Trim(Request.Form("cmbPlanoPagamento"))
+	strDataMatricula		 			= Trim(Request.Form("txtDataMatricula"))
 	strSala		 			= Trim(Request.Form("txtSala"))
 	strSubTitulo 			= Trim(Request.Form("txtSubTitulo"))
 	strlpp 					= Trim(Request.Form("cmblpp"))
@@ -120,6 +123,14 @@
 							<%=mensagem_alerta_pagina%>
 						</div>
 						<%end if%>
+						<div class="row">
+							<div class="col-sm-6">
+								<div class="form-group">
+									<label class="form-label">Tipo:</label>
+									<!--#include file="includes/inc_cmbTipoTurma.asp" -->
+								</div>
+							</div>
+						</div>
 						<%if session("NivelPermissao") = "A" then%>
 						<div class="row">
 							<div class="col-sm-6">
@@ -128,6 +139,7 @@
 									<!--#include file="includes/inc_cmdTipoEmpresaSession.asp" -->
 								</div>
 							</div>
+							
 							<div class="col-sm-6">
 								<div class="form-group">
 									<label class="form-label">Unidade:</label>
@@ -166,13 +178,13 @@
 							</div>
 						</div>
 						<div class="row">
-							<div class="col-sm-4">
+							<div class="col-sm-2">
 								<div class="form-group">
 									<label class="form-label">Turno:</label>
 									 <!--#include file="includes/inc_cmdTurno.asp" -->
 								</div>
 							</div>
-							<div class="col-sm-4">
+							<div class="col-sm-2">
 								<div class="form-group">
 									<label class="form-label">Turma:</label>
 									 <!--#include file="includes/inc_cmdTurma.asp" -->
@@ -184,6 +196,14 @@
 									<!--#include file="includes/inc_cmdSituacaoAluno.asp" -->
 								</div>
 							</div>
+							<div class="col-sm-4">
+								<div class="form-group">
+									<label class="form-label">Data da Matrícula:</label>
+									<input name="txtDatamatricula" type="text" class="form-control" id="txtDatamatricula" onBlur="return validaData(this)" onKeyPress="return formataCampo(this, 3, 10)" size="11" maxlength="10" value="<%=strDatamatricula%>"> 
+								</div>
+							</div>
+							
+							
 						</div>
 						<div class="row">
 							<div class="col-sm-2">
@@ -313,154 +333,81 @@
 							</div>
 						</div>
 						
-						<br>
+						
 						<div class="row">
 							<div class="col-sm-12">
-								<table width="98%" border="0" align="center" cellpadding="0" cellspacing="2">
-									<tr>
-									  <td  colspan="6" class="texto1"><strong>Colunas para o relatório:<br><br></strong></td>
-									</tr>
-									
-									<tr>
-										<td height="20"><input disabled checked type="checkbox" name="matricula" value="S"> Matrícula</td>
-										<td height="20"><input type="checkbox" name="id_censo" value="S"> ID Censo</td>
-									</tr>
-									<tr>
-										<td height="20"><input disabled checked type="checkbox" name="nomealuno" value="S"> Nome do Aluno</td>
-										<td height="20"><input type="checkbox" name="idade" value="S"> Idade</td>
-										
-									</tr>
-									
-									<tr>
-										<td height="20"><input type="checkbox" name="assinatura" value="S"> Assinatura</td>
-										<td height="20"><input type="checkbox" name="naturalidade" value="S"> Naturalidade </td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="assinaturapaiemae" value="S">  Assinatura Pai e Mae</td>
-										<td height="20"><input type="checkbox" name="necessidadeespeciais" value="S"> Necessidade Especiais</td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="atendimentoespecial" value="S"> Atendimento Especial</td>
-										<td height="20"><input type="checkbox" name="nomemae" value="S"> Nome da Mae</td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="usodaimagem" value="S"> Autoriza uso da imagem</td>
-										<td height="20"><input type="checkbox" name="nomepai" value="S"> Nome do Pai</td>
-										
-									</tr>
-									<tr>
-										
-										<td height="20"><input type="checkbox" name="bolsafamilia" value="S"> Auxílio Brasil</td>
-										<td height="20"><input type="checkbox" name="nomeresponsavel" value="S"> Nome Responsável</td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="bairro" value="S"> Bairro</td>
-										
-										<td height="20"><input type="checkbox" name="numeroendereco" value="S"> Número	</td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="cartaosus" value="S"> Cartão do SUS</td>
-										
-										<td height="20"><input type="checkbox" name="numeroprocessojudicial" value="S"> Número do processo judicial	</td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="cidade" value="S"> Cidade</td>
-										
-										<td height="20"><input type="checkbox" name="identidade" value="S"> Número RG Nascimento</td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="codigoseguranca" value="S"> Cód. Segurança</td>
-										
-										<td height="20"><input type="checkbox" name="observacaoprocesso" value="S"> Observação do processo</td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="complementoendereco" value="S"> Complemento	</td>
-										<td height="20"><input type="checkbox" name="restricaoalimentar" value="S"> Restrição alimentar</td>
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="controlerequerimento" value="S"> Controle de Entrega e Recebimento</td>
-										<td height="20"><input type="checkbox" name="sexo" value="S"> Sexo do Aluno</td>
-										
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="cpf" value="S"> CPF</td>
-										<td height="20"><input type="checkbox" name="situacaoaluno" value="S"> Situação do aluno</td>
-										
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="dataafastamento" value="S"> Data Afastamento</td>
-										<td height="20"><input type="checkbox" name="telefonecelular" value="S"> Telefone Celular</td>
-										
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="datamatricula" value="S"> Data Matrícula</td>
-										<td height="20"><input type="checkbox" name="telefonecomercial" value="S"> Telefone Comercial</td>	
-										
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="datanascimento" value="S"> Data Nascimento</td>
-										<td height="20"><input type="checkbox" name="telefoneresidencial" value="S"> Telefone Residencial</td>
-										
-										
-									</tr>
-									<tr>
-										<td height="20"><input type="checkbox" name="email" value="S"> Email do Aluno</td>
-										<td height="20"><input type="checkbox" name="telefoneresponsavel" value="S"> Telefone Responsável</td>
-										
-										
-									</tr>
+								<label class="form-label">Marque os campos que deseja que saia no relatório:</label>
+								<br>
 
-									<tr>
-										<td height="20"><input type="checkbox" name="endereco" value="S"> Endereço</td>
-										
-										<td height="20"><input type="checkbox" name="turma" value="S"> Turma</td>
-										
-									</tr>
-									<tr>
-										
-										<td height="20"><input type="checkbox" name="cod_etnia" value="S"> Etnia</td>
-										<td height="20"><input type="checkbox" name="transportescolar" value="S"> Transporte Escolar Municipal</td>										
-																			
-										
-									</tr>	
-									<tr>
-										
-										<td height="20"><input type="checkbox" name="medicamento" value="S"> Faz uso de medicamento controlado</td>
-										
-										<td height="20"><input type="checkbox" name="TENIS_TAMANHO" value="S"> Tamanho Calçado</td>
-										
-									</tr>									
-									<tr>
-										<td height="20"><input type="checkbox" name="alergia" value="S"> Possui alergia</td>
-										<td height="20"><input type="checkbox" name="UNIFORME_TAMANHO" value="S"> Tamanho Uniforme</td>
-																				
-									</tr>										
-									<tr>
-										<td height="20"></td>
-										<%if session("NivelPermissao") = "A" then%>
-										<td height="20"><input type="checkbox" name="unidade" value="S"> Unidade</td>
-										<%end if%>
-										
-									</tr>	
-									<tr>
-										<td height="20"></td>
-										
-										<td height="20"><input type="checkbox" name="sala_aee" value="S"> Usa Sala AEE</td>	
-									</tr>										
-								  </table>
+								<div class="container">
+
+								<div class="item"><input type="checkbox" name="assinatura" value="S"> Assinatura</div>
+								<div class="item"><input type="checkbox" name="assinaturapaiemae" value="S"> Assinatura Pai e Mae</div>
+
+								<div class="item"><input type="checkbox" name="atendimentoespecial" value="S"> Atendimento Especial</div>
+								<div class="item"><input type="checkbox" name="bairro" value="S"> Bairro</div>
+								<div class="item"><input type="checkbox" name="bolsafamilia" value="S"> Bolsa Família</div>
+
+								<div class="item"><input type="checkbox" name="cartaosus" value="S"> Cartão do SUS</div>
+								<div class="item"><input type="checkbox" name="cidade" value="S"> Cidade</div>
+								<div class="item"><input type="checkbox" name="cod_etnia" value="S"> Cor</div>
+
+								<div class="item"><input type="checkbox" name="codigoseguranca" value="S"> Cód. Segurança</div>
+								<div class="item"><input type="checkbox" name="complementoendereco" value="S"> Complemento</div>
+								<div class="item"><input type="checkbox" name="controlerequerimento" value="S"> Controle de Entrega e Recebimento</div>
+
+								<div class="item"><input type="checkbox" name="cpf" value="S"> CPF</div>
+								<div class="item"><input type="checkbox" name="dataafastamento" value="S"> Data Afastamento</div>
+								<div class="item"><input type="checkbox" name="datamatricula" value="S"> Data Matrícula</div>
+
+								<div class="item"><input type="checkbox" name="datanascimento" value="S"> Data Nascimento</div>
+								<div class="item"><input type="checkbox" name="email" value="S"> Email do Aluno</div>
+								<div class="item"><input type="checkbox" name="endereco" value="S"> Endereço</div>
+
+								<div class="item"><input type="checkbox" name="id_censo" value="S"> ID Censo</div>
+								<div class="item"><input type="checkbox" name="identidade" value="S"> Número RG Nascimento</div>
+								<div class="item"><input type="checkbox" name="idade" value="S"> Idade</div>
+
+								<div class="item"><input type="checkbox" name="matricula" value="S" checked disabled> Matrícula</div>
+								<div class="item"><input type="checkbox" name="medicamento" value="S"> Faz uso de medicamento controlado</div>
+								<div class="item"><input type="checkbox" name="naturalidade" value="S"> Naturalidade</div>
+
+								<div class="item"><input type="checkbox" name="necessidadeespeciais" value="S"> Necessidade Especiais</div>
+								<div class="item"><input type="checkbox" name="nomealuno" value="S" checked disabled> Nome do Aluno</div>
+								<div class="item"><input type="checkbox" name="nomemae" value="S"> Nome da Mae</div>
+
+								<div class="item"><input type="checkbox" name="nomepai" value="S"> Nome do Pai</div>
+								<div class="item"><input type="checkbox" name="nomeresponsavel" value="S"> Nome Responsável</div>
+								<div class="item"><input type="checkbox" name="numeroendereco" value="S"> Número</div>
+
+								<div class="item"><input type="checkbox" name="numeroprocessojudicial" value="S"> Número do processo judicial</div>
+								<div class="item"><input type="checkbox" name="observacaoprocesso" value="S"> Observação do processo</div>
+								<div class="item"><input type="checkbox" name="periodo" value="S"> Período/Série</div>
+								<div class="item"><input type="checkbox" name="alergia" value="S"> Possui alergia</div>
+								<div class="item"><input type="checkbox" name="restricaoalimentar" value="S"> Restrição alimentar</div>
+
+								<div class="item"><input type="checkbox" name="sexo" value="S"> Sexo do Aluno</div>
+								<div class="item"><input type="checkbox" name="situacaoaluno" value="S"> Situação do aluno</div>
+								<div class="item"><input type="checkbox" name="sala_aee" value="S"> Usa Sala AEE</div>
+
+								<div class="item"><input type="checkbox" name="telefonecelular" value="S"> Telefone Celular</div>
+								<div class="item"><input type="checkbox" name="telefonecomercial" value="S"> Telefone Comercial</div>
+								<div class="item"><input type="checkbox" name="telefoneresidencial" value="S"> Telefone Residencial</div>
+
+								<div class="item"><input type="checkbox" name="telefoneresponsavel" value="S"> Telefone Responsável</div>
+								<div class="item"><input type="checkbox" name="TENIS_TAMANHO" value="S"> Tamanho Calçado</div>
+								<div class="item"><input type="checkbox" name="UNIFORME_TAMANHO" value="S"> Tamanho Uniforme</div>
+
+								<div class="item"><input type="checkbox" name="transportescolar" value="S"> Transporte Escolar Municipal</div>
+								<div class="item"><input type="checkbox" name="turma" value="S"> Turma</div>
+								<div class="item"><input type="checkbox" name="turno" value="S"> Turno</div>
+								<div class="item"><input type="checkbox" name="usodaimagem" value="S"> Autoriza uso da imagem</div>
+
+								<% if session("NivelPermissao") = "A" then %>
+								<div class="item"><input type="checkbox" name="unidade" value="S"> Unidade</div>
+								<% end if %>
+
+								</div>
 							
 							</div>
 						</div>
@@ -468,9 +415,9 @@
 						<br>
 						<br>
 						<div class="frame-wrap">
+						<%strMostrarGerarPDF = "S"%>
 							<!--#include file="includes/inc_botoes_geraRelatorio.asp" -->
 						</div>
-							
 					</div>
 				</div>
 			</div>
