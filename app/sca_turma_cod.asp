@@ -468,6 +468,13 @@ response.ContentType = "text/html"
 		cnn.execute sql
 		GravarLog sql
 
+		'situações do vínculo (FK_SCA_ALUNO_TURMA_SITUACAO_SCA_ALUNO_TURMA): apagar antes do vínculo
+		sql = "Delete ATS from SCA_ALUNO_TURMA_SITUACAO ATS "
+		sql = sql & " inner join SCA_ALUNO_TURMA AT on AT.CODIGO = ATS.COD_ALUNO_TURMA "
+		sql = sql & " where AT.Cod_Turma = " & intCodigo
+		cnn.execute sql
+		GravarLog sql
+
 		sql = "Delete from sca_aluno_turma "
 		sql = sql & " where Cod_Turma = " & intCodigo
 		cnn.execute sql
